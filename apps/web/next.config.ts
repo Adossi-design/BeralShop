@@ -70,6 +70,15 @@ const nextConfig: NextConfig = {
 
   experimental: {
     optimizePackageImports: ['@beralshopp/shared'],
+    /**
+     * Nombre de processus utilisés pour le pré-rendu.
+     *
+     * Par défaut Next en lance autant que de cœurs — onze sur cette machine. Chacun
+     * ouvrant ses propres connexions à la base, le build saturait la base de données
+     * et échouait. Quatre suffisent : le pré-rendu attend surtout la base, pas le
+     * processeur.
+     */
+    cpus: 4,
   },
 
   /**

@@ -2,7 +2,7 @@ import type { Metadata } from 'next';
 import { notFound } from 'next/navigation';
 import { RotateCcw, ShieldCheck, Truck } from 'lucide-react';
 
-import { getProductBySlug, listSimilarProducts } from '@beralshopp/core';
+import { getProductBySlug, listBestSellers, listSimilarProducts } from '@beralshopp/core';
 import { formatMoney, toMajor } from '@beralshopp/shared';
 
 import { Breadcrumb } from '@/components/catalog/breadcrumb';
@@ -19,6 +19,25 @@ import { VariantPicker } from '@/components/catalog/variant-picker';
  * 10 000 personnes ne déclenche pas 10 000 requêtes en base.
  */
 export const revalidate = 300;
+
+/**
+ * Pré-rend les fiches les plus vendues au moment du build.
+ *
+ * Compromis assumé : pré-rendre TOUT le catalogue rallongerait le build
+ * proportionnellement au nombre de produits — insoutenable à plusieurs milliers de
+ * références. Pré-rendre les 50 meilleures ventes couvre l'essentiel du trafic, et
+ * les autres fiches sont rendues à la première visite puis mises en cache.
+ */
+export async function generateStaticParams(): Promise<{ slug: string }[]> {
+  try {
+    const { items } = await listBestSellers(undefined, 50);
+    return items.map((product) => ({ slug: product.slug }));
+  } catch {
+    // Base injoignable au moment du build : on n'en pré-rend aucune plutôt que de
+    // faire échouer le déploiement. Les fiches seront servies à la demande.
+    return [];
+  }
+}
 
 interface PageProps {
   params: Promise<{ slug: string }>;

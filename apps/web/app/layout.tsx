@@ -3,6 +3,7 @@ import { Geist, Geist_Mono, Great_Vibes } from 'next/font/google';
 
 import { SiteFooter } from '@/components/site-footer';
 import { SiteHeader } from '@/components/site-header';
+import { WhatsAppButton } from '@/components/whatsapp-button';
 
 import './globals.css';
 
@@ -77,6 +78,7 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
         <SiteHeader />
         {children}
         <SiteFooter />
+        <WhatsAppButton />
       </body>
     </html>
   );

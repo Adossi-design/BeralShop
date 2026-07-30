@@ -32,7 +32,26 @@ function createClient(): PrismaClient {
    * l'application utilise. Les migrations, elles, passent par DIRECT_URL — voir
    * prisma.config.ts. Confondre les deux casse les migrations de façon peu lisible.
    */
-  const adapter = new PrismaPg({ connectionString });
+  const adapter = new PrismaPg({
+    connectionString,
+    /**
+     * ⚠️ PLAFOND DE CONNEXIONS PAR PROCESSUS.
+     *
+     * Sans lui, le pool par défaut ouvre jusqu'à 10 connexions. Multiplié par les
+     * processus parallèles du build Next (onze sur cette machine), cela dépassait la
+     * capacité de la base et faisait échouer le build sur « Connection terminated
+     * unexpectedly ».
+     *
+     * Le même raisonnement vaut en production sans état : chaque instance ne doit
+     * réclamer que ce dont elle a besoin. Trois connexions suffisent largement à une
+     * page qui exécute quelques requêtes en parallèle.
+     */
+    max: 3,
+    /** Une connexion inutilisée est rendue vite : les instances sont éphémères. */
+    idleTimeoutMillis: 10_000,
+    /** Mieux vaut échouer clairement que rester suspendu si la base est saturée. */
+    connectionTimeoutMillis: 15_000,
+  });
 
   return new PrismaClient({
     adapter,

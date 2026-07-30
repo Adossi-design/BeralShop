@@ -1,12 +1,8 @@
 import Link from 'next/link';
-import { LayoutGrid, ShoppingCart, User } from 'lucide-react';
-
-import { getCartItemCount, listCategoryTree } from '@beralshopp/core';
-
-import { getCartOwnerForRead } from '@/lib/cart';
-import { getCurrentUser } from '@/lib/session';
+import { listCategoryTree } from '@beralshopp/core';
 
 import { BeralshoppLogo, BeralshoppMark } from './beralshopp-logo';
+import { HeaderAccount } from './header-account';
 import { SearchBox } from './search-box';
 
 /**
@@ -20,16 +16,13 @@ import { SearchBox } from './search-box';
  * permanence — c'est le point d'entrée n°1 vers l'achat, jamais un élément replié
  * derrière une icône.
  *
- * Composant serveur : les catégories viennent de la base, sans aucun JavaScript
- * envoyé au navigateur pour les afficher.
+ * Composant SERVEUR, et sans lecture de cookie : c'est ce qui permet aux pages du
+ * site de rester pré-rendues. Le compte et le panier, qui dépendent du visiteur,
+ * sont confiés à <HeaderAccount>, un composant client. Lire la session ici rendrait
+ * toutes les pages dynamiques et supprimerait toute mise en cache.
  */
 export async function SiteHeader() {
-  const [categories, user] = await Promise.all([listCategoryTree(), getCurrentUser()]);
-
-  // Le propriétaire du panier dépend de l'utilisateur : cette résolution ne peut pas
-  // partir en parallèle des deux appels ci-dessus.
-  const cartOwner = await getCartOwnerForRead();
-  const cartCount = cartOwner ? await getCartItemCount(cartOwner) : 0;
+  const categories = await listCategoryTree();
 
   return (
     <header className="beral-surface-brand sticky top-0 z-40">
@@ -46,49 +39,7 @@ export async function SiteHeader() {
             <SearchBox variant="desktop" />
           </div>
 
-          <div className="ms-auto flex items-center gap-1 md:ms-0">
-            <Link
-              href="/categories"
-              className="text-ink-100 hover:bg-ink-800 hover:text-gold-300 rounded-control flex items-center gap-2 px-2 py-2 text-sm transition-colors sm:px-3 lg:hidden"
-              aria-label="Toutes les catégories"
-            >
-              <LayoutGrid className="h-5 w-5" aria-hidden />
-            </Link>
-
-            <Link
-              href={user ? '/compte' : '/connexion'}
-              className="text-ink-100 hover:bg-ink-800 hover:text-gold-300 rounded-control flex items-center gap-2 px-2 py-2 text-sm transition-colors sm:px-3"
-            >
-              <User className="h-5 w-5" aria-hidden />
-              {/* Le prénom seul : « Bonjour Jean-Baptiste Habimana » déborderait de
-                  l'en-tête sur la plupart des écrans. */}
-              <span className="hidden max-w-28 truncate lg:inline">
-                {user ? user.fullName.split(' ')[0] : 'Se connecter'}
-              </span>
-            </Link>
-
-            <Link
-              href="/panier"
-              className="text-ink-100 hover:bg-ink-800 hover:text-gold-300 rounded-control relative flex items-center gap-2 px-2 py-2 text-sm transition-colors sm:px-3"
-            >
-              <span className="relative">
-                <ShoppingCart className="h-5 w-5" aria-hidden />
-                {cartCount > 0 ? (
-                  <span
-                    className="bg-gold-400 text-ink-950 absolute -end-2 -top-2 flex h-4 min-w-4 items-center justify-center rounded-full px-1 text-[0.65rem] font-bold"
-                    aria-hidden
-                  >
-                    {cartCount > 99 ? '99+' : cartCount}
-                  </span>
-                ) : null}
-              </span>
-              <span className="hidden lg:inline">Panier</span>
-              {/* La pastille est décorative ; le nombre est annoncé ici aux lecteurs d'écran. */}
-              {cartCount > 0 ? (
-                <span className="sr-only">{cartCount} article(s) dans le panier</span>
-              ) : null}
-            </Link>
-          </div>
+          <HeaderAccount />
         </div>
 
         {/* ——— Recherche mobile, toujours visible ——— */}
