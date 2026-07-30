@@ -1,9 +1,10 @@
 import Link from 'next/link';
-import { LayoutGrid, Search, ShoppingCart, User } from 'lucide-react';
+import { LayoutGrid, ShoppingCart, User } from 'lucide-react';
 
 import { listCategoryTree } from '@beralshopp/core';
 
 import { BeralshoppLogo, BeralshoppMark } from './beralshopp-logo';
+import { SearchBox } from './search-box';
 
 /**
  * En-tête du site.
@@ -33,30 +34,9 @@ export async function SiteHeader() {
           </Link>
 
           {/* Recherche — masquée ici sur mobile, affichée en pleine largeur en dessous */}
-          <form action="/recherche" role="search" className="hidden flex-1 md:block">
-            <label htmlFor="recherche-bureau" className="sr-only">
-              Rechercher un produit
-            </label>
-            <div className="relative">
-              <Search
-                className="text-ink-400 pointer-events-none absolute inset-y-0 start-3 my-auto h-5 w-5"
-                aria-hidden
-              />
-              <input
-                id="recherche-bureau"
-                type="search"
-                name="q"
-                placeholder="Rechercher un produit, une marque, une référence…"
-                className="border-ink-700 bg-ink-900 text-ink-50 placeholder:text-ink-400 focus:border-gold-500 rounded-control h-11 w-full border ps-11 pe-28 text-sm focus:outline-none"
-              />
-              <button
-                type="submit"
-                className="beral-btn-gold absolute inset-y-1 end-1 rounded-[0.5rem] px-4 text-sm font-semibold"
-              >
-                Chercher
-              </button>
-            </div>
-          </form>
+          <div className="hidden flex-1 md:block">
+            <SearchBox variant="desktop" />
+          </div>
 
           <div className="ms-auto flex items-center gap-1 md:ms-0">
             <Link
@@ -86,24 +66,9 @@ export async function SiteHeader() {
         </div>
 
         {/* ——— Recherche mobile, toujours visible ——— */}
-        <form action="/recherche" role="search" className="pb-3 md:hidden">
-          <label htmlFor="recherche-mobile" className="sr-only">
-            Rechercher un produit
-          </label>
-          <div className="relative">
-            <Search
-              className="text-ink-400 pointer-events-none absolute inset-y-0 start-3 my-auto h-5 w-5"
-              aria-hidden
-            />
-            <input
-              id="recherche-mobile"
-              type="search"
-              name="q"
-              placeholder="Rechercher un produit…"
-              className="border-ink-700 bg-ink-900 text-ink-50 placeholder:text-ink-400 focus:border-gold-500 rounded-control h-11 w-full border ps-11 pe-3 text-base focus:outline-none"
-            />
-          </div>
-        </form>
+        <div className="pb-3 md:hidden">
+          <SearchBox variant="mobile" />
+        </div>
       </div>
 
       {/* Filet doré : écho du cercle qui entoure le logo. */}

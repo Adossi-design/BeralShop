@@ -1,4 +1,17 @@
 -- ═══════════════════════════════════════════════════════════════════════════════
+--  La recherche prend désormais en compte le NOM DE CATÉGORIE.
+--
+--  Le cahier des charges demande de pouvoir chercher par nom de produit, catégorie,
+--  marque, mots-clés et référence. Il manquait la catégorie.
+--
+--  Ajouté au poids C, aux côtés de la marque : chercher « électronique » ou « audio »
+--  remonte les produits de la rubrique, sans jamais passer devant un produit dont
+--  c'est réellement le nom (poids A).
+--
+--  La rubrique PARENTE est également indexée : un produit rangé dans
+--  « Électronique > Audio » répond aussi à « électronique ».
+-- ═══════════════════════════════════════════════════════════════════════════════
+-- ═══════════════════════════════════════════════════════════════════════════════
 --  Objets PostgreSQL que Prisma ne sait pas décrire dans son schéma.
 --
 --  Ce fichier est destiné à être COLLÉ À LA FIN de la première migration générée
@@ -258,3 +271,16 @@ ALTER TABLE reviews
 ALTER TABLE reviews
   ADD CONSTRAINT chk_review_rating_range
   CHECK (rating BETWEEN 1 AND 5);
+
+-- Recalcul de l'ensemble du catalogue : les vecteurs existants ne contiennent pas
+-- encore les noms de catégorie. Sans ce rattrapage, seuls les produits modifiés
+-- après la migration seraient trouvables par leur catégorie.
+DO $$
+DECLARE
+  target record;
+BEGIN
+  FOR target IN SELECT id FROM products LOOP
+    PERFORM beralshopp_refresh_product_search(target.id);
+  END LOOP;
+END;
+$$;
