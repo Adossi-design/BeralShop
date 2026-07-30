@@ -21,7 +21,8 @@
     "db:push": "pnpm --filter @beralshopp/db run push",
     "db:studio": "pnpm --filter @beralshopp/db run studio",
     "db:seed": "pnpm --filter @beralshopp/db run seed",
-    "db:verify": "pnpm --filter @beralshopp/db run verify"
+    "db:verify": "pnpm --filter @beralshopp/db run verify",
+    "db:reconcile": "pnpm --filter @beralshopp/db run reconcile"
   },
   "devDependencies": {
     "prettier": "^3.6.2",

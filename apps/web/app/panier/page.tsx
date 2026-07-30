@@ -189,18 +189,12 @@ function Summary({ cart }: { readonly cart: CartView }) {
         </p>
       ) : null}
 
-      <button
-        type="button"
-        disabled
-        title="Le tunnel de commande arrive au lot 5"
-        className="beral-btn-gold rounded-control mt-5 w-full px-6 py-3 font-semibold disabled:cursor-not-allowed disabled:opacity-60"
+      <Link
+        href="/commande"
+        className="beral-btn-gold rounded-control mt-5 block w-full px-6 py-3 text-center font-semibold"
       >
         Passer la commande
-      </button>
-
-      <p className="text-content-muted mt-2 text-center text-xs">
-        Le tunnel de commande et le paiement arrivent aux lots 5 et 6.
-      </p>
+      </Link>
 
       <Link
         href="/categories"

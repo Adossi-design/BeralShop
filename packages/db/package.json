@@ -15,7 +15,8 @@
     "studio": "prisma studio",
     "seed": "tsx prisma/seed.ts",
     "verify": "tsx scripts/verify-schema.ts",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "reconcile": "tsx scripts/reconcile-stock.ts"
   },
   "dependencies": {
     "@beralshopp/shared": "workspace:*",
