@@ -3,6 +3,7 @@ import { PackageSearch } from 'lucide-react';
 import type { ProductSummary } from '@beralshopp/core';
 
 import { ProductCard } from './product-card';
+import { Rail } from './rail';
 
 /**
  * Grille de produits.
@@ -50,15 +51,18 @@ export function ProductRail({ products }: { readonly products: readonly ProductS
   if (products.length === 0) return null;
 
   return (
-    <ul className="-mx-1 flex snap-x snap-mandatory [scrollbar-width:none] gap-2 overflow-x-auto px-1 pb-2 [&::-webkit-scrollbar]:hidden">
+    <Rail>
+      {/* Densité voulue par le propriétaire : ~7 cartes par rangée sur grand
+          écran, 3 sur téléphone. La fraction visible de la carte suivante
+          signale qu'il y en a d'autres à faire défiler. */}
       {products.map((product) => (
         <li
           key={product.id}
-          className="flex w-[28%] shrink-0 snap-start sm:w-[17%] lg:w-[13%] xl:w-[10.4%]"
+          className="flex w-[31%] shrink-0 snap-start sm:w-[22%] lg:w-[16.5%] xl:w-[14%]"
         >
           <ProductCard product={product} compact />
         </li>
       ))}
-    </ul>
+    </Rail>
   );
 }
