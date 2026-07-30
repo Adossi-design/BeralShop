@@ -50,13 +50,13 @@ export function ProductRail({ products }: { readonly products: readonly ProductS
   if (products.length === 0) return null;
 
   return (
-    <ul className="-mx-1 flex snap-x snap-mandatory [scrollbar-width:none] gap-2.5 overflow-x-auto px-1 pb-2 [&::-webkit-scrollbar]:hidden">
+    <ul className="-mx-1 flex snap-x snap-mandatory [scrollbar-width:none] gap-2 overflow-x-auto px-1 pb-2 [&::-webkit-scrollbar]:hidden">
       {products.map((product) => (
         <li
           key={product.id}
-          className="flex w-[38%] shrink-0 snap-start sm:w-[24%] lg:w-[18%] xl:w-[15%]"
+          className="flex w-[30%] shrink-0 snap-start sm:w-[19%] lg:w-[14%] xl:w-[11.5%]"
         >
-          <ProductCard product={product} />
+          <ProductCard product={product} compact />
         </li>
       ))}
     </ul>

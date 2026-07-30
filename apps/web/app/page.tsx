@@ -53,8 +53,8 @@ function Section({
   readonly children: React.ReactNode;
 }) {
   return (
-    <section className="beral-container py-6">
-      <div className="mb-4 flex items-baseline justify-between gap-4">
+    <section className="beral-container py-4">
+      <div className="mb-3 flex items-baseline justify-between gap-4">
         <h2 className="text-content text-lg font-bold sm:text-xl">{title}</h2>
         <Link
           href={href}
@@ -85,15 +85,20 @@ export default async function HomePage() {
       */}
       <h1 className="sr-only">Beralshopp — vente en ligne au Rwanda</h1>
 
-      {/* ——— Réassurance ——— */}
+      {/* ——— Réassurance ———
+          Une seule ligne, même sur téléphone : chaque pixel de hauteur pris ici
+          repousse les produits — la vraie raison de la visite — sous la pliure.
+          Le détail n'apparaît qu'à partir des écrans moyens. */}
       <section className="border-border bg-surface border-b">
-        <div className="beral-container grid grid-cols-1 gap-4 py-5 sm:grid-cols-3">
+        <div className="beral-container grid grid-cols-3 gap-2 py-3 sm:py-4">
           {GUARANTEES.map((item) => (
-            <div key={item.label} className="flex items-center gap-3">
-              <item.icon className="text-gold-600 h-6 w-6 shrink-0" aria-hidden />
-              <div>
-                <p className="text-content text-sm font-semibold">{item.label}</p>
-                <p className="text-content-muted text-xs">{item.detail}</p>
+            <div key={item.label} className="flex items-center gap-2 sm:gap-3">
+              <item.icon className="text-gold-600 h-5 w-5 shrink-0 sm:h-6 sm:w-6" aria-hidden />
+              <div className="min-w-0">
+                <p className="text-content text-xs leading-tight font-semibold sm:text-sm">
+                  {item.label}
+                </p>
+                <p className="text-content-muted hidden text-xs md:block">{item.detail}</p>
               </div>
             </div>
           ))}

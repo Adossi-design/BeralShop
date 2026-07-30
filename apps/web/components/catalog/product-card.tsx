@@ -20,9 +20,15 @@ interface ProductCardProps {
   readonly product: ProductSummary;
   /** À activer uniquement pour les toutes premières cartes visibles sans défilement. */
   readonly priority?: boolean;
+  /**
+   * Version resserrée pour les carrousels de l'accueil : la page doit montrer
+   * DEUX rangées de produits dans un seul écran. On gagne la hauteur sur ce qui
+   * pèse le moins dans la décision (marque, nombre d'avis), jamais sur le prix.
+   */
+  readonly compact?: boolean;
 }
 
-export function ProductCard({ product, priority }: ProductCardProps) {
+export function ProductCard({ product, priority, compact = false }: ProductCardProps) {
   return (
     <article className="group border-border bg-surface rounded-card shadow-card hover:shadow-raised relative flex h-full flex-col overflow-hidden border transition-shadow">
       <div className="bg-surface-muted relative aspect-square overflow-hidden">
@@ -57,14 +63,18 @@ export function ProductCard({ product, priority }: ProductCardProps) {
         ) : null}
       </div>
 
-      <div className="flex flex-1 flex-col gap-1 p-2.5">
-        {product.brandName ? (
+      <div className={`flex flex-1 flex-col gap-1 ${compact ? 'p-2' : 'p-2.5'}`}>
+        {!compact && product.brandName ? (
           <p className="text-content-muted text-[0.7rem] tracking-wide uppercase">
             {product.brandName}
           </p>
         ) : null}
 
-        <h3 className="text-content line-clamp-2 text-sm leading-snug font-medium">
+        <h3
+          className={`text-content leading-snug font-medium ${
+            compact ? 'line-clamp-2 text-xs' : 'line-clamp-2 text-sm'
+          }`}
+        >
           {/* `after:absolute inset-0` étend la zone cliquable à toute la carte sans
               imbriquer plusieurs liens — un seul élément focalisable au clavier. */}
           <Link
@@ -75,10 +85,10 @@ export function ProductCard({ product, priority }: ProductCardProps) {
           </Link>
         </h3>
 
-        <StarRating value={product.ratingAvg} count={product.ratingCount} />
+        <StarRating value={product.ratingAvg} count={product.ratingCount} showCount={!compact} />
 
         {/* `mt-auto` colle le prix en bas : toutes les cartes s'alignent. */}
-        <div className="mt-auto pt-1.5">
+        <div className={`mt-auto ${compact ? 'pt-1' : 'pt-1.5'}`}>
           <Price price={product.price} showFrom={product.hasMultiplePrices} size="sm" />
         </div>
       </div>
