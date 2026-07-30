@@ -431,11 +431,70 @@ model User {
   reviews             Review[]
   notifications       Notification[]
   passwordResetTokens PasswordResetToken[]
+  sessions            Session[]
   auditLogs           AdminAuditLog[]
 
   @@index([role, isActive])
   @@index([createdAt(sort: Desc)])
   @@map("users")
+}
+
+/// Session de connexion.
+///
+/// ⚠️ CHOIX D'ARCHITECTURE — sessions en base plutôt que jetons JWT.
+///
+/// Le dossier technique évoquait Auth.js. En pratique, son fournisseur
+/// « Credentials » impose des sessions JWT, qui ne sont PAS révocables : un jeton
+/// volé reste valide jusqu'à son expiration, et « déconnecter tous les appareils »
+/// devient impossible. Pour une boutique qui manipule des paiements et dispose de
+/// comptes administrateurs, c'est inacceptable.
+///
+/// Une session en base se révoque instantanément, se liste (« vos connexions
+/// actives ») et s'audite. Le coût est une requête indexée par requête authentifiée.
+///
+/// Le cookie ne contient QUE le jeton aléatoire ; la base n'en stocke que le
+/// haché SHA-256. Une fuite de la table ne permet donc d'usurper aucune session.
+model Session {
+  id     String @id @default(cuid())
+  userId String
+
+  /// SHA-256 du jeton, jamais le jeton lui-même.
+  tokenHash String @unique @db.VarChar(64)
+
+  userAgent String?
+  ipAddress String? @db.VarChar(45)
+
+  createdAt  DateTime  @default(now())
+  lastSeenAt DateTime  @default(now())
+  expiresAt  DateTime
+  /// Renseigné à la déconnexion ou à la révocation. Jamais supprimé : trace d'audit.
+  revokedAt  DateTime?
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, revokedAt])
+  @@index([expiresAt])
+  @@map("sessions")
+}
+
+/// Historique des tentatives de connexion, pour la limitation de débit.
+///
+/// Conservé en base et non en mémoire : sur un hébergement sans état comme Vercel,
+/// chaque requête peut atterrir sur une instance différente. Un compteur en mémoire
+/// n'y protégerait de rien.
+model LoginAttempt {
+  id String @id @default(cuid())
+
+  /// Identifiant saisi, normalisé (téléphone E.164 ou e-mail en minuscules).
+  identifier String  @db.VarChar(160)
+  ipAddress  String? @db.VarChar(45)
+  succeeded  Boolean
+
+  createdAt DateTime @default(now())
+
+  @@index([identifier, createdAt])
+  @@index([ipAddress, createdAt])
+  @@map("login_attempts")
 }
 
 model PasswordResetToken {

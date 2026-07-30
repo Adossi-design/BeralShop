@@ -3,6 +3,8 @@ import { LayoutGrid, ShoppingCart, User } from 'lucide-react';
 
 import { listCategoryTree } from '@beralshopp/core';
 
+import { getCurrentUser } from '@/lib/session';
+
 import { BeralshoppLogo, BeralshoppMark } from './beralshopp-logo';
 import { SearchBox } from './search-box';
 
@@ -21,7 +23,7 @@ import { SearchBox } from './search-box';
  * envoyé au navigateur pour les afficher.
  */
 export async function SiteHeader() {
-  const categories = await listCategoryTree();
+  const [categories, user] = await Promise.all([listCategoryTree(), getCurrentUser()]);
 
   return (
     <header className="beral-surface-brand sticky top-0 z-40">
@@ -48,11 +50,15 @@ export async function SiteHeader() {
             </Link>
 
             <Link
-              href="/compte"
+              href={user ? '/compte' : '/connexion'}
               className="text-ink-100 hover:bg-ink-800 hover:text-gold-300 rounded-control flex items-center gap-2 px-2 py-2 text-sm transition-colors sm:px-3"
             >
               <User className="h-5 w-5" aria-hidden />
-              <span className="hidden lg:inline">Mon compte</span>
+              {/* Le prénom seul : « Bonjour Jean-Baptiste Habimana » déborderait de
+                  l'en-tête sur la plupart des écrans. */}
+              <span className="hidden max-w-28 truncate lg:inline">
+                {user ? user.fullName.split(' ')[0] : 'Se connecter'}
+              </span>
             </Link>
 
             <Link

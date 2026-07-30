@@ -6,7 +6,8 @@
   "exports": {
     ".": "./src/index.ts",
     "./catalog": "./src/catalog/index.ts",
-    "./pricing": "./src/pricing/index.ts"
+    "./pricing": "./src/pricing/index.ts",
+    "./auth": "./src/auth/index.ts"
   },
   "scripts": {
     "typecheck": "tsc --noEmit",
@@ -14,7 +15,8 @@
   },
   "dependencies": {
     "@beralshopp/db": "workspace:*",
-    "@beralshopp/shared": "workspace:*"
+    "@beralshopp/shared": "workspace:*",
+    "@node-rs/argon2": "^2.0.2"
   },
   "devDependencies": {
     "@types/node": "^22.15.0",

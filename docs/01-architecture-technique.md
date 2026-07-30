@@ -13,7 +13,7 @@
 | Cache / files    | **Redis**                                           | Sessions, limitation de débit, panier invité, cache des taux de change.                                                                                                 |
 | Tâches de fond   | **Inngest** (ou BullMQ si serveur dédié)            | Envoi d'e-mails, réconciliation des paiements, synchronisation fournisseurs — avec nouvelles tentatives automatiques.                                                   |
 | Images           | **Cloudflare R2** + transformation d'images         | Stockage sans frais de sortie de données, conversion automatique en WebP/AVIF, redimensionnement selon l'écran. Point critique en Afrique.                              |
-| Authentification | **Auth.js v5**                                      | Cookie sécurisé pour le web, jeton JWT pour le mobile — un seul système pour les deux.                                                                                  |
+| Authentification | **Sessions en base + Argon2id** (voir §7)           | Cookie `httpOnly` contenant un jeton aléatoire, dont seule l'empreinte est stockée. Sessions révocables à tout instant.                                                 |
 | Recherche        | **PostgreSQL FTS** (V1) → **Meilisearch** (V2)      | Voir §5.                                                                                                                                                                |
 | Traductions      | **next-intl** + tables de traduction en base        | Français / Anglais / Arabe (avec sens d'écriture droite-à-gauche).                                                                                                      |
 | Mobile (V3)      | **React Native + Expo**                             | Réutilise TypeScript, les types partagés et l'API v1. Une seule base de code Android + iOS.                                                                             |
@@ -177,3 +177,49 @@ Ce sont les décisions qui coûtent quelques heures maintenant et évitent des s
 Le dernier point mérite une insistance particulière : **ajouter `vendor_id` après coup dans une
 base contenant des dizaines de milliers de commandes est un chantier de plusieurs semaines.**
 Le faire maintenant coûte deux heures. C'est le meilleur rapport effort/valeur de tout ce document.
+
+---
+
+## 7. Authentification — écart assumé par rapport au plan initial
+
+Ce dossier prévoyait **Auth.js v5**. Le lot 3 a été construit sur des **sessions en
+base de données**. Voici pourquoi.
+
+### Le problème avec Auth.js dans notre cas
+
+Auth.js excelle pour les connexions via Google, Facebook ou Apple. Beralshopp
+n'utilise aucune de ces options : l'identifiant est un **numéro de téléphone** avec
+mot de passe. Or le fournisseur « Credentials » d'Auth.js impose des **sessions JWT**,
+et refuse les sessions en base.
+
+Un JWT est un jeton signé, autonome, que le serveur ne consulte nulle part. Sa
+conséquence est irréductible : **il ne peut pas être révoqué**. Concrètement :
+
+- un jeton volé reste valide jusqu'à son expiration, quoi qu'on fasse ;
+- « déconnecter tous mes appareils » devient impossible ;
+- désactiver un compte administrateur compromis ne prend effet qu'à l'expiration.
+
+Pour une plateforme qui encaisse des paiements et dispose de comptes administrateurs,
+c'est inacceptable.
+
+### Ce qui a été fait à la place
+
+| Élément         | Mise en œuvre                                                                                                                                                            |
+| --------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| Mots de passe   | **Argon2id**, paramètres minimum OWASP 2024 (19 Mio, 2 itérations)                                                                                                       |
+| Cookie          | Jeton aléatoire de 32 octets, `httpOnly` + `Secure` + `SameSite=Lax`                                                                                                     |
+| Stockage        | **Seule l'empreinte SHA-256 du jeton** est en base — une fuite de la table `sessions` ne permet d'usurper aucune connexion                                               |
+| Révocation      | Instantanée, unitaire ou globale. Les lignes sont conservées : trace d'audit                                                                                             |
+| Durée           | 30 jours pour un client, **12 heures pour un administrateur**                                                                                                            |
+| Non-énumération | Message ET temps de réponse identiques que le compte existe ou non                                                                                                       |
+| Limitation      | 5 échecs par identifiant, 25 par adresse IP, sur 15 minutes glissantes — **comptés en base**, car un compteur en mémoire ne protège de rien sur un hébergement sans état |
+
+### Ce que cela coûte
+
+Une requête indexée supplémentaire par page authentifiée. C'est le prix de la
+révocabilité, et il est modeste.
+
+### Pour l'application mobile
+
+Le même mécanisme s'applique : la table `sessions` sert aussi bien un cookie web
+qu'un jeton `Bearer` mobile. Aucun second système d'authentification à construire.
