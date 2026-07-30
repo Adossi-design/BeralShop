@@ -10,11 +10,13 @@
     "./auth": "./src/auth/index.ts",
     "./cart": "./src/cart/index.ts",
     "./inventory": "./src/inventory/index.ts",
-    "./orders": "./src/orders/index.ts"
+    "./orders": "./src/orders/index.ts",
+    "./admin": "./src/admin/index.ts"
   },
   "scripts": {
     "typecheck": "tsc --noEmit",
-    "test": "vitest run"
+    "test": "vitest run",
+    "admin": "tsx scripts/create-admin.ts"
   },
   "dependencies": {
     "@beralshopp/db": "workspace:*",

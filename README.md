@@ -11,21 +11,22 @@ Adossi Fred William** — voir [06 — Sécurité & propriété](docs/06-securit
 
 ## État du projet
 
-**Lot 0 — Fondations : terminé.** Le monorepo, la base de données, l'identité visuelle et
-la chaîne de vérification automatique sont en place. Le site démarre et se construit.
+**Boutique fonctionnelle de bout en bout, sauf l'encaissement.** Un client peut chercher un
+produit, l'ajouter au panier, créer un compte et passer commande. L'administrateur gère les
+commandes, les produits, les stocks et les clients depuis un seul tableau de bord.
 
-| Lot | Contenu                                         | État       |
-| --- | ----------------------------------------------- | ---------- |
-| 0   | Monorepo, schéma de base, design system, CI     | ✅ Terminé |
-| 1   | Catalogue : catégories, produits, fiche produit | ⏳ À venir |
-| 2   | Recherche et filtres                            | ⏳         |
-| 3   | Comptes clients                                 | ⏳         |
-| 4   | Panier                                          | ⏳         |
-| 5   | Commande et suivi                               | ⏳         |
-| 6   | Paiement Pesapal                                | ⏳         |
-| 7   | Tableau de bord administrateur                  | ⏳         |
-| 8   | Design et performance                           | ⏳         |
-| 9   | Mise en ligne                                   | ⏳         |
+| Lot | Contenu                                         | État                                 |
+| --- | ----------------------------------------------- | ------------------------------------ |
+| 0   | Monorepo, schéma de base, design system, CI     | ✅ Terminé                           |
+| 1   | Catalogue : catégories, produits, fiche produit | ✅ Terminé                           |
+| 2   | Recherche et filtres                            | ✅ Terminé                           |
+| 3   | Comptes clients                                 | ✅ Terminé                           |
+| 4   | Panier                                          | ✅ Terminé                           |
+| 5   | Commande et suivi                               | ✅ Terminé                           |
+| 6   | **Paiement Pesapal**                            | ⛔ Bloqué — accès bac à sable requis |
+| 7   | Tableau de bord administrateur                  | ✅ Terminé                           |
+| 8   | Design et performance                           | ⏳ À venir                           |
+| 9   | Mise en ligne                                   | ⏳                                   |
 
 Détail dans [05 — Roadmap](docs/05-roadmap.md).
 
@@ -58,15 +59,18 @@ pnpm dev          # → http://localhost:3000
 
 ### Commandes
 
-| Commande         | Effet                                   |
-| ---------------- | --------------------------------------- |
-| `pnpm dev`       | Serveur de développement                |
-| `pnpm build`     | Build de production de tout le monorepo |
-| `pnpm typecheck` | Vérification des types                  |
-| `pnpm lint`      | Analyse statique                        |
-| `pnpm test`      | Tests unitaires                         |
-| `pnpm format`    | Reformatage du code                     |
-| `pnpm db:studio` | Explorateur visuel de la base           |
+| Commande            | Effet                                                             |
+| ------------------- | ----------------------------------------------------------------- |
+| `pnpm dev`          | Serveur de développement                                          |
+| `pnpm build`        | Build de production de tout le monorepo                           |
+| `pnpm typecheck`    | Vérification des types                                            |
+| `pnpm lint`         | Analyse statique                                                  |
+| `pnpm test`         | Tests unitaires                                                   |
+| `pnpm format`       | Reformatage du code                                               |
+| `pnpm db:studio`    | Explorateur visuel de la base                                     |
+| `pnpm db:verify`    | Contrôle de santé du schéma                                       |
+| `pnpm db:reconcile` | Vérifie que les réservations de stock correspondent aux commandes |
+| `pnpm db:admin`     | Crée ou promeut un compte administrateur                          |
 
 ---
 
