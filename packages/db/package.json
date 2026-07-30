@@ -1,0 +1,32 @@
+{
+  "name": "@beralshop/db",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "scripts": {
+    "build": "prisma generate",
+    "generate": "prisma generate",
+    "migrate": "prisma migrate dev",
+    "migrate:deploy": "prisma migrate deploy",
+    "push": "prisma db push",
+    "studio": "prisma studio",
+    "seed": "tsx prisma/seed.ts",
+    "verify": "tsx scripts/verify-schema.ts",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@beralshop/shared": "workspace:*",
+    "@prisma/adapter-pg": "^7.9.1",
+    "@prisma/client": "^7.9.1"
+  },
+  "devDependencies": {
+    "@types/node": "^22.15.0",
+    "dotenv": "^17.2.3",
+    "prisma": "^7.9.1",
+    "tsx": "^4.20.6",
+    "typescript": "^5.9.3"
+  }
+}

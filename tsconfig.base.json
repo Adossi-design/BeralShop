@@ -1,0 +1,35 @@
+{
+  "$schema": "https://json.schemastore.org/tsconfig",
+  "compilerOptions": {
+    "target": "ES2023",
+    "lib": ["ES2023"],
+    "module": "Preserve",
+    "moduleResolution": "bundler",
+    "moduleDetection": "force",
+    "resolveJsonModule": true,
+    "esModuleInterop": true,
+    "isolatedModules": true,
+    "verbatimModuleSyntax": true,
+    // Les paquets internes sont consommés en TypeScript source (transpilePackages côté
+    // Next). Les imports portent donc l'extension .ts explicite : cela reste valide pour
+    // les bundlers, pour Vitest et pour l'exécution native Node avec type stripping.
+    "allowImportingTsExtensions": true,
+
+    "strict": true,
+    "noUncheckedIndexedAccess": true,
+    "noImplicitOverride": true,
+    "noFallthroughCasesInSwitch": true,
+    "noUnusedLocals": true,
+    "noUnusedParameters": true,
+    "exactOptionalPropertyTypes": false,
+
+    "skipLibCheck": true,
+    "forceConsistentCasingInFileNames": true,
+    "declaration": true,
+    "declarationMap": true,
+    "sourceMap": true,
+    "incremental": true,
+    "noEmit": true
+  },
+  "exclude": ["node_modules", "dist", ".next", ".turbo"]
+}

@@ -1,0 +1,32 @@
+{
+  "name": "beralshop",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Beralshop — plateforme e-commerce africaine",
+  "packageManager": "pnpm@11.18.0",
+  "engines": {
+    "node": ">=22.13.0"
+  },
+  "scripts": {
+    "dev": "turbo run dev",
+    "build": "turbo run build",
+    "start": "turbo run start",
+    "lint": "turbo run lint",
+    "typecheck": "turbo run typecheck",
+    "test": "turbo run test",
+    "format": "prettier --write \"**/*.{ts,tsx,js,jsx,json,md,css,yaml,yml}\"",
+    "format:check": "prettier --check \"**/*.{ts,tsx,js,jsx,json,md,css,yaml,yml}\"",
+    "db:generate": "pnpm --filter @beralshop/db run generate",
+    "db:migrate": "pnpm --filter @beralshop/db run migrate",
+    "db:push": "pnpm --filter @beralshop/db run push",
+    "db:studio": "pnpm --filter @beralshop/db run studio",
+    "db:seed": "pnpm --filter @beralshop/db run seed",
+    "db:verify": "pnpm --filter @beralshop/db run verify"
+  },
+  "devDependencies": {
+    "prettier": "^3.6.2",
+    "prettier-plugin-tailwindcss": "^0.8.1",
+    "turbo": "^2.10.7",
+    "typescript": "^5.9.3"
+  }
+}

@@ -1,0 +1,104 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+# Une nouvelle poussée annule la vérification précédente sur la même branche :
+# inutile de payer deux fois pour un code déjà remplacé.
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  # Valeurs factices : le typage et le build n'ouvrent aucune connexion réelle.
+  DATABASE_URL: 'postgresql://ci:ci@localhost:5432/ci'
+  DIRECT_URL: 'postgresql://ci:ci@localhost:5432/ci'
+
+jobs:
+  verify:
+    name: Typage, lint, tests, build
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+
+      - name: Installer les dépendances
+        run: pnpm install --frozen-lockfile
+
+      - name: Générer le client Prisma
+        run: pnpm db:generate
+
+      - name: Vérifier le formatage
+        run: pnpm format:check
+
+      - name: Vérifier le typage
+        run: pnpm typecheck
+
+      - name: Lint
+        run: pnpm lint
+
+      - name: Tests unitaires
+        run: pnpm test
+
+      - name: Build
+        run: pnpm build
+
+  # Le schéma doit être valide et les migrations doivent s'appliquer sur une base
+  # vierge. C'est ce qui empêche une migration cassée d'atteindre la production.
+  database:
+    name: Migrations sur base vierge
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_USER: ci
+          POSTGRES_PASSWORD: ci
+          POSTGRES_DB: beralshop_ci
+        ports: ['5432:5432']
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+    env:
+      DATABASE_URL: 'postgresql://ci:ci@localhost:5432/beralshop_ci'
+      DIRECT_URL: 'postgresql://ci:ci@localhost:5432/beralshop_ci'
+
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+
+      - run: pnpm install --frozen-lockfile
+
+      - name: Valider le schéma
+        run: pnpm --filter @beralshop/db exec prisma validate
+
+      - name: Appliquer les migrations
+        run: pnpm --filter @beralshop/db run migrate:deploy
+
+      - name: Amorcer les données de référence
+        run: pnpm db:seed
+
+      # Contrôle décisif : crée un produit, cherche « ecouteur bluetooth » sans accent
+      # et vérifie qu'il remonte. Détecte toute régression des triggers de recherche,
+      # de la séquence des commandes ou des contraintes anti-survente.
+      - name: Contrôle de santé du schéma
+        run: pnpm db:verify

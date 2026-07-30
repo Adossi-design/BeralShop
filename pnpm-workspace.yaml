@@ -1,0 +1,13 @@
+packages:
+  - 'apps/*'
+  - 'packages/*'
+
+# pnpm >=10 bloque par défaut les scripts d'installation des dépendances.
+# On autorise explicitement celles qui en ont légitimement besoin.
+allowBuilds:
+  esbuild: true
+  sharp: true
+  prisma: true
+  '@prisma/client': true
+  '@prisma/engines': true
+  'unrs-resolver': true

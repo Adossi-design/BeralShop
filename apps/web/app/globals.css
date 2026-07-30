@@ -1,0 +1,230 @@
+@import 'tailwindcss';
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   BERALSHOP — Système de design
+   Référence : docs/05-roadmap.md, lot 8
+
+   Parti pris chromatique : la quasi-totalité des plateformes e-commerce
+   africaines (Jumia, Kikuu) et AliExpress utilisent un orange-rouge. Beralshop
+   prend le contre-pied avec un TEAL PROFOND, qui évoque la confiance et le
+   sérieux, réchauffé par un OR pour les appels à l'action et les prix.
+   Résultat : une identité immédiatement reconnaissable, sans copier personne.
+
+   Toutes les valeurs sont des jetons. Ne jamais écrire une couleur en dur dans
+   un composant : un changement de charte doit se faire ici, et nulle part ailleurs.
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+@theme {
+  /* ——— Couleur de marque : teal profond ——— */
+  --color-brand-50: #eafaf6;
+  --color-brand-100: #cbf2e8;
+  --color-brand-200: #98e5d4;
+  --color-brand-300: #5ed2bb;
+  --color-brand-400: #2eb69f;
+  --color-brand-500: #109a86;
+  --color-brand-600: #0a7c6d;
+  --color-brand-700: #0b6358;
+  --color-brand-800: #0d4f47;
+  --color-brand-900: #0d423c;
+  --color-brand-950: #032622;
+
+  /* ——— Accent : or chaud. Réservé aux appels à l'action et aux prix. ——— */
+  --color-accent-50: #fff9ed;
+  --color-accent-100: #fff1d4;
+  --color-accent-200: #ffdfa8;
+  --color-accent-300: #ffc871;
+  --color-accent-400: #ffa838;
+  --color-accent-500: #fb8f12;
+  --color-accent-600: #e07208;
+  --color-accent-700: #b95409;
+  --color-accent-800: #93420f;
+  --color-accent-900: #78380f;
+
+  /* ——— Promotion : uniquement pour les remises et les ventes flash. ——— */
+  --color-sale-500: #e11d48;
+  --color-sale-600: #c81040;
+
+  /* ——— Retours d'état ——— */
+  --color-success-500: #16a34a;
+  --color-warning-500: #d97706;
+  --color-danger-500: #dc2626;
+  --color-info-500: #2563eb;
+
+  /* ——— Neutres ——— */
+  --color-ink-50: #f7f8f8;
+  --color-ink-100: #eeeff1;
+  --color-ink-200: #dcdfe3;
+  --color-ink-300: #b9bfc7;
+  --color-ink-400: #8d96a1;
+  --color-ink-500: #6b7480;
+  --color-ink-600: #545c67;
+  --color-ink-700: #434952;
+  --color-ink-800: #2b2f36;
+  --color-ink-900: #1a1d22;
+  --color-ink-950: #0f1114;
+
+  /* ——— Typographie ——— */
+  --font-sans: var(--font-beralshop-sans), ui-sans-serif, system-ui, sans-serif;
+  --font-mono: var(--font-beralshop-mono), ui-monospace, monospace;
+
+  /* ——— Rayons ——— */
+  --radius-card: 0.875rem;
+  --radius-control: 0.625rem;
+
+  /* ——— Ombres : discrètes. Une ombre lourde alourdit la page perçue. ——— */
+  --shadow-card: 0 1px 2px rgb(15 17 20 / 0.05), 0 1px 3px rgb(15 17 20 / 0.06);
+  --shadow-raised: 0 4px 12px rgb(15 17 20 / 0.08), 0 2px 4px rgb(15 17 20 / 0.04);
+
+  /* ——— Rythme ——— */
+  --spacing-header: 4rem;
+}
+
+/* ═══════════════ Couleurs sémantiques, thème clair ═══════════════
+   Les composants n'utilisent QUE ces variables sémantiques. Elles basculent en
+   thème sombre sans qu'aucun composant n'ait à connaître le thème courant. */
+
+:root {
+  --surface: #ffffff;
+  --surface-muted: var(--color-ink-50);
+  --surface-raised: #ffffff;
+  --surface-inverted: var(--color-ink-900);
+
+  --content: var(--color-ink-900);
+  --content-muted: var(--color-ink-500);
+  --content-inverted: #ffffff;
+
+  --border: var(--color-ink-200);
+  --border-strong: var(--color-ink-300);
+
+  --ring: var(--color-brand-500);
+
+  color-scheme: light;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme='light']) {
+    --surface: var(--color-ink-950);
+    --surface-muted: var(--color-ink-900);
+    --surface-raised: var(--color-ink-900);
+    --surface-inverted: var(--color-ink-50);
+
+    --content: var(--color-ink-50);
+    --content-muted: var(--color-ink-400);
+    --content-inverted: var(--color-ink-950);
+
+    --border: var(--color-ink-800);
+    --border-strong: var(--color-ink-700);
+
+    --ring: var(--color-brand-400);
+
+    color-scheme: dark;
+  }
+}
+
+:root[data-theme='dark'] {
+  --surface: var(--color-ink-950);
+  --surface-muted: var(--color-ink-900);
+  --surface-raised: var(--color-ink-900);
+  --surface-inverted: var(--color-ink-50);
+
+  --content: var(--color-ink-50);
+  --content-muted: var(--color-ink-400);
+  --content-inverted: var(--color-ink-950);
+
+  --border: var(--color-ink-800);
+  --border-strong: var(--color-ink-700);
+
+  --ring: var(--color-brand-400);
+
+  color-scheme: dark;
+}
+
+/* Expose les jetons sémantiques aux utilitaires Tailwind : bg-surface, text-content… */
+@theme inline {
+  --color-surface: var(--surface);
+  --color-surface-muted: var(--surface-muted);
+  --color-surface-raised: var(--surface-raised);
+  --color-surface-inverted: var(--surface-inverted);
+  --color-content: var(--content);
+  --color-content-muted: var(--content-muted);
+  --color-content-inverted: var(--content-inverted);
+  --color-border: var(--border);
+  --color-border-strong: var(--border-strong);
+}
+
+/* ═══════════════════════════ Styles de base ═══════════════════════════ */
+
+@layer base {
+  * {
+    border-color: var(--border);
+  }
+
+  html {
+    -webkit-text-size-adjust: 100%;
+    scroll-behavior: smooth;
+  }
+
+  body {
+    background-color: var(--surface);
+    color: var(--content);
+    font-family: var(--font-sans);
+    /* Empêche le débordement horizontal, défaut n°1 des sites mal testés sur mobile. */
+    overflow-x: hidden;
+  }
+
+  /* Accessibilité : l'anneau de focus doit rester visible au clavier. Ne jamais
+     le supprimer — c'est la seule façon de naviguer pour certains utilisateurs. */
+  :focus-visible {
+    outline: 2px solid var(--ring);
+    outline-offset: 2px;
+    border-radius: 2px;
+  }
+
+  ::selection {
+    background-color: var(--color-brand-200);
+    color: var(--color-brand-950);
+  }
+
+  /* Respecte le réglage système de réduction des animations. */
+  @media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+      animation-duration: 0.01ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.01ms !important;
+      scroll-behavior: auto !important;
+    }
+  }
+}
+
+@layer components {
+  /* Conteneur central de toutes les pages. */
+  .beral-container {
+    width: 100%;
+    max-width: 80rem;
+    margin-inline: auto;
+    padding-inline: 1rem;
+  }
+
+  @media (min-width: 768px) {
+    .beral-container {
+      padding-inline: 1.5rem;
+    }
+  }
+
+  /* Prix : chiffres de largeur fixe pour que les colonnes restent alignées. */
+  .beral-price {
+    font-variant-numeric: tabular-nums;
+    letter-spacing: -0.01em;
+  }
+}
+
+/* ═══════════════════════════ Écriture droite-à-gauche ═══════════════════════════
+   L'arabe fait partie des langues prévues dès le départ. Les composants utilisent
+   des propriétés LOGIQUES (margin-inline-start plutôt que margin-left), donc la
+   bascule RTL est automatique. Seuls les éléments directionnels sont retournés ici. */
+
+[dir='rtl'] .beral-flip {
+  transform: scaleX(-1);
+}

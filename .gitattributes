@@ -1,0 +1,20 @@
+# Normalise les fins de ligne en LF dans le dépôt, quelle que soit la machine.
+# Sans cela, un développeur sous Windows et un autre sous Linux produisent des diffs
+# entiers à chaque enregistrement, et Prettier (endOfLine: lf) entre en conflit avec Git.
+* text=auto eol=lf
+
+# Fichiers binaires : ne jamais toucher au contenu.
+*.png   binary
+*.jpg   binary
+*.jpeg  binary
+*.gif   binary
+*.webp  binary
+*.avif  binary
+*.ico   binary
+*.pdf   binary
+*.woff  binary
+*.woff2 binary
+
+# Fichiers générés : masqués dans les diffs et exclus des statistiques de langage.
+pnpm-lock.yaml linguist-generated=true -diff
+packages/db/generated/** linguist-generated=true -diff

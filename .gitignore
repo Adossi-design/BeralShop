@@ -1,0 +1,48 @@
+# Dépendances
+node_modules/
+.pnpm-store/
+
+# Build
+.next/
+out/
+dist/
+build/
+.turbo/
+*.tsbuildinfo
+
+# Prisma — client généré
+packages/db/generated/
+
+# Environnement — NE JAMAIS COMMITER DE SECRET
+.env
+.env.*
+!.env.example
+!.env.test.example
+
+# Éditeurs
+.vscode/*
+!.vscode/extensions.json
+!.vscode/settings.json
+.idea/
+*.swp
+
+# Système
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Logs
+*.log
+npm-debug.log*
+pnpm-debug.log*
+
+# Tests
+coverage/
+.vitest/
+
+# Vercel
+.vercel
+
+# Divers
+.cache/
+tmp/

@@ -1,0 +1,919 @@
+// ═══════════════════════════════════════════════════════════════════════════════
+//  BERALSHOP — Schéma de base de données
+//  Référence : docs/02-modele-de-donnees.md
+//
+//  ⚠️ RÈGLES NON NÉGOCIABLES
+//  1. Tout montant est un ENTIER en plus petite unité monétaire (`...Minor`),
+//     accompagné de sa devise. Jamais de Float, jamais de Decimal pour un prix.
+//  2. Les champs V2/V3 (vendorId, supplierId, tables de traduction, devises) existent
+//     dès maintenant. Les ajouter plus tard sur une base en production serait un
+//     chantier de plusieurs semaines ; ici cela ne coûte rien.
+//  3. Les commandes conservent une COPIE FIGÉE des produits et des prix. Modifier ou
+//     supprimer un produit ne doit jamais altérer une commande passée.
+// ═══════════════════════════════════════════════════════════════════════════════
+
+generator client {
+  provider = "prisma-client"
+  output   = "../generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+// ───────────────────────────────── Énumérations ─────────────────────────────────
+
+enum UserRole {
+  CLIENT
+  SUPPORT
+  ADMIN
+}
+
+enum ProductStatus {
+  DRAFT
+  ACTIVE
+  ARCHIVED
+}
+
+/// Machine à états implémentée dans @beralshop/shared/orders.
+/// Toute transition non autorisée est refusée par le code.
+enum OrderStatus {
+  PENDING_PAYMENT
+  PAYMENT_FAILED
+  EXPIRED
+  CANCELLED
+  PAID
+  PROCESSING
+  SHIPPED
+  OUT_FOR_DELIVERY
+  DELIVERED
+  REFUNDED
+}
+
+enum PaymentStatus {
+  INITIATED
+  PENDING
+  COMPLETED
+  FAILED
+  CANCELLED
+  REFUNDED
+}
+
+enum RefundStatus {
+  REQUESTED
+  PROCESSING
+  COMPLETED
+  FAILED
+}
+
+/// Qui est à l'origine d'un événement. Indispensable pour l'audit et les litiges.
+enum ActorType {
+  CUSTOMER
+  ADMIN
+  SYSTEM
+  WEBHOOK
+}
+
+enum PromotionType {
+  PERCENTAGE
+  FIXED_AMOUNT
+  FREE_SHIPPING
+}
+
+enum ReviewStatus {
+  PENDING
+  APPROVED
+  REJECTED
+}
+
+enum NotificationChannel {
+  EMAIL
+  SMS
+  WHATSAPP
+  PUSH
+}
+
+enum NotificationStatus {
+  QUEUED
+  SENT
+  FAILED
+}
+
+// ───────────────────────────── Référentiels géographiques ─────────────────────────────
+
+/// Activation commerciale d'un pays. Piloté depuis l'admin : ouvrir un nouveau pays
+/// ne demande AUCUN redéploiement. Les données statiques (indicatif, format d'adresse)
+/// vivent dans @beralshop/shared/geo.
+model Country {
+  code            String @id @db.Char(2)
+  name            String
+  defaultCurrency String @db.Char(3)
+  defaultLocale   String @db.VarChar(5)
+  phonePrefix     String @db.VarChar(6)
+  addressFormat   String @db.VarChar(16)
+
+  isSellingEnabled  Boolean @default(false)
+  isShippingEnabled Boolean @default(false)
+
+  /// Prestataires de paiement actifs pour ce pays, par ordre de préférence.
+  /// Ex. ["pesapal"] au Rwanda, ["cinetpay"] en Côte d'Ivoire.
+  enabledPaymentProviders Json @default("[]")
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  users         User[]
+  addresses     Address[]
+  shippingZones ShippingZone[]
+
+  @@index([isSellingEnabled])
+  @@map("countries")
+}
+
+/// Métadonnées de devise. Dupliquées depuis @beralshop/shared pour que les traitements
+/// SQL et les exports comptables restent autonomes.
+model Currency {
+  code String @id @db.Char(3)
+  name String
+
+  /// Exposant ISO 4217 : 0 (RWF, XAF), 2 (USD, EUR) ou 3 (TND, LYD).
+  minorUnitExponent Int
+  symbol            String  @db.VarChar(8)
+  symbolPosition    String  @db.VarChar(8)
+  displayRounding   String  @db.VarChar(16)
+  isActive          Boolean @default(true)
+
+  @@map("currencies")
+}
+
+/// Historique des taux de change. On ne supprime jamais une ligne : un litige ou un
+/// contrôle comptable peut porter sur une commande d'il y a deux ans.
+model FxRate {
+  id            String @id @default(cuid())
+  baseCurrency  String @db.Char(3)
+  quoteCurrency String @db.Char(3)
+
+  /// Taux brut du fournisseur, AVANT marge de sécurité et arrondi commercial.
+  rate       Decimal  @db.Decimal(20, 10)
+  source     String   @db.VarChar(60)
+  fetchedAt  DateTime @default(now())
+  validUntil DateTime
+
+  @@unique([baseCurrency, quoteCurrency, fetchedAt])
+  @@index([baseCurrency, quoteCurrency, validUntil])
+  @@map("fx_rates")
+}
+
+// ───────────────────────────────── Catalogue ─────────────────────────────────
+
+/// Vendeur. En V1 il n'en existe qu'un : Beralshop lui-même.
+/// Ce modèle est la fondation de la marketplace V3 — deux heures de travail
+/// aujourd'hui contre plusieurs semaines de migration plus tard.
+model Vendor {
+  id       String  @id @default(cuid())
+  slug     String  @unique
+  name     String
+  isActive Boolean @default(true)
+
+  /// Commission prélevée par Beralshop, en points de base (250 = 2,50 %).
+  commissionBp Int      @default(0)
+  createdAt    DateTime @default(now())
+
+  products   Product[]
+  orderItems OrderItem[]
+
+  @@map("vendors")
+}
+
+/// Fournisseur externe (Sunsky et autres). Non utilisé en V1 : prépare le dropshipping V3.
+model Supplier {
+  id   String @id @default(cuid())
+  slug String @unique
+  name String
+
+  /// Identifiant de l'adaptateur côté code : 'sunsky', 'alibaba'…
+  adapterId String  @db.VarChar(40)
+  isActive  Boolean @default(false)
+
+  /// Marge appliquée aux prix importés, en points de base (3000 = +30 %).
+  marginBp   Int       @default(3000)
+  lastSyncAt DateTime?
+  createdAt  DateTime  @default(now())
+
+  products Product[]
+
+  @@map("suppliers")
+}
+
+model Category {
+  id       String  @id @default(cuid())
+  slug     String  @unique
+  parentId String?
+  position Int     @default(0)
+  imageUrl String?
+  iconName String? @db.VarChar(40)
+  isActive Boolean @default(true)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  parent       Category?             @relation("CategoryTree", fields: [parentId], references: [id], onDelete: SetNull)
+  children     Category[]            @relation("CategoryTree")
+  translations CategoryTranslation[]
+  products     Product[]
+
+  @@index([parentId, position])
+  @@index([isActive])
+  @@map("categories")
+}
+
+model CategoryTranslation {
+  categoryId  String
+  locale      String  @db.VarChar(5)
+  name        String
+  description String?
+
+  category Category @relation(fields: [categoryId], references: [id], onDelete: Cascade)
+
+  @@id([categoryId, locale])
+  @@map("category_translations")
+}
+
+model Brand {
+  id       String  @id @default(cuid())
+  slug     String  @unique
+  name     String
+  logoUrl  String?
+  isActive Boolean @default(true)
+
+  products Product[]
+
+  @@map("brands")
+}
+
+model Product {
+  id String @id @default(cuid())
+
+  /// Référence produit interne, recherchable par le client et par l'admin.
+  sku String @unique @db.VarChar(64)
+
+  /// Utilisé dans l'URL : /produits/ecouteur-bluetooth-x300
+  slug String @unique
+
+  categoryId String?
+  brandId    String?
+  vendorId   String
+
+  /// ——— Dropshipping (V3) ———
+  supplierId  String?
+  supplierSku String? @db.VarChar(80)
+
+  /// ——— Prix ———
+  /// TOUJOURS en devise de référence (RWF). Les autres devises sont calculées à
+  /// l'affichage, jamais stockées : deux prix stockés finissent par diverger.
+  basePriceMinor Int
+
+  /// Prix barré affiché en cas de promotion. Null si pas de promotion.
+  compareAtPriceMinor Int?
+  currency            String @default("RWF") @db.Char(3)
+
+  status     ProductStatus @default(DRAFT)
+  isFeatured Boolean       @default(false)
+
+  /// ——— Champs dénormalisés pour la performance ———
+  /// Recalculés par tâche de fond. Évitent un COUNT/AVG à chaque affichage de liste.
+  salesCount  Int   @default(0)
+  ratingAvg   Float @default(0)
+  ratingCount Int   @default(0)
+
+  /// Vecteur de recherche plein texte : nom + mots-clés + référence + marque +
+  /// description, pondérés et désaccentués. Alimenté par trigger PostgreSQL, car les
+  /// données proviennent de trois tables — une colonne générée ne suffirait pas.
+  ///
+  /// `Unsupported` signifie simplement que Prisma ne modélise pas le type : la colonne
+  /// est absente du client généré. Les écritures produit fonctionnent normalement ;
+  /// la lecture du vecteur se fait via `$queryRaw`.
+  /// Définition et triggers : prisma/sql/001_search_and_sequences.sql
+  searchVector Unsupported("tsvector")?
+
+  publishedAt DateTime?
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  category     Category?            @relation(fields: [categoryId], references: [id], onDelete: SetNull)
+  brand        Brand?               @relation(fields: [brandId], references: [id], onDelete: SetNull)
+  vendor       Vendor               @relation(fields: [vendorId], references: [id])
+  supplier     Supplier?            @relation(fields: [supplierId], references: [id], onDelete: SetNull)
+  translations ProductTranslation[]
+  images       ProductImage[]
+  variants     ProductVariant[]
+  reviews      Review[]
+
+  @@index([categoryId, status, createdAt(sort: Desc)])
+  @@index([status, salesCount(sort: Desc)])
+  @@index([status, basePriceMinor])
+  @@index([status, createdAt(sort: Desc)])
+  @@index([brandId, status])
+  @@index([vendorId, status])
+  @@index([supplierId])
+  @@index([isFeatured, status])
+  @@map("products")
+}
+
+model ProductTranslation {
+  productId String
+  locale    String @db.VarChar(5)
+  name      String
+
+  description String?
+
+  /// Caractéristiques structurées : { "Autonomie": "8 h", "Bluetooth": "5.3" }
+  specifications Json?
+
+  /// Mots-clés supplémentaires alimentant la recherche.
+  keywords String?
+
+  product Product @relation(fields: [productId], references: [id], onDelete: Cascade)
+
+  @@id([productId, locale])
+  @@map("product_translations")
+}
+
+model ProductImage {
+  id        String  @id @default(cuid())
+  productId String
+  url       String
+  altText   String?
+  position  Int     @default(0)
+  isPrimary Boolean @default(false)
+  width     Int?
+  height    Int?
+
+  product Product @relation(fields: [productId], references: [id], onDelete: Cascade)
+
+  @@index([productId, position])
+  @@map("product_images")
+}
+
+/// Déclinaison vendable. Un produit sans option possède quand même UNE variante par
+/// défaut : cela évite deux chemins de code distincts pour le stock et le panier.
+model ProductVariant {
+  id        String @id @default(cuid())
+  productId String
+  sku       String @unique @db.VarChar(64)
+
+  /// { "couleur": "Noir", "taille": "M" }
+  options Json @default("{}")
+
+  /// Écart de prix par rapport au produit de base. Peut être négatif.
+  priceDeltaMinor Int @default(0)
+
+  /// ——— Stock ———
+  /// Disponible réel = stockQuantity - reservedQuantity.
+  /// `reservedQuantity` immobilise le stock d'une commande en attente de paiement,
+  /// ce qui rend la survente impossible même sous forte charge simultanée.
+  stockQuantity    Int @default(0)
+  reservedQuantity Int @default(0)
+
+  /// Seuil déclenchant une alerte de réapprovisionnement dans l'admin.
+  lowStockThreshold Int @default(5)
+
+  isActive Boolean @default(true)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  product    Product     @relation(fields: [productId], references: [id], onDelete: Cascade)
+  cartItems  CartItem[]
+  orderItems OrderItem[]
+
+  @@index([productId, isActive])
+  @@map("product_variants")
+}
+
+// ───────────────────────────────── Clients ─────────────────────────────────
+
+model User {
+  id String @id @default(cuid())
+
+  /// Identifiant PRINCIPAL, au format E.164 (+250788123456).
+  /// Choix délibéré : beaucoup de clients au Rwanda et en Afrique de l'Ouest
+  /// n'utilisent pas d'adresse e-mail au quotidien, mais tous ont un numéro.
+  phone String  @unique @db.VarChar(20)
+  email String? @unique
+
+  /// Hachage Argon2id. Un mot de passe n'est jamais stocké en clair ni récupérable.
+  passwordHash String
+  fullName     String
+
+  locale            String  @default("fr") @db.VarChar(5)
+  preferredCurrency String  @default("RWF") @db.Char(3)
+  countryCode       String? @db.Char(2)
+
+  phoneVerifiedAt DateTime?
+  emailVerifiedAt DateTime?
+
+  role     UserRole @default(CLIENT)
+  isActive Boolean  @default(true)
+
+  /// Double authentification — obligatoire pour tout compte administrateur.
+  totpSecret    String?
+  totpEnabledAt DateTime?
+
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  lastLoginAt DateTime?
+
+  country             Country?             @relation(fields: [countryCode], references: [code], onDelete: SetNull)
+  addresses           Address[]
+  carts               Cart[]
+  orders              Order[]
+  reviews             Review[]
+  notifications       Notification[]
+  passwordResetTokens PasswordResetToken[]
+  auditLogs           AdminAuditLog[]
+
+  @@index([role, isActive])
+  @@index([createdAt(sort: Desc)])
+  @@map("users")
+}
+
+model PasswordResetToken {
+  id     String @id @default(cuid())
+  userId String
+
+  /// Hachage du jeton, jamais le jeton lui-même : une fuite de la base ne permet pas
+  /// de réinitialiser un mot de passe.
+  tokenHash String @unique
+
+  expiresAt DateTime
+  usedAt    DateTime?
+  createdAt DateTime  @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([expiresAt])
+  @@map("password_reset_tokens")
+}
+
+/// Carnet d'adresses. Les champs suivent les formats définis dans
+/// @beralshop/shared/geo : le modèle « rue + code postal » ne fonctionne pas au Rwanda,
+/// où l'on adresse par Province / District / Secteur / Cellule / Village.
+model Address {
+  id     String  @id @default(cuid())
+  userId String
+  label  String? @db.VarChar(40)
+
+  recipientName String
+  phone         String @db.VarChar(20)
+  countryCode   String @db.Char(2)
+
+  province      String?
+  district      String?
+  sector        String?
+  cell          String?
+  village       String?
+  city          String?
+  neighbourhood String?
+  streetLine    String?
+  postalCode    String? @db.VarChar(20)
+
+  /// Point de repère : souvent plus utile au livreur que l'adresse elle-même.
+  landmark String?
+
+  latitude  Float?
+  longitude Float?
+
+  isDefaultShipping Boolean @default(false)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  user    User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  country Country @relation(fields: [countryCode], references: [code])
+
+  @@index([userId, isDefaultShipping])
+  @@map("addresses")
+}
+
+// ───────────────────────────────── Panier ─────────────────────────────────
+
+model Cart {
+  id     String  @id @default(cuid())
+  userId String?
+
+  /// Panier d'un visiteur non connecté, rattaché à un cookie signé.
+  sessionToken String? @unique
+
+  currency String @default("RWF") @db.Char(3)
+
+  /// Taux figé pendant 30 minutes. Au-delà, les prix sont réactualisés et le client
+  /// en est informé explicitement — jamais de changement silencieux.
+  fxRateUsed Decimal?  @db.Decimal(20, 10)
+  fxLockedAt DateTime?
+
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  user  User?      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  items CartItem[]
+
+  @@index([userId])
+  @@index([expiresAt])
+  @@map("carts")
+}
+
+/// ⚠️ AUCUN prix n'est stocké ici. Il est systématiquement relu depuis `products`
+/// au moment du calcul. C'est la protection n°1 contre la fraude au prix.
+model CartItem {
+  id        String @id @default(cuid())
+  cartId    String
+  variantId String
+  quantity  Int
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  cart    Cart           @relation(fields: [cartId], references: [id], onDelete: Cascade)
+  variant ProductVariant @relation(fields: [variantId], references: [id], onDelete: Cascade)
+
+  @@unique([cartId, variantId])
+  @@index([cartId])
+  @@map("cart_items")
+}
+
+// ───────────────────────────────── Commandes ─────────────────────────────────
+
+model Order {
+  id String @id @default(cuid())
+
+  /// Lisible et dictable au téléphone : BRL-2026-000123.
+  /// L'unicité vient d'une séquence PostgreSQL, pas d'un tirage aléatoire.
+  orderNumber String @unique @db.VarChar(24)
+
+  userId String?
+  status OrderStatus @default(PENDING_PAYMENT)
+
+  /// ——— Devises ———
+  /// `currencyDisplay` : ce que le client voit et paie.
+  /// `currencySettlement` : ce que Beralshop encaisse réellement.
+  /// `fxRateUsed` : FIGÉ à la création, jamais recalculé. Le client paie exactement
+  /// le montant affiché, même si le taux change à la seconde près.
+  currencyDisplay    String  @db.Char(3)
+  currencySettlement String  @db.Char(3)
+  fxRateUsed         Decimal @default(1) @db.Decimal(20, 10)
+
+  /// ——— Montants, exprimés dans currencyDisplay ———
+  subtotalMinor Int
+  shippingMinor Int @default(0)
+  discountMinor Int @default(0)
+  taxMinor      Int @default(0)
+  totalMinor    Int
+
+  /// Copie FIGÉE de l'adresse : le client peut la modifier ensuite dans son carnet
+  /// sans que cela n'altère une commande déjà expédiée.
+  shippingAddress Json
+
+  contactPhone String  @db.VarChar(20)
+  contactEmail String?
+
+  promotionCode String? @db.VarChar(40)
+
+  trackingNumber String? @db.VarChar(80)
+  carrierName    String? @db.VarChar(80)
+
+  customerNote String?
+  internalNote String?
+
+  placedAt    DateTime  @default(now())
+  paidAt      DateTime?
+  shippedAt   DateTime?
+  deliveredAt DateTime?
+  cancelledAt DateTime?
+
+  /// Au-delà de cette date sans paiement, le stock réservé est libéré automatiquement.
+  reservationExpiresAt DateTime?
+
+  updatedAt DateTime @updatedAt
+
+  user     User?        @relation(fields: [userId], references: [id], onDelete: SetNull)
+  items    OrderItem[]
+  events   OrderEvent[]
+  payments Payment[]
+  reviews  Review[]
+
+  @@index([userId, placedAt(sort: Desc)])
+  @@index([status, placedAt(sort: Desc)])
+  @@index([placedAt(sort: Desc)])
+  @@index([contactPhone])
+  @@index([status, reservationExpiresAt])
+  @@map("orders")
+}
+
+/// Ligne de commande. Contient une COPIE des informations produit au moment de l'achat.
+/// Si le prix change ou si le produit est supprimé demain, la commande reste exacte —
+/// obligation comptable autant que garantie envers le client.
+model OrderItem {
+  id        String  @id @default(cuid())
+  orderId   String
+  variantId String?
+  vendorId  String
+
+  productNameSnapshot    String
+  variantOptionsSnapshot Json    @default("{}")
+  imageUrlSnapshot       String?
+  skuSnapshot            String  @db.VarChar(64)
+
+  unitPriceMinor Int
+  quantity       Int
+  lineTotalMinor Int
+
+  order   Order           @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  variant ProductVariant? @relation(fields: [variantId], references: [id], onDelete: SetNull)
+  vendor  Vendor          @relation(fields: [vendorId], references: [id])
+
+  @@index([orderId])
+  @@index([variantId])
+  @@index([vendorId])
+  @@map("order_items")
+}
+
+/// Journal d'audit des commandes. Une ligne par changement de statut.
+/// Sert au suivi client, au support et à la preuve en cas de litige.
+model OrderEvent {
+  id      String @id @default(cuid())
+  orderId String
+
+  fromStatus OrderStatus?
+  toStatus   OrderStatus
+
+  actorType ActorType
+  actorId   String?
+  payload   Json?
+
+  createdAt DateTime @default(now())
+
+  order Order @relation(fields: [orderId], references: [id], onDelete: Cascade)
+
+  @@index([orderId, createdAt])
+  @@map("order_events")
+}
+
+// ───────────────────────────────── Paiements ─────────────────────────────────
+
+model Payment {
+  id      String @id @default(cuid())
+  orderId String
+
+  /// 'pesapal', 'cinetpay', … Le code métier ne connaît que l'interface PaymentProvider.
+  provider String @db.VarChar(40)
+
+  /// Référence du prestataire — OrderTrackingId côté Pesapal.
+  providerReference String? @db.VarChar(120)
+
+  /// Notre référence, envoyée au prestataire (= orderNumber).
+  merchantReference String @db.VarChar(64)
+
+  /// Empêche tout double débit : un IPN reçu deux fois, ou un client qui actualise la
+  /// page de retour, ne déclenche qu'un seul traitement.
+  idempotencyKey String @unique @db.VarChar(64)
+
+  amountMinor Int
+  currency    String @db.Char(3)
+
+  status PaymentStatus @default(INITIATED)
+
+  /// 'MTN MoMo', 'Airtel Money', 'VISA', … tel que rapporté par le prestataire.
+  methodDetail  String? @db.VarChar(60)
+  failureReason String?
+
+  /// Réponse brute du prestataire, conservée telle quelle. En cas de litige avec un
+  /// client ou avec Pesapal, c'est la preuve.
+  rawResponse Json?
+
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  completedAt DateTime?
+
+  /// Dernière vérification auprès du prestataire, par la tâche de réconciliation.
+  lastCheckedAt DateTime?
+
+  order   Order          @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  events  PaymentEvent[]
+  refunds Refund[]
+
+  @@index([orderId])
+  @@index([provider, providerReference])
+  @@index([status, createdAt])
+  @@index([status, lastCheckedAt])
+  @@map("payments")
+}
+
+/// Journal immuable de tous les échanges avec le prestataire de paiement.
+/// On n'écrase jamais une ligne, on en ajoute une.
+model PaymentEvent {
+  id        String @id @default(cuid())
+  paymentId String
+
+  eventType String @db.VarChar(60)
+  payload   Json
+
+  receivedAt DateTime @default(now())
+
+  payment Payment @relation(fields: [paymentId], references: [id], onDelete: Cascade)
+
+  @@index([paymentId, receivedAt])
+  @@map("payment_events")
+}
+
+model Refund {
+  id        String @id @default(cuid())
+  paymentId String
+
+  amountMinor Int
+  currency    String @db.Char(3)
+  reason      String
+
+  status            RefundStatus @default(REQUESTED)
+  providerReference String?      @db.VarChar(120)
+
+  createdById String?
+  createdAt   DateTime  @default(now())
+  completedAt DateTime?
+
+  payment Payment @relation(fields: [paymentId], references: [id], onDelete: Cascade)
+
+  @@index([paymentId])
+  @@index([status])
+  @@map("refunds")
+}
+
+/// Clés d'idempotence des requêtes entrantes (création de commande notamment).
+/// Empêche qu'un double clic ou une reconnexion réseau crée deux commandes.
+model IdempotencyRecord {
+  key    String  @id @db.VarChar(64)
+  scope  String  @db.VarChar(40)
+  userId String?
+
+  /// Réponse renvoyée la première fois, rejouée à l'identique si la requête se répète.
+  response Json?
+
+  createdAt DateTime @default(now())
+  expiresAt DateTime
+
+  @@index([expiresAt])
+  @@map("idempotency_records")
+}
+
+// ───────────────────────────── Livraison & promotions ─────────────────────────────
+
+model ShippingZone {
+  id          String @id @default(cuid())
+  countryCode String @db.Char(2)
+  name        String
+
+  /// Restriction géographique optionnelle (ex. ["Kigali", "Nord"]). Vide = tout le pays.
+  regions  Json    @default("[]")
+  isActive Boolean @default(true)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  country Country        @relation(fields: [countryCode], references: [code], onDelete: Cascade)
+  rates   ShippingRate[]
+
+  @@index([countryCode, isActive])
+  @@map("shipping_zones")
+}
+
+model ShippingRate {
+  id     String @id @default(cuid())
+  zoneId String
+  name   String
+
+  priceMinor Int
+  currency   String @default("RWF") @db.Char(3)
+
+  /// Franchise de port au-delà de ce montant de commande. Null = jamais offert.
+  freeAboveMinor Int?
+
+  minDeliveryDays Int?
+  maxDeliveryDays Int?
+
+  isActive Boolean @default(true)
+
+  zone ShippingZone @relation(fields: [zoneId], references: [id], onDelete: Cascade)
+
+  @@index([zoneId, isActive])
+  @@map("shipping_rates")
+}
+
+model Promotion {
+  id   String        @id @default(cuid())
+  code String        @unique @db.VarChar(40)
+  type PromotionType
+
+  /// Pourcentage (1500 = 15,00 %) ou montant en plus petite unité, selon `type`.
+  value    Int
+  currency String? @db.Char(3)
+
+  minOrderMinor    Int?
+  maxDiscountMinor Int?
+
+  startsAt DateTime
+  endsAt   DateTime
+
+  /// Plafonds anti-abus.
+  maxUses        Int?
+  maxUsesPerUser Int @default(1)
+  usedCount      Int @default(0)
+
+  isActive Boolean @default(true)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([isActive, startsAt, endsAt])
+  @@map("promotions")
+}
+
+// ───────────────────────────── Avis, notifications, audit ─────────────────────────────
+
+model Review {
+  id        String @id @default(cuid())
+  productId String
+  userId    String
+
+  /// Un avis n'est publiable que s'il est rattaché à une commande livrée :
+  /// c'est ce qui empêche les faux avis.
+  orderId String?
+
+  rating  Int
+  comment String?
+
+  status ReviewStatus @default(PENDING)
+
+  createdAt   DateTime  @default(now())
+  moderatedAt DateTime?
+
+  product Product @relation(fields: [productId], references: [id], onDelete: Cascade)
+  user    User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  order   Order?  @relation(fields: [orderId], references: [id], onDelete: SetNull)
+
+  @@unique([productId, userId, orderId])
+  @@index([productId, status, createdAt(sort: Desc)])
+  @@map("reviews")
+}
+
+model Notification {
+  id     String  @id @default(cuid())
+  userId String?
+
+  channel  NotificationChannel
+  template String              @db.VarChar(60)
+
+  /// Destinataire réel : numéro de téléphone ou adresse e-mail au moment de l'envoi.
+  recipient String @db.VarChar(160)
+  payload   Json?
+
+  status    NotificationStatus @default(QUEUED)
+  attempts  Int                @default(0)
+  lastError String?
+
+  createdAt DateTime  @default(now())
+  sentAt    DateTime?
+
+  user User? @relation(fields: [userId], references: [id], onDelete: SetNull)
+
+  @@index([userId, createdAt(sort: Desc)])
+  @@index([status, createdAt])
+  @@map("notifications")
+}
+
+/// Journal d'audit de l'administration : qui a modifié quoi, quand, avant/après.
+/// Non modifiable depuis l'application.
+model AdminAuditLog {
+  id      String  @id @default(cuid())
+  actorId String?
+
+  action     String  @db.VarChar(60)
+  entityType String  @db.VarChar(40)
+  entityId   String?
+
+  before Json?
+  after  Json?
+
+  ipAddress String? @db.VarChar(45)
+  userAgent String?
+
+  createdAt DateTime @default(now())
+
+  actor User? @relation(fields: [actorId], references: [id], onDelete: SetNull)
+
+  @@index([actorId, createdAt(sort: Desc)])
+  @@index([entityType, entityId])
+  @@index([createdAt(sort: Desc)])
+  @@map("admin_audit_logs")
+}

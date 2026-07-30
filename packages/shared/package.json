@@ -1,0 +1,23 @@
+{
+  "name": "@beralshop/shared",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "exports": {
+    ".": "./src/index.ts",
+    "./money": "./src/money/index.ts",
+    "./orders": "./src/orders/index.ts",
+    "./validation": "./src/validation/index.ts"
+  },
+  "scripts": {
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run"
+  },
+  "dependencies": {
+    "zod": "^4.4.3"
+  },
+  "devDependencies": {
+    "typescript": "^5.9.3",
+    "vitest": "^3.2.4"
+  }
+}
