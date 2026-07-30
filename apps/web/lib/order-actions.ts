@@ -5,7 +5,7 @@ import { randomUUID } from 'node:crypto';
 import { revalidatePath } from 'next/cache';
 import { redirect } from 'next/navigation';
 
-import { cancelOrderByCustomer, createOrderFromCart } from '@beralshopp/core';
+import { cancelOrderByCustomer, createOrderFromCart, initiatePayment } from '@beralshopp/core';
 import { phoneSchema } from '@beralshopp/shared';
 
 import { getCartOwnerForRead } from './cart';
@@ -88,7 +88,40 @@ export async function checkoutAction(
   if (!result.ok) return { error: result.message };
 
   revalidatePath('/', 'layout');
-  redirect(`/commande/confirmation/${result.order.orderNumber}`);
+
+  // La commande existe ; on enchaîne immédiatement sur le paiement.
+  // Si l'initiation échoue, on n'annule PAS la commande : elle reste payable
+  // depuis la page de confirmation, et le stock lui reste réservé.
+  const payment = await initiatePayment(
+    result.order.orderNumber,
+    process.env['NEXT_PUBLIC_SITE_URL'] ?? 'http://localhost:3000',
+  );
+
+  redirect(
+    payment.ok
+      ? payment.redirectUrl
+      : `/commande/confirmation/${result.order.orderNumber}?paiement=indisponible`,
+  );
+}
+
+/**
+ * Relance du paiement depuis la page de confirmation.
+ * Utile quand le client a fermé la page Pesapal, ou quand un premier essai a échoué.
+ */
+export async function payOrderAction(formData: FormData): Promise<void> {
+  const orderNumber = String(formData.get('orderNumber') ?? '');
+  if (!orderNumber) return;
+
+  const payment = await initiatePayment(
+    orderNumber,
+    process.env['NEXT_PUBLIC_SITE_URL'] ?? 'http://localhost:3000',
+  );
+
+  redirect(
+    payment.ok
+      ? payment.redirectUrl
+      : `/commande/confirmation/${orderNumber}?paiement=indisponible`,
+  );
 }
 
 export async function cancelOrderAction(formData: FormData): Promise<void> {

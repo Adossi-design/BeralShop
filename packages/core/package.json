@@ -11,12 +11,15 @@
     "./cart": "./src/cart/index.ts",
     "./inventory": "./src/inventory/index.ts",
     "./orders": "./src/orders/index.ts",
-    "./admin": "./src/admin/index.ts"
+    "./admin": "./src/admin/index.ts",
+    "./payments": "./src/payments/index.ts"
   },
   "scripts": {
     "typecheck": "tsc --noEmit",
     "test": "vitest run",
-    "admin": "tsx scripts/create-admin.ts"
+    "admin": "tsx scripts/create-admin.ts",
+    "pesapal:check": "tsx scripts/pesapal-check.ts",
+    "pesapal:ipn": "tsx scripts/pesapal-register-ipn.ts"
   },
   "dependencies": {
     "@beralshopp/db": "workspace:*",

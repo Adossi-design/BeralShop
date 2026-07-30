@@ -6,6 +6,7 @@ import { CheckCircle2, Clock } from 'lucide-react';
 import { getOrderByNumber } from '@beralshopp/core';
 
 import { OrderDetail } from '@/components/orders/order-detail';
+import { payOrderAction } from '@/lib/order-actions';
 
 export const metadata: Metadata = {
   title: 'Commande confirmée',
@@ -16,10 +17,13 @@ export const dynamic = 'force-dynamic';
 
 interface PageProps {
   params: Promise<{ numero: string }>;
+  searchParams: Promise<Record<string, string | string[] | undefined>>;
 }
 
-export default async function OrderConfirmationPage({ params }: PageProps) {
+export default async function OrderConfirmationPage({ params, searchParams }: PageProps) {
   const { numero } = await params;
+  const query = await searchParams;
+  const paymentUnavailable = query['paiement'] === 'indisponible';
   const order = await getOrderByNumber(decodeURIComponent(numero));
 
   if (!order) notFound();
@@ -42,15 +46,31 @@ export default async function OrderConfirmationPage({ params }: PageProps) {
 
       {/* Le délai de paiement est affiché : le stock est immobilisé pendant ce temps,
           et le client doit savoir qu'il n'est pas illimité. */}
-      {order.status === 'PENDING_PAYMENT' ? (
-        <p className="border-gold-300 bg-gold-50 text-gold-900 rounded-control mt-4 flex items-start gap-2 border px-4 py-3 text-sm">
-          <Clock className="mt-0.5 h-4 w-4 shrink-0" aria-hidden />
-          <span>
-            Votre commande est en attente de paiement. Les articles vous sont réservés pendant 30
-            minutes. Le paiement par Mobile Money et carte bancaire sera activé très prochainement —
-            nous vous contacterons au {order.contactPhone} pour finaliser.
-          </span>
-        </p>
+      {order.status === 'PENDING_PAYMENT' || order.status === 'PAYMENT_FAILED' ? (
+        <div className="border-gold-300 bg-gold-50 rounded-control mt-4 border px-4 py-4">
+          <p className="text-gold-900 flex items-start gap-2 text-sm">
+            <Clock className="mt-0.5 h-4 w-4 shrink-0" aria-hidden />
+            <span>
+              {paymentUnavailable
+                ? "Le service de paiement n'a pas pu être joint. Votre commande est enregistrée et vos articles restent réservés — réessayez ci-dessous."
+                : 'Votre commande est en attente de paiement. Les articles vous sont réservés pendant 30 minutes.'}
+            </span>
+          </p>
+
+          <form action={payOrderAction} className="mt-3">
+            <input type="hidden" name="orderNumber" value={order.orderNumber} />
+            <button
+              type="submit"
+              className="beral-btn-gold rounded-control px-6 py-2.5 text-sm font-semibold"
+            >
+              Payer maintenant
+            </button>
+          </form>
+
+          <p className="text-gold-900/80 mt-2 text-xs">
+            Mobile Money (MTN, Airtel), Visa et Mastercard via Pesapal.
+          </p>
+        </div>
       ) : null}
 
       <div className="mt-8">

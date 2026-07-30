@@ -23,7 +23,9 @@
     "db:seed": "pnpm --filter @beralshopp/db run seed",
     "db:verify": "pnpm --filter @beralshopp/db run verify",
     "db:reconcile": "pnpm --filter @beralshopp/db run reconcile",
-    "db:admin": "pnpm --filter @beralshopp/core run admin"
+    "db:admin": "pnpm --filter @beralshopp/core run admin",
+    "pesapal:check": "pnpm --filter @beralshopp/core run pesapal:check",
+    "pesapal:ipn": "pnpm --filter @beralshopp/core run pesapal:ipn"
   },
   "devDependencies": {
     "prettier": "^3.6.2",
