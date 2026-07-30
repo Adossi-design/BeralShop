@@ -32,6 +32,9 @@ export const CATEGORY_TREE: readonly CategorySeed[] = [
       { slug: 'electronique-accessoires', name: 'Accessoires' },
       { slug: 'electronique-televiseurs', name: 'Téléviseurs' },
       { slug: 'electronique-audio', name: 'Audio' },
+      // Ajoutée pour les caméras et appareils photo : les ranger dans « Accessoires »
+      // les rendrait introuvables pour un client qui cherche une caméra.
+      { slug: 'electronique-photo', name: 'Appareils photo et caméras' },
     ],
   },
   {
@@ -71,6 +74,10 @@ export const CATEGORY_TREE: readonly CategorySeed[] = [
       { slug: 'beaute-soins-corps', name: 'Soins du corps' },
       { slug: 'beaute-parfums', name: 'Parfums' },
       { slug: 'beaute-complements', name: 'Compléments alimentaires' },
+      // Ajoutée pour accueillir les appareils (otoscopes, tensiomètres, thermomètres,
+      // balances). Aucune des sous-catégories d'origine ne convenait, et les ranger
+      // dans « Soins du corps » les rendrait introuvables.
+      { slug: 'sante-appareils', name: 'Appareils de santé' },
     ],
   },
   {

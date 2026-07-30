@@ -16,7 +16,8 @@
     "seed": "tsx prisma/seed.ts",
     "verify": "tsx scripts/verify-schema.ts",
     "typecheck": "tsc --noEmit",
-    "reconcile": "tsx scripts/reconcile-stock.ts"
+    "reconcile": "tsx scripts/reconcile-stock.ts",
+    "import": "tsx scripts/import-catalogue.ts"
   },
   "dependencies": {
     "@beralshopp/shared": "workspace:*",
