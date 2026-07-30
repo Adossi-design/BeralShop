@@ -19,7 +19,8 @@
     "test": "vitest run",
     "admin": "tsx scripts/create-admin.ts",
     "pesapal:check": "tsx scripts/pesapal-check.ts",
-    "pesapal:ipn": "tsx scripts/pesapal-register-ipn.ts"
+    "pesapal:ipn": "tsx scripts/pesapal-register-ipn.ts",
+    "preflight": "tsx scripts/preflight.ts"
   },
   "dependencies": {
     "@beralshopp/db": "workspace:*",

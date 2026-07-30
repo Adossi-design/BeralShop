@@ -49,8 +49,16 @@ function createClient(): PrismaClient {
     max: 3,
     /** Une connexion inutilisée est rendue vite : les instances sont éphémères. */
     idleTimeoutMillis: 10_000,
-    /** Mieux vaut échouer clairement que rester suspendu si la base est saturée. */
-    connectionTimeoutMillis: 15_000,
+    /**
+     * Délai d'obtention d'une connexion.
+     *
+     * 30 secondes et non 15 : Neon met son calcul en veille après quelques minutes
+     * d'inactivité, et le réveil prend plusieurs secondes. Avec plusieurs processus
+     * qui redémarrent en même temps — typiquement un build — un délai trop court
+     * provoque des « Connection terminated due to connection timeout » alors que la
+     * base est parfaitement saine.
+     */
+    connectionTimeoutMillis: 30_000,
   });
 
   return new PrismaClient({

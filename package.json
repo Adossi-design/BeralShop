@@ -25,7 +25,8 @@
     "db:reconcile": "pnpm --filter @beralshopp/db run reconcile",
     "db:admin": "pnpm --filter @beralshopp/core run admin",
     "pesapal:check": "pnpm --filter @beralshopp/core run pesapal:check",
-    "pesapal:ipn": "pnpm --filter @beralshopp/core run pesapal:ipn"
+    "pesapal:ipn": "pnpm --filter @beralshopp/core run pesapal:ipn",
+    "preflight": "pnpm --filter @beralshopp/core run preflight"
   },
   "devDependencies": {
     "prettier": "^3.6.2",

@@ -9,5 +9,11 @@
     "deploymentEnabled": {
       "main": true
     }
-  }
+  },
+  "crons": [
+    {
+      "path": "/api/v1/taches",
+      "schedule": "*/10 * * * *"
+    }
+  ]
 }

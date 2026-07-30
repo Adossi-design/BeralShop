@@ -135,11 +135,16 @@ export async function getAccessToken(config: PesapalConfig, forceRefresh = false
   });
 
   if (!response.token) {
-    throw new PaymentProviderError(
-      response.error?.message ?? "Pesapal n'a pas renvoyé de jeton d'accès.",
-      'pesapal',
-      response,
-    );
+    // Pesapal renvoie parfois un `message` VIDE avec un `code` renseigné. Se
+    // contenter du message afficherait une erreur sans contenu, impossible à
+    // diagnostiquer. On retombe donc sur le code, qui est toujours parlant
+    // (« invalid_consumer_key_or_secret_provided », par exemple).
+    const detail =
+      response.error?.message?.trim() ||
+      response.error?.code ||
+      "Pesapal n'a pas renvoyé de jeton d'accès.";
+
+    throw new PaymentProviderError(`Authentification refusée : ${detail}`, 'pesapal', response);
   }
 
   cachedToken = { token: response.token, expiresAt: Date.now() + TOKEN_TTL_MS };
