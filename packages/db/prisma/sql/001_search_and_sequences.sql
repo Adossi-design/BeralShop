@@ -41,7 +41,7 @@ ALTER TEXT SEARCH CONFIGURATION fr_unaccent
 -- proviennent de trois tables (products, product_translations, brands), ce qu'une
 -- colonne `GENERATED ALWAYS AS` ne sait pas faire.
 
-CREATE OR REPLACE FUNCTION beralshop_refresh_product_search(p_product_id text)
+CREATE OR REPLACE FUNCTION beralshopp_refresh_product_search(p_product_id text)
 RETURNS void
 LANGUAGE plpgsql
 AS $$
@@ -65,7 +65,7 @@ BEGIN
 END;
 $$;
 
-CREATE OR REPLACE FUNCTION beralshop_trg_refresh_product_search()
+CREATE OR REPLACE FUNCTION beralshopp_trg_refresh_product_search()
 RETURNS trigger
 LANGUAGE plpgsql
 AS $$
@@ -102,7 +102,7 @@ BEGIN
   -- on ne recalcule que s'il existe encore.
   IF target_id IS NOT NULL
      AND EXISTS (SELECT 1 FROM products WHERE id = target_id) THEN
-    PERFORM beralshop_refresh_product_search(target_id);
+    PERFORM beralshopp_refresh_product_search(target_id);
   END IF;
 
   RETURN NULL;
@@ -112,12 +112,12 @@ $$;
 DROP TRIGGER IF EXISTS trg_products_search ON products;
 CREATE TRIGGER trg_products_search
 AFTER INSERT OR UPDATE OF sku, "brandId" ON products
-FOR EACH ROW EXECUTE FUNCTION beralshop_trg_refresh_product_search();
+FOR EACH ROW EXECUTE FUNCTION beralshopp_trg_refresh_product_search();
 
 DROP TRIGGER IF EXISTS trg_product_translations_search ON product_translations;
 CREATE TRIGGER trg_product_translations_search
 AFTER INSERT OR UPDATE OR DELETE ON product_translations
-FOR EACH ROW EXECUTE FUNCTION beralshop_trg_refresh_product_search();
+FOR EACH ROW EXECUTE FUNCTION beralshopp_trg_refresh_product_search();
 
 -- Index principal de la recherche plein texte.
 CREATE INDEX IF NOT EXISTS idx_products_search_vector
@@ -131,14 +131,14 @@ CREATE INDEX IF NOT EXISTS idx_product_translations_name_trgm
 -- BRL-2026-000123. L'unicité vient de la base, pas d'un tirage aléatoire côté
 -- application : deux commandes simultanées ne peuvent pas obtenir le même numéro.
 
-CREATE SEQUENCE IF NOT EXISTS beralshop_order_number_seq
+CREATE SEQUENCE IF NOT EXISTS beralshopp_order_number_seq
   AS bigint
   START WITH 1
   INCREMENT BY 1
   NO MAXVALUE
   CACHE 1;
 
-CREATE OR REPLACE FUNCTION beralshop_next_order_number()
+CREATE OR REPLACE FUNCTION beralshopp_next_order_number()
 RETURNS text
 LANGUAGE sql
 VOLATILE
@@ -146,7 +146,7 @@ AS $$
   SELECT 'BRL-'
       || to_char(now() AT TIME ZONE 'UTC', 'YYYY')
       || '-'
-      || lpad(nextval('beralshop_order_number_seq')::text, 6, '0');
+      || lpad(nextval('beralshopp_order_number_seq')::text, 6, '0');
 $$;
 
 -- ───────────────────── 5. Garde-fous d'intégrité (défense en profondeur) ─────────────────────

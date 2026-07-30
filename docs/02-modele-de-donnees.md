@@ -21,7 +21,7 @@ products
   sku                     référence produit, unique, recherchable
   slug                    unique, pour l'URL
   category_id, brand_id
-  vendor_id               ⚠ V1 : toujours « Beralshop ». Prépare la marketplace V3.
+  vendor_id               ⚠ V1 : toujours « Beralshopp ». Prépare la marketplace V3.
   supplier_id             null en V1. Prépare Sunsky/dropshipping V3.
   supplier_sku            référence chez le fournisseur
   base_price_minor        INT — prix en unités entières, devise de référence (RWF)

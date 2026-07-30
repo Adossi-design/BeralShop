@@ -12,7 +12,7 @@ import { prisma } from '../src/client.ts';
  * silencieuse, donc la pire des pannes.
  *
  * À relancer après chaque migration et après toute restauration de sauvegarde :
- *     pnpm --filter @beralshop/db run verify
+ *     pnpm --filter @beralshopp/db run verify
  */
 
 let failures = 0;
@@ -44,7 +44,7 @@ async function checkSearchConfiguration(): Promise<void> {
 
 async function checkOrderNumberSequence(): Promise<void> {
   const rows = await prisma.$queryRaw<{ n: string }[]>`
-    SELECT beralshop_next_order_number() AS n
+    SELECT beralshopp_next_order_number() AS n
   `;
   const value = rows[0]?.n ?? '';
   const valid = /^BRL-\d{4}-\d{6,}$/.test(value);
@@ -79,7 +79,7 @@ async function checkConstraints(): Promise<void> {
  * exact décrit dans le cahier des charges.
  */
 async function checkSearchEndToEnd(): Promise<void> {
-  const vendor = await prisma.vendor.findUnique({ where: { slug: 'beralshop' } });
+  const vendor = await prisma.vendor.findUnique({ where: { slug: 'beralshopp' } });
   if (!vendor) {
     report('Recherche plein texte', false, 'vendeur par défaut absent — lancer pnpm db:seed');
     return;
@@ -157,7 +157,7 @@ async function checkReferenceData(): Promise<void> {
 }
 
 async function main(): Promise<void> {
-  console.log('\n▶ Contrôle de santé du schéma Beralshop\n');
+  console.log('\n▶ Contrôle de santé du schéma Beralshopp\n');
 
   console.log('Objets PostgreSQL manuels :');
   await checkExtensions();

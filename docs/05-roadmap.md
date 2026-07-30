@@ -106,7 +106,7 @@ _C'est le lot le plus sensible du projet. Il ne sera pas bâclé._
 
 ### Lot 8 — Design & performance _(transverse)_
 
-- **Identité visuelle propre à Beralshop** : logo, palette, typographie, composants
+- **Identité visuelle propre à Beralshopp** : logo, palette, typographie, composants
 - Accueil complet : logo, recherche, catégories, produits populaires, nouveaux arrivages,
   promotions, recommandations, bannière, bouton WhatsApp, panier, compte,
   section « Comment commander ? », contact
@@ -174,5 +174,5 @@ Pour ne pas être bloqué, voici ce que tu dois préparer — **le reste, je m'e
 | Avant le Lot 9 | Tes zones de livraison et tarifs, ton numéro WhatsApp professionnel, tes conditions de vente                                         |
 
 Sur le Lot 8 (design) : si tu n'as pas encore d'identité visuelle, je te proposerai
-**plusieurs directions** avant de développer, pour que Beralshop ait sa personnalité propre
+**plusieurs directions** avant de développer, pour que Beralshopp ait sa personnalité propre
 — inspirée du niveau de fonctionnalité de Kikuu et AliExpress, mais sans les copier.

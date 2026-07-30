@@ -69,7 +69,7 @@ Coût estimé par prestataire supplémentaire : 3 à 5 jours.
 > Pesapal indique explicitement qu'il faut appeler `GetTransactionStatus` **aussi bien au
 > retour du client sur la page de callback que lors de la réception de la notification IPN**.
 
-Concrètement, dans Beralshop :
+Concrètement, dans Beralshopp :
 
 - ❌ Le client revient sur `/paiement/retour?status=success` → **on ne confirme rien**.
   N'importe qui peut taper cette URL dans son navigateur.
@@ -231,18 +231,18 @@ automatique seule est source de frustration (diaspora, VPN, voyageurs).
 
 ## 5. Ce qui est livré en V1 vs plus tard
 
-| Fonction                                      | V1  | V2  | V3  |
-| --------------------------------------------- | --- | --- | --- |
-| Interface `PaymentProvider`                   | ✅  |     |     |
-| Pesapal (MoMo, Airtel, Visa, Mastercard)      | ✅  |     |     |
-| Idempotence + réconciliation automatique      | ✅  |     |     |
-| Remboursements depuis l'admin                 | ✅  |     |     |
-| Tables devises/taux + montants en entiers     | ✅  |     |     |
-| Affichage multi-devises pour le client        |     | ✅  |     |
-| CinetPay (zone FCFA + RDC)                    |     | ✅  |     |
-| Paiement à la livraison                       |     | ✅  |     |
-| Paiement en plusieurs fois                    |     |     | ✅  |
-| Portefeuille Beralshop / reversement vendeurs |     |     | ✅  |
+| Fonction                                       | V1  | V2  | V3  |
+| ---------------------------------------------- | --- | --- | --- |
+| Interface `PaymentProvider`                    | ✅  |     |     |
+| Pesapal (MoMo, Airtel, Visa, Mastercard)       | ✅  |     |     |
+| Idempotence + réconciliation automatique       | ✅  |     |     |
+| Remboursements depuis l'admin                  | ✅  |     |     |
+| Tables devises/taux + montants en entiers      | ✅  |     |     |
+| Affichage multi-devises pour le client         |     | ✅  |     |
+| CinetPay (zone FCFA + RDC)                     |     | ✅  |     |
+| Paiement à la livraison                        |     | ✅  |     |
+| Paiement en plusieurs fois                     |     |     | ✅  |
+| Portefeuille Beralshopp / reversement vendeurs |     |     | ✅  |
 
 ---
 

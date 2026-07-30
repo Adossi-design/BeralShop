@@ -1,93 +1,94 @@
 @import 'tailwindcss';
 
 /* ═══════════════════════════════════════════════════════════════════════════
-   BERALSHOP — Système de design
-   Référence : docs/05-roadmap.md, lot 8
+   BERALSHOPP — Système de design
+   Dérivé du logo : monogramme or champagne sur noir profond.
 
-   Parti pris chromatique : la quasi-totalité des plateformes e-commerce
-   africaines (Jumia, Kikuu) et AliExpress utilisent un orange-rouge. Beralshop
-   prend le contre-pied avec un TEAL PROFOND, qui évoque la confiance et le
-   sérieux, réchauffé par un OR pour les appels à l'action et les prix.
-   Résultat : une identité immédiatement reconnaissable, sans copier personne.
+   PARTI PRIS ASSUMÉ
+   Le logo est or sur noir. On ne l'étend PAS à toute la boutique :
+     • en-tête, pied de page et bannières → noir et or, l'identité s'impose ;
+     • pages produits et catégories       → fond clair.
 
-   Toutes les valeurs sont des jetons. Ne jamais écrire une couleur en dur dans
-   un composant : un changement de charte doit se faire ici, et nulle part ailleurs.
+   Raison : une photo de produit est presque toujours détourée sur blanc. Sur un
+   fond noir, chaque vignette devient une tache lumineuse et la grille perd toute
+   lisibilité. Et un texte or sur noir en petit corps (prix, mentions) passe sous
+   le seuil de contraste accessible. Les maisons de luxe qui vendent en volume
+   font exactement ce compromis : identité sombre en cadre, marchandise sur clair.
+
+   L'or est réservé aux ACTIONS (ajouter au panier, acheter) et aux accents de
+   marque. Utilisé partout, il ne signalerait plus rien.
+
+   Toutes les valeurs sont des jetons. Ne jamais écrire une couleur en dur dans un
+   composant : un changement de charte se fait ici, et nulle part ailleurs.
    ═══════════════════════════════════════════════════════════════════════════ */
 
 @theme {
-  /* ——— Couleur de marque : teal profond ——— */
-  --color-brand-50: #eafaf6;
-  --color-brand-100: #cbf2e8;
-  --color-brand-200: #98e5d4;
-  --color-brand-300: #5ed2bb;
-  --color-brand-400: #2eb69f;
-  --color-brand-500: #109a86;
-  --color-brand-600: #0a7c6d;
-  --color-brand-700: #0b6358;
-  --color-brand-800: #0d4f47;
-  --color-brand-900: #0d423c;
-  --color-brand-950: #032622;
+  /* ——— Or champagne du logo. Réservé aux appels à l'action et aux accents. ——— */
+  --color-gold-50: #fdf8ee;
+  --color-gold-100: #f9eed6;
+  --color-gold-200: #f1dcae;
+  --color-gold-300: #e7c67f;
+  --color-gold-400: #dbac55;
+  --color-gold-500: #c9963c;
+  --color-gold-600: #ac7a2c;
+  --color-gold-700: #8a5f24;
+  --color-gold-800: #6e4c22;
+  --color-gold-900: #5a3f20;
 
-  /* ——— Accent : or chaud. Réservé aux appels à l'action et aux prix. ——— */
-  --color-accent-50: #fff9ed;
-  --color-accent-100: #fff1d4;
-  --color-accent-200: #ffdfa8;
-  --color-accent-300: #ffc871;
-  --color-accent-400: #ffa838;
-  --color-accent-500: #fb8f12;
-  --color-accent-600: #e07208;
-  --color-accent-700: #b95409;
-  --color-accent-800: #93420f;
-  --color-accent-900: #78380f;
+  /* ——— Noir graphite du logo. Couleur de marque principale. ——— */
+  --color-ink-50: #f6f6f7;
+  --color-ink-100: #e9e9eb;
+  --color-ink-200: #cfcfd3;
+  --color-ink-300: #a8a8af;
+  --color-ink-400: #77777f;
+  --color-ink-500: #55555d;
+  --color-ink-600: #3c3c43;
+  --color-ink-700: #2a2a30;
+  --color-ink-800: #1a1a1e;
+  --color-ink-900: #101013;
+  --color-ink-950: #08080a;
 
   /* ——— Promotion : uniquement pour les remises et les ventes flash. ——— */
-  --color-sale-500: #e11d48;
-  --color-sale-600: #c81040;
+  --color-sale-500: #c8102e;
+  --color-sale-600: #a50d26;
 
   /* ——— Retours d'état ——— */
-  --color-success-500: #16a34a;
-  --color-warning-500: #d97706;
-  --color-danger-500: #dc2626;
-  --color-info-500: #2563eb;
-
-  /* ——— Neutres ——— */
-  --color-ink-50: #f7f8f8;
-  --color-ink-100: #eeeff1;
-  --color-ink-200: #dcdfe3;
-  --color-ink-300: #b9bfc7;
-  --color-ink-400: #8d96a1;
-  --color-ink-500: #6b7480;
-  --color-ink-600: #545c67;
-  --color-ink-700: #434952;
-  --color-ink-800: #2b2f36;
-  --color-ink-900: #1a1d22;
-  --color-ink-950: #0f1114;
+  --color-success-500: #15803d;
+  --color-warning-500: #b45309;
+  --color-danger-500: #b91c1c;
+  --color-info-500: #1d4ed8;
 
   /* ——— Typographie ——— */
-  --font-sans: var(--font-beralshop-sans), ui-sans-serif, system-ui, sans-serif;
-  --font-mono: var(--font-beralshop-mono), ui-monospace, monospace;
+  --font-sans: var(--font-beralshopp-sans), ui-sans-serif, system-ui, sans-serif;
+  --font-mono: var(--font-beralshopp-mono), ui-monospace, monospace;
+  /* Script du logo, exclusivement pour le nom de la marque. Jamais pour du texte
+     courant : une écriture cursive en petit corps devient illisible. */
+  --font-script: var(--font-beralshopp-script), cursive;
 
   /* ——— Rayons ——— */
   --radius-card: 0.875rem;
   --radius-control: 0.625rem;
 
   /* ——— Ombres : discrètes. Une ombre lourde alourdit la page perçue. ——— */
-  --shadow-card: 0 1px 2px rgb(15 17 20 / 0.05), 0 1px 3px rgb(15 17 20 / 0.06);
-  --shadow-raised: 0 4px 12px rgb(15 17 20 / 0.08), 0 2px 4px rgb(15 17 20 / 0.04);
+  --shadow-card: 0 1px 2px rgb(8 8 10 / 0.05), 0 1px 3px rgb(8 8 10 / 0.06);
+  --shadow-raised: 0 4px 12px rgb(8 8 10 / 0.1), 0 2px 4px rgb(8 8 10 / 0.05);
+  /* Lueur dorée du bouton d'achat, très légère : un halo marqué ferait « clinquant ». */
+  --shadow-gold: 0 2px 10px rgb(201 150 60 / 0.28);
 
   /* ——— Rythme ——— */
   --spacing-header: 4rem;
 }
 
 /* ═══════════════ Couleurs sémantiques, thème clair ═══════════════
-   Les composants n'utilisent QUE ces variables sémantiques. Elles basculent en
-   thème sombre sans qu'aucun composant n'ait à connaître le thème courant. */
+   Les composants n'utilisent QUE ces variables. Elles basculent en thème sombre
+   sans qu'aucun composant n'ait à connaître le thème courant. */
 
 :root {
   --surface: #ffffff;
   --surface-muted: var(--color-ink-50);
   --surface-raised: #ffffff;
-  --surface-inverted: var(--color-ink-900);
+  /* Surface sombre de la marque : en-tête, pied de page, bannières. */
+  --surface-brand: var(--color-ink-950);
 
   --content: var(--color-ink-900);
   --content-muted: var(--color-ink-500);
@@ -96,7 +97,7 @@
   --border: var(--color-ink-200);
   --border-strong: var(--color-ink-300);
 
-  --ring: var(--color-brand-500);
+  --ring: var(--color-gold-500);
 
   color-scheme: light;
 }
@@ -106,7 +107,7 @@
     --surface: var(--color-ink-950);
     --surface-muted: var(--color-ink-900);
     --surface-raised: var(--color-ink-900);
-    --surface-inverted: var(--color-ink-50);
+    --surface-brand: #000000;
 
     --content: var(--color-ink-50);
     --content-muted: var(--color-ink-400);
@@ -115,7 +116,7 @@
     --border: var(--color-ink-800);
     --border-strong: var(--color-ink-700);
 
-    --ring: var(--color-brand-400);
+    --ring: var(--color-gold-400);
 
     color-scheme: dark;
   }
@@ -125,7 +126,7 @@
   --surface: var(--color-ink-950);
   --surface-muted: var(--color-ink-900);
   --surface-raised: var(--color-ink-900);
-  --surface-inverted: var(--color-ink-50);
+  --surface-brand: #000000;
 
   --content: var(--color-ink-50);
   --content-muted: var(--color-ink-400);
@@ -134,17 +135,17 @@
   --border: var(--color-ink-800);
   --border-strong: var(--color-ink-700);
 
-  --ring: var(--color-brand-400);
+  --ring: var(--color-gold-400);
 
   color-scheme: dark;
 }
 
-/* Expose les jetons sémantiques aux utilitaires Tailwind : bg-surface, text-content… */
+/* Expose les jetons sémantiques aux utilitaires : bg-surface, text-content… */
 @theme inline {
   --color-surface: var(--surface);
   --color-surface-muted: var(--surface-muted);
   --color-surface-raised: var(--surface-raised);
-  --color-surface-inverted: var(--surface-inverted);
+  --color-surface-brand: var(--surface-brand);
   --color-content: var(--content);
   --color-content-muted: var(--content-muted);
   --color-content-inverted: var(--content-inverted);
@@ -172,8 +173,8 @@
     overflow-x: hidden;
   }
 
-  /* Accessibilité : l'anneau de focus doit rester visible au clavier. Ne jamais
-     le supprimer — c'est la seule façon de naviguer pour certains utilisateurs. */
+  /* Accessibilité : l'anneau de focus doit rester visible au clavier. Ne jamais le
+     supprimer — c'est la seule façon de naviguer pour certains utilisateurs. */
   :focus-visible {
     outline: 2px solid var(--ring);
     outline-offset: 2px;
@@ -181,8 +182,8 @@
   }
 
   ::selection {
-    background-color: var(--color-brand-200);
-    color: var(--color-brand-950);
+    background-color: var(--color-gold-200);
+    color: var(--color-ink-950);
   }
 
   /* Respecte le réglage système de réduction des animations. */
@@ -217,6 +218,50 @@
   .beral-price {
     font-variant-numeric: tabular-nums;
     letter-spacing: -0.01em;
+  }
+
+  /* Bandeau sombre de la marque — en-tête, pied de page, bannières. */
+  .beral-surface-brand {
+    background-color: var(--surface-brand);
+    color: var(--color-ink-100);
+  }
+
+  /* Filet doré fin, écho du cercle du logo. */
+  .beral-rule-gold {
+    background-image: linear-gradient(
+      90deg,
+      transparent,
+      var(--color-gold-600) 20%,
+      var(--color-gold-300) 50%,
+      var(--color-gold-600) 80%,
+      transparent
+    );
+    height: 1px;
+  }
+
+  /* Texte or dégradé, réservé au nom de la marque sur fond sombre. */
+  .beral-text-gold {
+    background-image: linear-gradient(
+      100deg,
+      var(--color-gold-300),
+      var(--color-gold-100) 45%,
+      var(--color-gold-400)
+    );
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+  }
+
+  /* Bouton d'achat principal. Texte quasi noir sur or : contraste largement
+     suffisant, là où du blanc sur or serait illisible. */
+  .beral-btn-gold {
+    background-image: linear-gradient(160deg, var(--color-gold-300), var(--color-gold-500));
+    color: var(--color-ink-950);
+    box-shadow: var(--shadow-gold);
+  }
+
+  .beral-btn-gold:hover {
+    background-image: linear-gradient(160deg, var(--color-gold-200), var(--color-gold-400));
   }
 }
 

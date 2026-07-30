@@ -44,7 +44,7 @@ export interface CountryDefinition {
   readonly addressFormat: AddressFormat;
   readonly region: Region;
   /**
-   * Marché prioritaire du plan de développement Beralshop.
+   * Marché prioritaire du plan de développement Beralshopp.
    * Sert uniquement à préremplir la base au premier démarrage.
    */
   readonly priorityMarket?: boolean;
@@ -73,7 +73,7 @@ function c(
 }
 
 /**
- * Note sur les langues : Beralshop démarre en français, anglais et arabe.
+ * Note sur les langues : Beralshopp démarre en français, anglais et arabe.
  * Les pays lusophones (Angola, Mozambique, Cap-Vert, São Tomé, Guinée-Bissau) sont
  * rattachés provisoirement à l'anglais. L'ajout du portugais est une simple entrée
  * supplémentaire dans SUPPORTED_LOCALES — l'architecture le prévoit déjà.

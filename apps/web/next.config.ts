@@ -1,4 +1,24 @@
+import { dirname, resolve } from 'node:path';
+import { fileURLToPath } from 'node:url';
+
+import { config as loadEnv } from 'dotenv';
 import type { NextConfig } from 'next';
+
+/**
+ * Next lit ses fichiers `.env` dans le dossier de l'application. Or Beralshopp n'a
+ * qu'UN seul fichier d'environnement, à la racine du dépôt, partagé avec les
+ * migrations et les scripts. Le dupliquer dans apps/web multiplierait les endroits
+ * où un secret peut traîner et provoquerait tôt ou tard deux bases divergentes.
+ *
+ * On le charge donc explicitement ici. Ce fichier est évalué au démarrage de `next
+ * dev` comme de `next build`, et les processus de build en héritent.
+ *
+ * En production (Vercel), les variables viennent de la plateforme : `dotenv`
+ * n'écrasant jamais une variable déjà définie, ce chargement est alors sans effet.
+ */
+const repoRoot = resolve(dirname(fileURLToPath(import.meta.url)), '../..');
+loadEnv({ path: resolve(repoRoot, '.env.local'), quiet: true });
+loadEnv({ path: resolve(repoRoot, '.env'), quiet: true });
 
 /**
  * En-têtes de sécurité appliqués à toutes les réponses.
@@ -33,7 +53,7 @@ const nextConfig: NextConfig = {
    * Next les transpile lui-même : une étape de build en moins à chaque modification,
    * et le typage reste exact entre le site et la future application mobile.
    */
-  transpilePackages: ['@beralshop/shared', '@beralshop/db'],
+  transpilePackages: ['@beralshopp/shared', '@beralshopp/core', '@beralshopp/db'],
 
   images: {
     /**
@@ -49,7 +69,7 @@ const nextConfig: NextConfig = {
   },
 
   experimental: {
-    optimizePackageImports: ['@beralshop/shared'],
+    optimizePackageImports: ['@beralshopp/shared'],
   },
 
   /**

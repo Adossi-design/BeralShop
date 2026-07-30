@@ -1,4 +1,4 @@
-# Beralshop
+# Beralshopp
 
 Plateforme e-commerce africaine — web responsive d'abord, application mobile ensuite.
 
@@ -98,7 +98,7 @@ réécriture. Voir [01 — Architecture technique](docs/01-architecture-techniqu
 2. **Le montant à payer est toujours recalculé sur le serveur.** La valeur envoyée par le
    navigateur n'est jamais utilisée. Le panier ne stocke aucun prix.
 
-3. **Un paiement n'est jamais confirmé sur la foi d'un webhook.** Le serveur Beralshop
+3. **Un paiement n'est jamais confirmé sur la foi d'un webhook.** Le serveur Beralshopp
    réinterroge Pesapal avec ses propres identifiants, et c'est cette réponse qui fait
    autorité. Voir [03 — Paiements & devises](docs/03-paiements-devises.md).
 

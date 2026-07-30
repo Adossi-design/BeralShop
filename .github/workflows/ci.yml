@@ -66,7 +66,7 @@ jobs:
         env:
           POSTGRES_USER: ci
           POSTGRES_PASSWORD: ci
-          POSTGRES_DB: beralshop_ci
+          POSTGRES_DB: beralshopp_ci
         ports: ['5432:5432']
         options: >-
           --health-cmd pg_isready
@@ -75,8 +75,8 @@ jobs:
           --health-retries 5
 
     env:
-      DATABASE_URL: 'postgresql://ci:ci@localhost:5432/beralshop_ci'
-      DIRECT_URL: 'postgresql://ci:ci@localhost:5432/beralshop_ci'
+      DATABASE_URL: 'postgresql://ci:ci@localhost:5432/beralshopp_ci'
+      DIRECT_URL: 'postgresql://ci:ci@localhost:5432/beralshopp_ci'
 
     steps:
       - uses: actions/checkout@v4
@@ -89,10 +89,10 @@ jobs:
       - run: pnpm install --frozen-lockfile
 
       - name: Valider le schéma
-        run: pnpm --filter @beralshop/db exec prisma validate
+        run: pnpm --filter @beralshopp/db exec prisma validate
 
       - name: Appliquer les migrations
-        run: pnpm --filter @beralshop/db run migrate:deploy
+        run: pnpm --filter @beralshopp/db run migrate:deploy
 
       - name: Amorcer les données de référence
         run: pnpm db:seed

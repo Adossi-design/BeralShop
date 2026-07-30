@@ -14,7 +14,7 @@ import { PrismaClient } from '../generated/prisma/client.ts';
 
 declare global {
   // eslint-disable-next-line no-var
-  var __beralshopPrisma: PrismaClient | undefined;
+  var __beralshoppPrisma: PrismaClient | undefined;
 }
 
 function createClient(): PrismaClient {
@@ -40,8 +40,8 @@ function createClient(): PrismaClient {
   });
 }
 
-export const prisma: PrismaClient = globalThis.__beralshopPrisma ?? createClient();
+export const prisma: PrismaClient = globalThis.__beralshoppPrisma ?? createClient();
 
 if (process.env['NODE_ENV'] !== 'production') {
-  globalThis.__beralshopPrisma = prisma;
+  globalThis.__beralshoppPrisma = prisma;
 }

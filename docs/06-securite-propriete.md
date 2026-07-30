@@ -10,7 +10,7 @@ Tu as posé cette exigence explicitement. Voici comment elle est garantie **conc
 
 - Dépôt **GitHub privé créé sous ton compte**, dont tu es propriétaire (_owner_).
 - Aucune dépendance propriétaire, aucune licence payante, aucun thème acheté.
-  Tout le code est écrit pour Beralshop ou repose sur des bibliothèques libres
+  Tout le code est écrit pour Beralshopp ou repose sur des bibliothèques libres
   (MIT / Apache 2.0), utilisables commercialement sans restriction.
 - **Aucun code caché, aucun composant que tu ne pourrais pas lire ou modifier.**
 - Le projet peut être repris par n'importe quel développeur maîtrisant Next.js et
@@ -78,7 +78,7 @@ demain, **tu conserves l'intégralité du système sans aucune action de ma part
 | Fuite des clés Pesapal                    | Les clés vivent **uniquement dans les variables d'environnement du serveur**. Elles ne sont jamais envoyées au navigateur, jamais présentes dans le code, jamais dans Git. |
 | Fausses commandes en masse                | Limitation de débit, réservation de stock à durée limitée, détection de comportements anormaux, blocage de numéros/IP depuis l'admin                                       |
 
-> **Beralshop ne stocke ni ne manipule aucune donnée de carte bancaire.** La saisie a lieu
+> **Beralshopp ne stocke ni ne manipule aucune donnée de carte bancaire.** La saisie a lieu
 > intégralement sur la page hébergée par Pesapal. Cela évite d'entrer dans le périmètre de
 > certification PCI-DSS, qui serait très lourd et coûteux.
 

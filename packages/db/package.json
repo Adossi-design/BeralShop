@@ -1,5 +1,5 @@
 {
-  "name": "@beralshop/db",
+  "name": "@beralshopp/db",
   "version": "0.1.0",
   "private": true,
   "type": "module",
@@ -18,7 +18,7 @@
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
-    "@beralshop/shared": "workspace:*",
+    "@beralshopp/shared": "workspace:*",
     "@prisma/adapter-pg": "^7.9.1",
     "@prisma/client": "^7.9.1"
   },

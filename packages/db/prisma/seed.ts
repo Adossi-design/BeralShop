@@ -2,9 +2,11 @@
 // Prisma ne soit évalué. Inverser ces deux lignes casse l'amorçage.
 import '../src/load-env.ts';
 
-import { COUNTRIES, CURRENCIES } from '@beralshop/shared';
+import { COUNTRIES, CURRENCIES } from '@beralshopp/shared';
 
 import { prisma } from '../src/client.ts';
+import { CATEGORY_COUNT, CATEGORY_TREE } from './categories.ts';
+import { DEMO_BRANDS, DEMO_PRODUCTS } from './demo-products.ts';
 
 /**
  * Amorçage de la base.
@@ -82,16 +84,16 @@ async function seedCountries(): Promise<void> {
 
 async function seedDefaultVendor(): Promise<string> {
   const vendor = await prisma.vendor.upsert({
-    where: { slug: 'beralshop' },
+    where: { slug: 'beralshopp' },
     update: {},
     create: {
-      slug: 'beralshop',
-      name: 'Beralshop',
+      slug: 'beralshopp',
+      name: 'Beralshopp',
       isActive: true,
       commissionBp: 0,
     },
   });
-  console.log('  ✓ Vendeur par défaut : Beralshop');
+  console.log('  ✓ Vendeur par défaut : Beralshopp');
   return vendor.id;
 }
 
@@ -152,48 +154,139 @@ async function seedShipping(): Promise<void> {
   console.log('  ✓ Zones et tarifs de livraison (Rwanda)');
 }
 
-const DEMO_CATEGORIES = [
-  { slug: 'electronique', name: 'Électronique', icon: 'smartphone' },
-  { slug: 'mode', name: 'Mode & Vêtements', icon: 'shirt' },
-  { slug: 'maison', name: 'Maison & Cuisine', icon: 'home' },
-  { slug: 'beaute', name: 'Beauté & Santé', icon: 'sparkles' },
-  { slug: 'telephonie', name: 'Téléphones & Accessoires', icon: 'phone' },
-  { slug: 'informatique', name: 'Informatique', icon: 'laptop' },
-  { slug: 'sport', name: 'Sport & Loisirs', icon: 'dumbbell' },
-  { slug: 'bebe', name: 'Bébé & Enfant', icon: 'baby' },
-];
+/**
+ * Taxonomie réelle Beralshopp — amorcée dans TOUS les environnements.
+ *
+ * `update: {}` est délibéré : on crée ce qui manque, on ne touche jamais à ce qui
+ * existe. Un renommage ou un masquage fait depuis l'admin survit donc à un re-seed.
+ */
+async function seedCategories(): Promise<void> {
+  let position = 0;
 
-async function seedDemoCategories(): Promise<void> {
-  for (const [index, category] of DEMO_CATEGORIES.entries()) {
-    await prisma.category.upsert({
-      where: { slug: category.slug },
+  for (const parent of CATEGORY_TREE) {
+    const created = await prisma.category.upsert({
+      where: { slug: parent.slug },
       update: {},
       create: {
-        slug: category.slug,
-        position: index,
-        iconName: category.icon,
+        slug: parent.slug,
+        position: position++,
+        iconName: parent.icon,
         isActive: true,
+        translations: { create: [{ locale: 'fr', name: parent.name }] },
+      },
+    });
+
+    for (const [index, child] of (parent.children ?? []).entries()) {
+      await prisma.category.upsert({
+        where: { slug: child.slug },
+        update: {},
+        create: {
+          slug: child.slug,
+          parentId: created.id,
+          position: index,
+          isActive: true,
+          translations: { create: [{ locale: 'fr', name: child.name }] },
+        },
+      });
+    }
+  }
+
+  console.log(
+    `  ✓ ${CATEGORY_COUNT} catégories (${CATEGORY_TREE.length} rubriques et leurs sous-catégories)`,
+  );
+}
+
+async function seedDemoBrands(): Promise<void> {
+  for (const brand of DEMO_BRANDS) {
+    await prisma.brand.upsert({
+      where: { slug: brand.slug },
+      update: {},
+      create: { slug: brand.slug, name: brand.name },
+    });
+  }
+  console.log(`  ✓ ${DEMO_BRANDS.length} marques de démonstration`);
+}
+
+function daysAgo(days: number): Date {
+  return new Date(Date.now() - days * 24 * 60 * 60 * 1000);
+}
+
+async function seedDemoProducts(vendorId: string): Promise<void> {
+  const categories = await prisma.category.findMany({ select: { id: true, slug: true } });
+  const brands = await prisma.brand.findMany({ select: { id: true, slug: true } });
+  const categoryId = new Map(categories.map((c) => [c.slug, c.id]));
+  const brandId = new Map(brands.map((b) => [b.slug, b.id]));
+
+  let created = 0;
+
+  for (const demo of DEMO_PRODUCTS) {
+    const existing = await prisma.product.findUnique({ where: { sku: demo.sku } });
+    if (existing) continue;
+
+    await prisma.product.create({
+      data: {
+        sku: demo.sku,
+        slug: demo.slug,
+        vendorId,
+        categoryId: categoryId.get(demo.categorySlug) ?? null,
+        brandId: demo.brandSlug ? (brandId.get(demo.brandSlug) ?? null) : null,
+        basePriceMinor: demo.basePriceMinor,
+        compareAtPriceMinor: demo.compareAtPriceMinor ?? null,
+        currency: 'RWF',
+        status: 'ACTIVE',
+        isFeatured: demo.isFeatured ?? false,
+        salesCount: demo.salesCount,
+        ratingAvg: demo.ratingAvg,
+        ratingCount: demo.ratingCount,
+        publishedAt: daysAgo(demo.publishedDaysAgo),
         translations: {
-          create: [{ locale: 'fr', name: category.name }],
+          create: [
+            {
+              locale: 'fr',
+              name: demo.name,
+              description: demo.description,
+              keywords: demo.keywords,
+              specifications: demo.specifications,
+            },
+          ],
+        },
+        variants: {
+          create: demo.variants.map((variant) => ({
+            sku: `${demo.sku}-${variant.suffix}`,
+            options: variant.options,
+            priceDeltaMinor: variant.priceDeltaMinor ?? 0,
+            stockQuantity: variant.stock,
+            reservedQuantity: 0,
+            isActive: true,
+          })),
         },
       },
     });
+    created += 1;
   }
-  console.log(`  ✓ ${DEMO_CATEGORIES.length} catégories de démonstration`);
+
+  const variantCount = DEMO_PRODUCTS.reduce((n, p) => n + p.variants.length, 0);
+  console.log(
+    created > 0
+      ? `  ✓ ${created} produits de démonstration (${variantCount} variantes)`
+      : '  · Produits de démonstration déjà présents',
+  );
 }
 
 async function main(): Promise<void> {
-  console.log('\n▶ Amorçage de la base Beralshop\n');
+  console.log('\n▶ Amorçage de la base Beralshopp\n');
 
   console.log('Données de référence :');
   await seedCurrencies();
   await seedCountries();
-  await seedDefaultVendor();
+  const vendorId = await seedDefaultVendor();
   await seedShipping();
+  await seedCategories();
 
   if (process.env['SEED_DEMO_DATA'] === 'true') {
     console.log('\nDonnées de démonstration :');
-    await seedDemoCategories();
+    await seedDemoBrands();
+    await seedDemoProducts(vendorId);
   } else {
     console.log('\n· Données de démonstration ignorées (SEED_DEMO_DATA≠true)');
   }

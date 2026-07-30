@@ -1,7 +1,7 @@
 import Link from 'next/link';
 import { Mail, MapPin, MessageCircle, Phone } from 'lucide-react';
 
-import { BeralshopLogo } from './beralshop-logo';
+import { BeralshoppLogo } from './beralshopp-logo';
 
 /**
  * Pied de page.
@@ -16,7 +16,7 @@ import { BeralshopLogo } from './beralshop-logo';
 const CONTACT = {
   whatsapp: process.env['NEXT_PUBLIC_WHATSAPP_NUMBER'] ?? '',
   phone: process.env['NEXT_PUBLIC_CONTACT_PHONE'] ?? '',
-  email: process.env['NEXT_PUBLIC_CONTACT_EMAIL'] ?? 'contact@beralshop.com',
+  email: process.env['NEXT_PUBLIC_CONTACT_EMAIL'] ?? 'contact@beralshopp.com',
   city: 'Kigali, Rwanda',
 };
 
@@ -52,13 +52,14 @@ const SECTIONS = [
 
 export function SiteFooter() {
   return (
-    <footer className="border-border bg-surface-muted mt-auto border-t">
+    <footer className="beral-surface-brand mt-auto">
+      <div className="beral-rule-gold" aria-hidden />
       <div className="beral-container py-12">
         <div className="grid gap-10 md:grid-cols-2 lg:grid-cols-5">
           {/* ——— Marque et contact ——— */}
           <div className="lg:col-span-2">
-            <BeralshopLogo />
-            <p className="text-content-muted mt-3 max-w-sm text-sm">
+            <BeralshoppLogo onDark />
+            <p className="text-ink-300 mt-3 max-w-sm text-sm">
               Achetez en ligne en toute confiance et payez par Mobile Money ou carte bancaire.
               Livraison au Rwanda, et bientôt dans toute l&apos;Afrique.
             </p>
@@ -78,20 +79,20 @@ export function SiteFooter() {
                 </li>
               ) : null}
               {CONTACT.phone ? (
-                <li className="text-content-muted flex items-center gap-2">
+                <li className="text-ink-300 flex items-center gap-2">
                   <Phone className="h-4 w-4 shrink-0" aria-hidden />
-                  <a href={`tel:${CONTACT.phone}`} className="hover:text-content">
+                  <a href={`tel:${CONTACT.phone}`} className="hover:text-gold-300">
                     {CONTACT.phone}
                   </a>
                 </li>
               ) : null}
-              <li className="text-content-muted flex items-center gap-2">
+              <li className="text-ink-300 flex items-center gap-2">
                 <Mail className="h-4 w-4 shrink-0" aria-hidden />
-                <a href={`mailto:${CONTACT.email}`} className="hover:text-content">
+                <a href={`mailto:${CONTACT.email}`} className="hover:text-gold-300">
                   {CONTACT.email}
                 </a>
               </li>
-              <li className="text-content-muted flex items-center gap-2">
+              <li className="text-ink-300 flex items-center gap-2">
                 <MapPin className="h-4 w-4 shrink-0" aria-hidden />
                 {CONTACT.city}
               </li>
@@ -101,13 +102,13 @@ export function SiteFooter() {
           {/* ——— Liens ——— */}
           {SECTIONS.map((section) => (
             <nav key={section.title} aria-label={section.title}>
-              <h2 className="text-content text-sm font-semibold">{section.title}</h2>
+              <h2 className="text-gold-300 text-sm font-semibold">{section.title}</h2>
               <ul className="mt-4 space-y-2.5 text-sm">
                 {section.links.map((link) => (
                   <li key={link.href}>
                     <Link
                       href={link.href}
-                      className="text-content-muted hover:text-brand-700 transition-colors"
+                      className="text-ink-300 hover:text-gold-300 transition-colors"
                     >
                       {link.label}
                     </Link>
@@ -119,22 +120,22 @@ export function SiteFooter() {
         </div>
       </div>
 
-      <div className="border-border border-t">
-        <div className="beral-container text-content-muted flex flex-col gap-3 py-5 text-xs sm:flex-row sm:items-center sm:justify-between">
-          <p>© {new Date().getFullYear()} Beralshop. Tous droits réservés.</p>
+      <div className="border-ink-800 border-t">
+        <div className="beral-container text-ink-400 flex flex-col gap-3 py-5 text-xs sm:flex-row sm:items-center sm:justify-between">
+          <p>© {new Date().getFullYear()} Beralshopp. Tous droits réservés.</p>
           <ul className="flex flex-wrap gap-x-5 gap-y-2">
             <li>
-              <Link href="/conditions" className="hover:text-content">
+              <Link href="/conditions" className="hover:text-gold-300">
                 Conditions de vente
               </Link>
             </li>
             <li>
-              <Link href="/confidentialite" className="hover:text-content">
+              <Link href="/confidentialite" className="hover:text-gold-300">
                 Confidentialité
               </Link>
             </li>
             <li>
-              <Link href="/retours" className="hover:text-content">
+              <Link href="/retours" className="hover:text-gold-300">
                 Retours et remboursements
               </Link>
             </li>

@@ -5,7 +5,7 @@
 | Couche           | Technologie retenue                                 | Pourquoi                                                                                                                                                                |
 | ---------------- | --------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | Site web         | **Next.js 15** (App Router) + **TypeScript**        | Rendu serveur = pages rapides sur téléphone bas de gamme et réseau lent, et bon référencement Google. Un seul langage du front au back.                                 |
-| Interface        | **Tailwind CSS** + **shadcn/ui**                    | Design sur mesure (identité Beralshop propre), composants dont tu es propriétaire — pas de dépendance à un thème acheté.                                                |
+| Interface        | **Tailwind CSS** + **shadcn/ui**                    | Design sur mesure (identité Beralshopp propre), composants dont tu es propriétaire — pas de dépendance à un thème acheté.                                               |
 | API              | **Route Handlers Next.js**, versionnées `/api/v1/*` | Même base de code que le site en V1, mais API publique documentée dès le départ → l'application mobile s'y branchera sans rien réécrire.                                |
 | Logique métier   | Paquet **`packages/core`** séparé                   | Le cœur (commandes, paiements, stock) est isolé de Next.js. Si un jour il faut sortir l'API dans un service dédié, c'est un déplacement de dossier, pas une réécriture. |
 | Base de données  | **PostgreSQL 16**                                   | Standard, gratuit, robuste, transactions fiables (indispensable pour stock + paiements), recherche plein texte intégrée. Portable partout.                              |
@@ -53,7 +53,7 @@ packages/
     notifications/        → e-mail, SMS, WhatsApp
   db/                     → schéma Prisma + migrations
   shared/                 → types TypeScript communs web/mobile, validation Zod
-  ui/                     → composants de design Beralshop
+  ui/                     → composants de design Beralshopp
 ```
 
 **Règle :** une route API ne fait que trois choses — valider l'entrée, appeler un service de
@@ -130,7 +130,7 @@ Client (navigateur ou app mobile)
 
 1. Le montant à payer est **toujours recalculé sur le serveur** à partir des prix en base.
    Le montant envoyé par le navigateur n'est jamais utilisé.
-2. Une commande n'est confirmée que si **le serveur Beralshop a lui-même vérifié le paiement
+2. Une commande n'est confirmée que si **le serveur Beralshopp a lui-même vérifié le paiement
    auprès de Pesapal**. Un faux message de confirmation ne peut donc pas valider une commande.
 
 ---
@@ -164,15 +164,15 @@ derrière cette interface. Une journée de travail, zéro impact sur le reste.
 
 Ce sont les décisions qui coûtent quelques heures maintenant et évitent des semaines plus tard.
 
-| Besoin futur                   | Ce qu'on prépare en V1                                                                  | Coût V1 |
-| ------------------------------ | --------------------------------------------------------------------------------------- | ------- |
-| Autres moyens de paiement      | Interface `PaymentProvider` — Pesapal n'est qu'une implémentation parmi d'autres        | ~4 h    |
-| Multi-devises                  | Prix stockés en unités entières + devise ; taux figé au moment de la commande           | ~6 h    |
-| Multi-langues                  | Tables `*_translations` créées dès le départ ; textes de l'interface externalisés       | ~8 h    |
-| Multi-pays                     | Table `countries` (devise, langues, moyens de paiement, zones de livraison actives)     | ~4 h    |
-| Dropshipping Sunsky            | Interface `SupplierAdapter` + champs `supplier_id`, `supplier_sku` sur les produits     | ~3 h    |
-| **Marketplace multi-vendeurs** | Colonne `vendor_id` sur produits et lignes de commande, valeur par défaut « Beralshop » | ~2 h    |
-| Application mobile             | API `/api/v1` versionnée, documentée OpenAPI, authentification par jeton                | ~6 h    |
+| Besoin futur                   | Ce qu'on prépare en V1                                                                   | Coût V1 |
+| ------------------------------ | ---------------------------------------------------------------------------------------- | ------- |
+| Autres moyens de paiement      | Interface `PaymentProvider` — Pesapal n'est qu'une implémentation parmi d'autres         | ~4 h    |
+| Multi-devises                  | Prix stockés en unités entières + devise ; taux figé au moment de la commande            | ~6 h    |
+| Multi-langues                  | Tables `*_translations` créées dès le départ ; textes de l'interface externalisés        | ~8 h    |
+| Multi-pays                     | Table `countries` (devise, langues, moyens de paiement, zones de livraison actives)      | ~4 h    |
+| Dropshipping Sunsky            | Interface `SupplierAdapter` + champs `supplier_id`, `supplier_sku` sur les produits      | ~3 h    |
+| **Marketplace multi-vendeurs** | Colonne `vendor_id` sur produits et lignes de commande, valeur par défaut « Beralshopp » | ~2 h    |
+| Application mobile             | API `/api/v1` versionnée, documentée OpenAPI, authentification par jeton                 | ~6 h    |
 
 Le dernier point mérite une insistance particulière : **ajouter `vendor_id` après coup dans une
 base contenant des dizaines de milliers de commandes est un chantier de plusieurs semaines.**

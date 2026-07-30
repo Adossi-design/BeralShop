@@ -1,4 +1,4 @@
-# @beralshop/db
+# @beralshopp/db
 
 Schéma PostgreSQL, migrations et client Prisma.
 
@@ -29,7 +29,7 @@ Tout cela vit dans [`prisma/sql/001_search_and_sequences.sql`](prisma/sql/001_se
 
 ```bash
 # 1. Créer la migration SANS l'appliquer
-pnpm --filter @beralshop/db exec prisma migrate dev --name init --create-only
+pnpm --filter @beralshopp/db exec prisma migrate dev --name init --create-only
 
 # 2. Coller le contenu de prisma/sql/001_search_and_sequences.sql
 #    À LA FIN du fichier prisma/migrations/<horodatage>_init/migration.sql

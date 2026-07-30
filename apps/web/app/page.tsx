@@ -1,28 +1,19 @@
 import Link from 'next/link';
 import { CreditCard, PackageCheck, Search, ShieldCheck, ShoppingBag, Truck } from 'lucide-react';
 
-import { SiteFooter } from '@/components/site-footer';
-import { SiteHeader } from '@/components/site-header';
+import { listBestSellers, listCategoryTree, listNewArrivals, listOnSale } from '@beralshopp/core';
+
+import { CategoryIcon } from '@/components/catalog/category-icon';
+import { ProductRail } from '@/components/catalog/product-grid';
 
 /**
- * Page d'accueil — structure.
+ * Page d'accueil.
  *
- * Les sections marchandes (produits populaires, nouveautés, promotions) sont en
- * place mais vides : elles seront alimentées depuis la base au lot 1, une fois le
- * catalogue créé. Le squelette existe dès maintenant pour que la mise en page, la
- * performance et le référencement soient validés avant d'y injecter des données.
+ * Rendue sur le serveur et régénérée toutes les 5 minutes. Les quatre requêtes
+ * catalogue partent EN PARALLÈLE : les enchaîner ajouterait leurs latences les unes
+ * aux autres, ce qui se voit immédiatement sur une connexion lente.
  */
-
-const CATEGORIES = [
-  { slug: 'electronique', name: 'Électronique' },
-  { slug: 'telephonie', name: 'Téléphones' },
-  { slug: 'informatique', name: 'Informatique' },
-  { slug: 'mode', name: 'Mode' },
-  { slug: 'maison', name: 'Maison' },
-  { slug: 'beaute', name: 'Beauté' },
-  { slug: 'sport', name: 'Sport' },
-  { slug: 'bebe', name: 'Bébé' },
-];
+export const revalidate = 300;
 
 const STEPS = [
   {
@@ -53,22 +44,22 @@ const GUARANTEES = [
   { icon: PackageCheck, label: 'Commande garantie', detail: 'Remboursement si problème' },
 ];
 
-function SectionShell({
+function Section({
   title,
   href,
   children,
 }: {
-  title: string;
-  href: string;
-  children: React.ReactNode;
+  readonly title: string;
+  readonly href: string;
+  readonly children: React.ReactNode;
 }) {
   return (
-    <section className="beral-container py-8">
+    <section className="beral-container py-6">
       <div className="mb-4 flex items-baseline justify-between gap-4">
         <h2 className="text-content text-lg font-bold sm:text-xl">{title}</h2>
         <Link
           href={href}
-          className="text-brand-600 hover:text-brand-700 shrink-0 text-sm font-medium"
+          className="text-gold-600 hover:text-gold-700 shrink-0 text-sm font-medium"
         >
           Tout voir
         </Link>
@@ -78,136 +69,133 @@ function SectionShell({
   );
 }
 
-function EmptyRail({ note }: { note: string }) {
-  return (
-    <div className="rounded-card border-border bg-surface-muted/50 border border-dashed px-6 py-10 text-center">
-      <p className="text-content-muted text-sm">{note}</p>
-    </div>
-  );
-}
+export default async function HomePage() {
+  const [categories, bestSellers, newArrivals, onSale] = await Promise.all([
+    listCategoryTree(),
+    listBestSellers(undefined, 10),
+    listNewArrivals(undefined, 10),
+    listOnSale(undefined, 10),
+  ]);
 
-export default function HomePage() {
   return (
-    <>
-      <SiteHeader />
-
-      <main id="contenu" className="flex-1">
-        {/* ——— Bannière ——— */}
-        <section className="from-brand-700 via-brand-600 to-brand-800 bg-gradient-to-br">
-          <div className="beral-container py-12 sm:py-16">
-            <div className="max-w-2xl">
-              <p className="text-accent-300 text-sm font-semibold tracking-wide uppercase">
-                Bienvenue sur Beralshop
-              </p>
-              <h1 className="mt-3 text-3xl leading-tight font-bold text-white sm:text-4xl lg:text-5xl">
-                Tout ce qu’il vous faut, livré chez vous
-              </h1>
-              <p className="text-brand-50 mt-4 text-base sm:text-lg">
-                Électronique, mode, maison et bien plus. Payez par Mobile Money ou par carte, en
-                toute sécurité.
-              </p>
-              <div className="mt-7 flex flex-wrap gap-3">
-                <Link
-                  href="/categories"
-                  className="rounded-control bg-accent-400 text-accent-900 hover:bg-accent-300 px-6 py-3 font-semibold transition-colors"
-                >
-                  Découvrir les produits
-                </Link>
-                <Link
-                  href="/comment-commander"
-                  className="rounded-control border border-white/30 px-6 py-3 font-semibold text-white transition-colors hover:bg-white/10"
-                >
-                  Comment commander ?
-                </Link>
-              </div>
+    <main id="contenu" className="flex-1">
+      {/* ——— Bannière ——— */}
+      <section className="from-ink-950 via-ink-900 to-ink-800 bg-gradient-to-br">
+        <div className="beral-container py-12 sm:py-16">
+          <div className="max-w-2xl">
+            <p className="text-gold-300 text-sm font-semibold tracking-wide uppercase">
+              Bienvenue sur Beralshopp
+            </p>
+            <h1 className="mt-3 text-3xl leading-tight font-bold text-white sm:text-4xl lg:text-5xl">
+              Tout ce qu’il vous faut, livré chez vous
+            </h1>
+            <p className="text-gold-100 mt-4 text-base sm:text-lg">
+              Électronique, mode, maison et bien plus. Payez par Mobile Money ou par carte, en toute
+              sécurité.
+            </p>
+            <div className="mt-7 flex flex-wrap gap-3">
+              <Link
+                href="/categories"
+                className="rounded-control beral-btn-gold px-6 py-3 font-semibold transition-all"
+              >
+                Découvrir les produits
+              </Link>
+              <Link
+                href="/comment-commander"
+                className="rounded-control border border-white/30 px-6 py-3 font-semibold text-white transition-colors hover:bg-white/10"
+              >
+                Comment commander ?
+              </Link>
             </div>
           </div>
-        </section>
+        </div>
+      </section>
 
-        {/* ——— Réassurance ——— */}
-        <section className="border-border bg-surface border-b">
-          <div className="beral-container grid grid-cols-1 gap-4 py-5 sm:grid-cols-3">
-            {GUARANTEES.map((item) => (
-              <div key={item.label} className="flex items-center gap-3">
-                <item.icon className="text-brand-600 h-6 w-6 shrink-0" aria-hidden />
-                <div>
-                  <p className="text-content text-sm font-semibold">{item.label}</p>
-                  <p className="text-content-muted text-xs">{item.detail}</p>
-                </div>
+      {/* ——— Réassurance ——— */}
+      <section className="border-border bg-surface border-b">
+        <div className="beral-container grid grid-cols-1 gap-4 py-5 sm:grid-cols-3">
+          {GUARANTEES.map((item) => (
+            <div key={item.label} className="flex items-center gap-3">
+              <item.icon className="text-gold-600 h-6 w-6 shrink-0" aria-hidden />
+              <div>
+                <p className="text-content text-sm font-semibold">{item.label}</p>
+                <p className="text-content-muted text-xs">{item.detail}</p>
               </div>
-            ))}
-          </div>
-        </section>
+            </div>
+          ))}
+        </div>
+      </section>
 
-        {/* ——— Catégories ——— */}
-        <section className="beral-container py-8">
-          <h2 className="text-content mb-4 text-lg font-bold sm:text-xl">
-            Parcourir par catégorie
+      {/* ——— Catégories ——— */}
+      <section className="beral-container py-8">
+        <h2 className="text-content mb-4 text-lg font-bold sm:text-xl">Parcourir par catégorie</h2>
+        <ul className="grid grid-cols-4 gap-3 sm:grid-cols-6 lg:grid-cols-8">
+          {categories.slice(0, 16).map((category) => (
+            <li key={category.slug}>
+              <Link
+                href={`/categories/${category.slug}`}
+                className="border-border bg-surface shadow-card hover:shadow-raised rounded-card flex h-full flex-col items-center gap-2 border p-3 text-center transition-shadow"
+              >
+                <span className="bg-gold-50 text-gold-600 flex h-11 w-11 items-center justify-center rounded-full">
+                  <CategoryIcon name={category.iconName} className="h-5 w-5" />
+                </span>
+                <span className="text-content text-xs leading-tight font-medium">
+                  {category.name}
+                </span>
+              </Link>
+            </li>
+          ))}
+        </ul>
+      </section>
+
+      {/* ——— Rails marchands ——— */}
+      {bestSellers.items.length > 0 ? (
+        <Section title="Produits populaires" href="/categories">
+          <ProductRail products={bestSellers.items} />
+        </Section>
+      ) : null}
+
+      {onSale.items.length > 0 ? (
+        <Section title="Promotions" href="/categories">
+          <ProductRail products={onSale.items} />
+        </Section>
+      ) : null}
+
+      {newArrivals.items.length > 0 ? (
+        <Section title="Nouveaux arrivages" href="/categories">
+          <ProductRail products={newArrivals.items} />
+        </Section>
+      ) : null}
+
+      {/* ——— Comment commander ——— */}
+      <section className="bg-surface-muted mt-6">
+        <div className="beral-container py-12">
+          <h2 className="text-content text-center text-xl font-bold sm:text-2xl">
+            Comment commander ?
           </h2>
-          <ul className="grid grid-cols-4 gap-3 sm:grid-cols-6 lg:grid-cols-8">
-            {CATEGORIES.map((category) => (
-              <li key={category.slug}>
-                <Link
-                  href={`/categories/${category.slug}`}
-                  className="rounded-card border-border bg-surface shadow-card hover:shadow-raised flex h-full flex-col items-center gap-2 border p-3 text-center transition-shadow"
-                >
-                  <span className="bg-brand-50 text-brand-600 flex h-11 w-11 items-center justify-center rounded-full">
-                    <ShoppingBag className="h-5 w-5" aria-hidden />
+          <p className="text-content-muted mx-auto mt-2 max-w-xl text-center text-sm">
+            Quatre étapes simples, de la recherche à la livraison.
+          </p>
+
+          <ol className="mt-8 grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
+            {STEPS.map((step, index) => (
+              <li
+                key={step.title}
+                className="border-border bg-surface shadow-card rounded-card border p-5"
+              >
+                <div className="flex items-center gap-3">
+                  <span className="bg-ink-900 flex h-10 w-10 items-center justify-center rounded-full font-bold text-white">
+                    {index + 1}
                   </span>
-                  <span className="text-content text-xs leading-tight font-medium">
-                    {category.name}
-                  </span>
-                </Link>
+                  <step.icon className="text-gold-600 h-5 w-5" aria-hidden />
+                </div>
+                <h3 className="text-content mt-4 font-semibold">{step.title}</h3>
+                <p className="text-content-muted mt-1.5 text-sm">{step.text}</p>
               </li>
             ))}
-          </ul>
-        </section>
-
-        {/* ——— Rails marchands (alimentés au lot 1) ——— */}
-        <SectionShell title="Produits populaires" href="/meilleures-ventes">
-          <EmptyRail note="Les produits les plus vendus apparaîtront ici dès la mise en ligne du catalogue." />
-        </SectionShell>
-
-        <SectionShell title="Nouveaux arrivages" href="/nouveautes">
-          <EmptyRail note="Les derniers produits ajoutés apparaîtront ici." />
-        </SectionShell>
-
-        <SectionShell title="Promotions" href="/promotions">
-          <EmptyRail note="Les produits en promotion apparaîtront ici, avec leur ancien prix barré." />
-        </SectionShell>
-
-        {/* ——— Comment commander ——— */}
-        <section className="bg-surface-muted">
-          <div className="beral-container py-12">
-            <h2 className="text-content text-center text-xl font-bold sm:text-2xl">
-              Comment commander ?
-            </h2>
-            <p className="text-content-muted mx-auto mt-2 max-w-xl text-center text-sm">
-              Quatre étapes simples, de la recherche à la livraison.
-            </p>
-
-            <ol className="mt-8 grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
-              {STEPS.map((step, index) => (
-                <li
-                  key={step.title}
-                  className="rounded-card border-border bg-surface shadow-card border p-5"
-                >
-                  <div className="flex items-center gap-3">
-                    <span className="bg-brand-600 flex h-10 w-10 items-center justify-center rounded-full font-bold text-white">
-                      {index + 1}
-                    </span>
-                    <step.icon className="text-brand-600 h-5 w-5" aria-hidden />
-                  </div>
-                  <h3 className="text-content mt-4 font-semibold">{step.title}</h3>
-                  <p className="text-content-muted mt-1.5 text-sm">{step.text}</p>
-                </li>
-              ))}
-            </ol>
-          </div>
-        </section>
-      </main>
-
-      <SiteFooter />
-    </>
+          </ol>
+        </div>
+      </section>
+    </main>
   );
 }

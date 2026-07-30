@@ -29,7 +29,7 @@ sont assurées par le fournisseur. Tu ne gères aucun serveur.
 |                                | **En croissance**                           | **≈ 90 – 120 $/mois** |
 
 > ⚠️ **Vercel Hobby (gratuit) interdit l'usage commercial.** Le plan Pro à 20 $ est
-> obligatoire dès la mise en ligne de Beralshop. Ne pas le prévoir expose à une suspension
+> obligatoire dès la mise en ligne de Beralshopp. Ne pas le prévoir expose à une suspension
 > du site sans préavis.
 
 ### Option B — Serveur dédié (VPS auto-hébergé)
@@ -115,7 +115,7 @@ mensuelles économise environ 200 $ par mois, soit plus que toute ton infrastruc
 
 | Poste                                | Montant                           | Fréquence       |
 | ------------------------------------ | --------------------------------- | --------------- |
-| Nom de domaine `beralshop.com`       | ≈ 12 $                            | annuel          |
+| Nom de domaine `beralshopp.com`      | ≈ 12 $                            | annuel          |
 | Infrastructure (3 premiers mois)     | ≈ 75 $                            | mensuel ensuite |
 | Compte marchand Pesapal              | 0 $ _(sans frais d'installation)_ | —               |
 | Photographie / retouche produits     | variable                          | selon catalogue |

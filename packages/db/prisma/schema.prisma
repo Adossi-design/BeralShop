@@ -1,5 +1,5 @@
 // ═══════════════════════════════════════════════════════════════════════════════
-//  BERALSHOP — Schéma de base de données
+//  BERALSHOPP — Schéma de base de données
 //  Référence : docs/02-modele-de-donnees.md
 //
 //  ⚠️ RÈGLES NON NÉGOCIABLES
@@ -35,7 +35,7 @@ enum ProductStatus {
   ARCHIVED
 }
 
-/// Machine à états implémentée dans @beralshop/shared/orders.
+/// Machine à états implémentée dans @beralshopp/shared/orders.
 /// Toute transition non autorisée est refusée par le code.
 enum OrderStatus {
   PENDING_PAYMENT
@@ -103,7 +103,7 @@ enum NotificationStatus {
 
 /// Activation commerciale d'un pays. Piloté depuis l'admin : ouvrir un nouveau pays
 /// ne demande AUCUN redéploiement. Les données statiques (indicatif, format d'adresse)
-/// vivent dans @beralshop/shared/geo.
+/// vivent dans @beralshopp/shared/geo.
 model Country {
   code            String @id @db.Char(2)
   name            String
@@ -130,7 +130,7 @@ model Country {
   @@map("countries")
 }
 
-/// Métadonnées de devise. Dupliquées depuis @beralshop/shared pour que les traitements
+/// Métadonnées de devise. Dupliquées depuis @beralshopp/shared pour que les traitements
 /// SQL et les exports comptables restent autonomes.
 model Currency {
   code String @id @db.Char(3)
@@ -166,7 +166,7 @@ model FxRate {
 
 // ───────────────────────────────── Catalogue ─────────────────────────────────
 
-/// Vendeur. En V1 il n'en existe qu'un : Beralshop lui-même.
+/// Vendeur. En V1 il n'en existe qu'un : Beralshopp lui-même.
 /// Ce modèle est la fondation de la marketplace V3 — deux heures de travail
 /// aujourd'hui contre plusieurs semaines de migration plus tard.
 model Vendor {
@@ -175,7 +175,7 @@ model Vendor {
   name     String
   isActive Boolean @default(true)
 
-  /// Commission prélevée par Beralshop, en points de base (250 = 2,50 %).
+  /// Commission prélevée par Beralshopp, en points de base (250 = 2,50 %).
   commissionBp Int      @default(0)
   createdAt    DateTime @default(now())
 
@@ -458,7 +458,7 @@ model PasswordResetToken {
 }
 
 /// Carnet d'adresses. Les champs suivent les formats définis dans
-/// @beralshop/shared/geo : le modèle « rue + code postal » ne fonctionne pas au Rwanda,
+/// @beralshopp/shared/geo : le modèle « rue + code postal » ne fonctionne pas au Rwanda,
 /// où l'on adresse par Province / District / Secteur / Cellule / Village.
 model Address {
   id     String  @id @default(cuid())
@@ -558,7 +558,7 @@ model Order {
 
   /// ——— Devises ———
   /// `currencyDisplay` : ce que le client voit et paie.
-  /// `currencySettlement` : ce que Beralshop encaisse réellement.
+  /// `currencySettlement` : ce que Beralshopp encaisse réellement.
   /// `fxRateUsed` : FIGÉ à la création, jamais recalculé. Le client paie exactement
   /// le montant affiché, même si le taux change à la seconde près.
   currencyDisplay    String  @db.Char(3)

@@ -1,5 +1,5 @@
 /**
- * Référentiel des devises supportées par Beralshop.
+ * Référentiel des devises supportées par Beralshopp.
  *
  * ⚠️ RÈGLE FONDAMENTALE DU PROJET
  * Aucun montant n'est jamais représenté par un nombre à virgule flottante.

@@ -1,8 +1,8 @@
 {
-  "name": "beralshop",
+  "name": "beralshopp",
   "version": "0.1.0",
   "private": true,
-  "description": "Beralshop — plateforme e-commerce africaine",
+  "description": "Beralshopp — plateforme e-commerce africaine",
   "packageManager": "pnpm@11.18.0",
   "engines": {
     "node": ">=22.13.0"
@@ -16,12 +16,12 @@
     "test": "turbo run test",
     "format": "prettier --write \"**/*.{ts,tsx,js,jsx,json,md,css,yaml,yml}\"",
     "format:check": "prettier --check \"**/*.{ts,tsx,js,jsx,json,md,css,yaml,yml}\"",
-    "db:generate": "pnpm --filter @beralshop/db run generate",
-    "db:migrate": "pnpm --filter @beralshop/db run migrate",
-    "db:push": "pnpm --filter @beralshop/db run push",
-    "db:studio": "pnpm --filter @beralshop/db run studio",
-    "db:seed": "pnpm --filter @beralshop/db run seed",
-    "db:verify": "pnpm --filter @beralshop/db run verify"
+    "db:generate": "pnpm --filter @beralshopp/db run generate",
+    "db:migrate": "pnpm --filter @beralshopp/db run migrate",
+    "db:push": "pnpm --filter @beralshopp/db run push",
+    "db:studio": "pnpm --filter @beralshopp/db run studio",
+    "db:seed": "pnpm --filter @beralshopp/db run seed",
+    "db:verify": "pnpm --filter @beralshopp/db run verify"
   },
   "devDependencies": {
     "prettier": "^3.6.2",
