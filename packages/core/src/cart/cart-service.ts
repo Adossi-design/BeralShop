@@ -135,7 +135,10 @@ async function estimateShipping(
 
   const currency = rate.currency as CurrencyCode;
   const threshold = rate.freeAboveMinor !== null ? money(rate.freeAboveMinor, currency) : null;
-  const isFree = threshold !== null && subtotal.amountMinor >= threshold.amountMinor;
+  // Gratuite si le tarif lui-même est à zéro (politique actuelle : livraison
+  // offerte partout), ou si le panier dépasse le seuil « offerte dès ».
+  const isFree =
+    rate.priceMinor === 0 || (threshold !== null && subtotal.amountMinor >= threshold.amountMinor);
 
   return {
     shipping: isFree ? zero(currency) : money(rate.priceMinor, currency),

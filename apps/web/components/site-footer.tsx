@@ -61,7 +61,7 @@ export function SiteFooter() {
             <BeralshoppLogo onDark />
             <p className="text-ink-300 mt-3 max-w-sm text-sm">
               Achetez en ligne en toute confiance et payez par Mobile Money ou carte bancaire.
-              Livraison au Rwanda, et bientôt dans toute l&apos;Afrique.
+              Livraison gratuite partout en Afrique.
             </p>
 
             <ul className="mt-6 space-y-3 text-sm">

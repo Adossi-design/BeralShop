@@ -120,8 +120,7 @@ export default async function CheckoutPage() {
           </dl>
 
           <p className="text-content-muted mt-4 text-xs">
-            Les frais définitifs dépendent de la province indiquée et peuvent différer de cette
-            estimation.
+            La livraison est gratuite. Le total affiché est le montant que vous payez.
           </p>
 
           <Link

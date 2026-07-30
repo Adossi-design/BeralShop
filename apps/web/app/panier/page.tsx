@@ -204,7 +204,7 @@ function Summary({ cart }: { readonly cart: CartView }) {
       </Link>
 
       <p className="text-content-muted mt-4 text-center text-xs">
-        Les frais de livraison définitifs seront calculés à la commande, selon votre adresse.
+        La livraison est gratuite partout en Afrique.
       </p>
     </div>
   );

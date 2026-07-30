@@ -30,7 +30,16 @@ export async function SiteHeader() {
         {/* ——— Ligne principale ——— */}
         <div className="flex h-16 items-center gap-3">
           <Link href="/" className="shrink-0" aria-label="Beralshopp, accueil">
-            <BeralshoppLogo className="hidden sm:inline-flex" onDark />
+            {/*
+              La visibilité est portée par un <span> enveloppant, PAS par le logo
+              lui-même : le composant fixe son propre `inline-flex`, qui entrerait
+              en conflit avec un `hidden` ajouté ici — deux utilitaires de display
+              de même spécificité, et c'est l'ordre de la feuille de style qui
+              tranche. Résultat observé : les deux logos affichés en même temps.
+            */}
+            <span className="hidden sm:block">
+              <BeralshoppLogo onDark />
+            </span>
             <BeralshoppMark className="h-9 w-9 sm:hidden" />
           </Link>
 

@@ -1,6 +1,7 @@
 import { PrismaPg } from '@prisma/adapter-pg';
 
 import { PrismaClient } from '../generated/prisma/client.ts';
+import { rejouerSiReveil } from './retry.ts';
 
 /**
  * Client Prisma partagé.
@@ -67,7 +68,24 @@ function createClient(): PrismaClient {
   });
 }
 
-export const prisma: PrismaClient = globalThis.__beralshoppPrisma ?? createClient();
+/**
+ * Rejoue les requêtes tombées pendant le réveil de Neon.
+ *
+ * Les règles — et surtout ce qu'on refuse de rejouer — sont dans `retry.ts`,
+ * avec leurs tests. C'est du code qui décide du risque de commande en double :
+ * il ne doit pas vivre au milieu de la configuration du pool.
+ */
+function withColdStartRetry(client: PrismaClient): PrismaClient {
+  return client.$extends({
+    name: 'reveil-neon',
+    query: {
+      $allOperations: ({ args, query }) => rejouerSiReveil(() => query(args)),
+    },
+  }) as unknown as PrismaClient;
+}
+
+export const prisma: PrismaClient =
+  globalThis.__beralshoppPrisma ?? withColdStartRetry(createClient());
 
 if (process.env['NODE_ENV'] !== 'production') {
   globalThis.__beralshoppPrisma = prisma;

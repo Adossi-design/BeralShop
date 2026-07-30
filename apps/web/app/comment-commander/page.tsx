@@ -21,7 +21,7 @@ const STEPS = [
   {
     icon: ShoppingBag,
     title: '2. Ajoutez au panier',
-    text: 'Choisissez la couleur, la taille ou l’option souhaitée, puis la quantité. Le panier affiche le sous-total, les frais de livraison estimés et le total. Vous pouvez modifier ou retirer un article à tout moment.',
+    text: 'Choisissez la couleur, la taille ou l’option souhaitée, puis la quantité. Le panier affiche le sous-total et le total — la livraison est gratuite. Vous pouvez modifier ou retirer un article à tout moment.',
   },
   {
     icon: UserPlus,

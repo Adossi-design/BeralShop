@@ -57,7 +57,7 @@ export function ProductCard({ product, priority }: ProductCardProps) {
         ) : null}
       </div>
 
-      <div className="flex flex-1 flex-col gap-1.5 p-3">
+      <div className="flex flex-1 flex-col gap-1 p-2.5">
         {product.brandName ? (
           <p className="text-content-muted text-[0.7rem] tracking-wide uppercase">
             {product.brandName}

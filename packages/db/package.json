@@ -16,9 +16,11 @@
     "seed": "tsx prisma/seed.ts",
     "verify": "tsx scripts/verify-schema.ts",
     "typecheck": "tsc --noEmit",
+    "test": "vitest run",
     "reconcile": "tsx scripts/reconcile-stock.ts",
     "import": "tsx scripts/import-catalogue.ts",
-    "publish-catalogue": "tsx scripts/publish-catalogue.ts"
+    "publish-catalogue": "tsx scripts/publish-catalogue.ts",
+    "link-images": "tsx scripts/link-images.ts"
   },
   "dependencies": {
     "@beralshopp/shared": "workspace:*",
@@ -30,6 +32,7 @@
     "dotenv": "^17.2.3",
     "prisma": "^7.9.1",
     "tsx": "^4.20.6",
-    "typescript": "^5.9.3"
+    "typescript": "^5.9.3",
+    "vitest": "^3.2.7"
   }
 }

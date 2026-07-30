@@ -26,7 +26,7 @@ export function ProductGrid({
   }
 
   return (
-    <ul className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5">
+    <ul className="grid grid-cols-2 gap-2.5 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6">
       {products.map((product, index) => (
         <li key={product.id} className="flex">
           <ProductCard product={product} priority={index < 4} />
@@ -41,16 +41,20 @@ export function ProductGrid({
  * Défilement natif avec points d'accroche : aucun JavaScript, donc aucun coût sur le
  * temps d'affichage — un carrousel en JavaScript est l'une des principales causes de
  * lenteur des pages d'accueil marchandes.
+ *
+ * Les cartes sont volontairement PETITES : deux rangées de produits doivent tenir
+ * dans un écran, même sur téléphone. Une rangée visible + une rangée devinée sous
+ * la pliure, c'est ce qui donne envie de faire défiler.
  */
 export function ProductRail({ products }: { readonly products: readonly ProductSummary[] }) {
   if (products.length === 0) return null;
 
   return (
-    <ul className="-mx-1 flex snap-x snap-mandatory [scrollbar-width:none] gap-3 overflow-x-auto px-1 pb-2 [&::-webkit-scrollbar]:hidden">
+    <ul className="-mx-1 flex snap-x snap-mandatory [scrollbar-width:none] gap-2.5 overflow-x-auto px-1 pb-2 [&::-webkit-scrollbar]:hidden">
       {products.map((product) => (
         <li
           key={product.id}
-          className="flex w-[46%] shrink-0 snap-start sm:w-[31%] lg:w-[23%] xl:w-[18.5%]"
+          className="flex w-[38%] shrink-0 snap-start sm:w-[24%] lg:w-[18%] xl:w-[15%]"
         >
           <ProductCard product={product} />
         </li>

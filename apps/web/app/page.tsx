@@ -1,15 +1,14 @@
 import Link from 'next/link';
 import { CreditCard, PackageCheck, Search, ShieldCheck, ShoppingBag, Truck } from 'lucide-react';
 
-import { listBestSellers, listCategoryTree, listNewArrivals, listOnSale } from '@beralshopp/core';
+import { listBestSellers, listNewArrivals, listOnSale } from '@beralshopp/core';
 
-import { CategoryIcon } from '@/components/catalog/category-icon';
 import { ProductRail } from '@/components/catalog/product-grid';
 
 /**
  * Page d'accueil.
  *
- * Rendue sur le serveur et régénérée toutes les 5 minutes. Les quatre requêtes
+ * Rendue sur le serveur et régénérée toutes les 5 minutes. Les trois requêtes
  * catalogue partent EN PARALLÈLE : les enchaîner ajouterait leurs latences les unes
  * aux autres, ce qui se voit immédiatement sur une connexion lente.
  */
@@ -24,7 +23,7 @@ const STEPS = [
   {
     icon: ShoppingBag,
     title: 'Ajoutez au panier',
-    text: 'Vérifiez la quantité, les options et les frais de livraison.',
+    text: 'Vérifiez la quantité et les options. La livraison est gratuite.',
   },
   {
     icon: CreditCard,
@@ -40,7 +39,7 @@ const STEPS = [
 
 const GUARANTEES = [
   { icon: ShieldCheck, label: 'Paiement sécurisé', detail: 'Vérifié côté serveur' },
-  { icon: Truck, label: 'Livraison suivie', detail: 'Rwanda, 1 à 6 jours' },
+  { icon: Truck, label: 'Livraison gratuite', detail: 'Partout en Afrique, sous 2 semaines' },
   { icon: PackageCheck, label: 'Commande garantie', detail: 'Remboursement si problème' },
 ];
 
@@ -70,8 +69,7 @@ function Section({
 }
 
 export default async function HomePage() {
-  const [categories, bestSellers, newArrivals, onSale] = await Promise.all([
-    listCategoryTree(),
+  const [bestSellers, newArrivals, onSale] = await Promise.all([
     listBestSellers(undefined, 10),
     listNewArrivals(undefined, 10),
     listOnSale(undefined, 10),
@@ -79,37 +77,13 @@ export default async function HomePage() {
 
   return (
     <main id="contenu" className="flex-1">
-      {/* ——— Bannière ——— */}
-      <section className="from-ink-950 via-ink-900 to-ink-800 bg-gradient-to-br">
-        <div className="beral-container py-12 sm:py-16">
-          <div className="max-w-2xl">
-            <p className="text-gold-300 text-sm font-semibold tracking-wide uppercase">
-              Bienvenue sur Beralshopp
-            </p>
-            <h1 className="mt-3 text-3xl leading-tight font-bold text-white sm:text-4xl lg:text-5xl">
-              Tout ce qu’il vous faut, livré chez vous
-            </h1>
-            <p className="text-gold-100 mt-4 text-base sm:text-lg">
-              Électronique, mode, maison et bien plus. Payez par Mobile Money ou par carte, en toute
-              sécurité.
-            </p>
-            <div className="mt-7 flex flex-wrap gap-3">
-              <Link
-                href="/categories"
-                className="rounded-control beral-btn-gold px-6 py-3 font-semibold transition-all"
-              >
-                Découvrir les produits
-              </Link>
-              <Link
-                href="/comment-commander"
-                className="rounded-control border border-white/30 px-6 py-3 font-semibold text-white transition-colors hover:bg-white/10"
-              >
-                Comment commander ?
-              </Link>
-            </div>
-          </div>
-        </div>
-      </section>
+      {/*
+        Choix du propriétaire (30 juillet 2026) : pas de bannière d'accueil ni de
+        grille de catégories ici. La page va droit aux produits — le titre h1
+        reste, pour l'accessibilité et le référencement, mais discret.
+        La navigation par catégorie vit dans l'en-tête et sur /categories.
+      */}
+      <h1 className="sr-only">Beralshopp — vente en ligne au Rwanda</h1>
 
       {/* ——— Réassurance ——— */}
       <section className="border-border bg-surface border-b">
@@ -124,28 +98,6 @@ export default async function HomePage() {
             </div>
           ))}
         </div>
-      </section>
-
-      {/* ——— Catégories ——— */}
-      <section className="beral-container py-8">
-        <h2 className="text-content mb-4 text-lg font-bold sm:text-xl">Parcourir par catégorie</h2>
-        <ul className="grid grid-cols-4 gap-3 sm:grid-cols-6 lg:grid-cols-8">
-          {categories.slice(0, 16).map((category) => (
-            <li key={category.slug}>
-              <Link
-                href={`/categories/${category.slug}`}
-                className="border-border bg-surface shadow-card hover:shadow-raised rounded-card flex h-full flex-col items-center gap-2 border p-3 text-center transition-shadow"
-              >
-                <span className="bg-gold-50 text-gold-600 flex h-11 w-11 items-center justify-center rounded-full">
-                  <CategoryIcon name={category.iconName} className="h-5 w-5" />
-                </span>
-                <span className="text-content text-xs leading-tight font-medium">
-                  {category.name}
-                </span>
-              </Link>
-            </li>
-          ))}
-        </ul>
       </section>
 
       {/* ——— Rails marchands ——— */}

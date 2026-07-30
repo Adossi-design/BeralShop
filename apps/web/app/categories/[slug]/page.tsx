@@ -4,12 +4,12 @@ import { notFound } from 'next/navigation';
 
 import {
   type ProductSort,
-  getCategoryBySlug,
   getCategoryPath,
   listCategoryTree,
   listProducts,
 } from '@beralshopp/core';
 
+import { getCategory } from '@/lib/request-cache';
 import { Breadcrumb } from '@/components/catalog/breadcrumb';
 import { ProductGrid } from '@/components/catalog/product-grid';
 
@@ -43,7 +43,7 @@ interface PageProps {
 
 export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
   const { slug } = await params;
-  const category = await getCategoryBySlug(slug);
+  const category = await getCategory(slug);
 
   if (!category) return { title: 'Catégorie introuvable' };
 
@@ -58,7 +58,7 @@ export default async function CategoryPage({ params, searchParams }: PageProps) 
   const { slug } = await params;
   const query = await searchParams;
 
-  const found = await getCategoryBySlug(slug);
+  const found = await getCategory(slug);
   if (!found) notFound();
 
   // Constante intermédiaire : TypeScript perd le rétrécissement de type d'une variable

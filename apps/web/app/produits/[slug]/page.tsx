@@ -2,9 +2,10 @@ import type { Metadata } from 'next';
 import { notFound } from 'next/navigation';
 import { RotateCcw, ShieldCheck, Truck } from 'lucide-react';
 
-import { getProductBySlug, listBestSellers, listSimilarProducts } from '@beralshopp/core';
+import { listBestSellers, listSimilarProducts } from '@beralshopp/core';
 import { formatMoney, toMajor } from '@beralshopp/shared';
 
+import { getProduct } from '@/lib/request-cache';
 import { Breadcrumb } from '@/components/catalog/breadcrumb';
 import { ProductImage } from '@/components/catalog/product-image';
 import { ProductRail } from '@/components/catalog/product-grid';
@@ -45,7 +46,7 @@ interface PageProps {
 
 export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
   const { slug } = await params;
-  const product = await getProductBySlug(slug);
+  const product = await getProduct(slug);
 
   if (!product) return { title: 'Produit introuvable' };
 
@@ -68,7 +69,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
 
 export default async function ProductPage({ params }: PageProps) {
   const { slug } = await params;
-  const product = await getProductBySlug(slug);
+  const product = await getProduct(slug);
   if (!product) notFound();
 
   const similar = await listSimilarProducts(product);
@@ -187,9 +188,9 @@ export default async function ProductPage({ params }: PageProps) {
             <li className="flex items-start gap-2">
               <Truck className="text-gold-600 mt-0.5 h-5 w-5 shrink-0" aria-hidden />
               <span className="text-content-muted">
-                Livraison suivie
+                Livraison gratuite
                 <br />
-                Kigali dès 2 000 Frw
+                partout en Afrique
               </span>
             </li>
             <li className="flex items-start gap-2">

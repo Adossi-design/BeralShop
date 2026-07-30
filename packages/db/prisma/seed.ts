@@ -109,6 +109,13 @@ async function seedShipping(): Promise<void> {
     return;
   }
 
+  /**
+   * Décision du propriétaire (30 juillet 2026) : livraison GRATUITE partout au
+   * Rwanda, délai annoncé de 2 semaines. Le prix du transport est absorbé dans
+   * le prix des produits — modèle assumé tant que le volume reste faible.
+   * `freeAboveMinor` est nul : inutile de promettre « offert au-delà de X »
+   * quand tout est offert.
+   */
   await prisma.shippingZone.create({
     data: {
       countryCode: 'RW',
@@ -119,11 +126,11 @@ async function seedShipping(): Promise<void> {
         create: [
           {
             name: 'Livraison standard',
-            priceMinor: 2000, // 2 000 Frw
+            priceMinor: 0,
             currency: 'RWF',
-            freeAboveMinor: 50_000, // Port offert au-delà de 50 000 Frw
-            minDeliveryDays: 1,
-            maxDeliveryDays: 3,
+            freeAboveMinor: null,
+            minDeliveryDays: 7,
+            maxDeliveryDays: 14,
           },
         ],
       },
@@ -140,11 +147,11 @@ async function seedShipping(): Promise<void> {
         create: [
           {
             name: 'Livraison province',
-            priceMinor: 3500,
+            priceMinor: 0,
             currency: 'RWF',
-            freeAboveMinor: 80_000,
-            minDeliveryDays: 2,
-            maxDeliveryDays: 6,
+            freeAboveMinor: null,
+            minDeliveryDays: 7,
+            maxDeliveryDays: 14,
           },
         ],
       },

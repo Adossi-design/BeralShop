@@ -9,8 +9,7 @@ import { DraftNotice, Section, StaticPage } from '@/components/static-page';
 export const metadata: Metadata = {
   title: 'Livraison',
   description:
-    'Zones, tarifs et délais de livraison Beralshopp au Rwanda. Livraison offerte ' +
-    'au-delà d’un certain montant.',
+    'Livraison gratuite partout en Afrique, sous 2 semaines. Zones desservies et délais.',
   alternates: { canonical: '/livraison' },
 };
 
@@ -71,8 +70,14 @@ export default async function ShippingPage() {
                         <span className="text-content block font-medium">{zone.name}</span>
                         <span className="text-content-muted text-xs">{rate.name}</span>
                       </td>
-                      <td className="beral-price text-content px-4 py-3 text-end font-semibold">
-                        {formatMoney(money(rate.priceMinor, rate.currency as 'RWF'), 'fr')}
+                      <td className="beral-price px-4 py-3 text-end font-semibold">
+                        {rate.priceMinor === 0 ? (
+                          <span className="text-success-500">Gratuite</span>
+                        ) : (
+                          <span className="text-content">
+                            {formatMoney(money(rate.priceMinor, rate.currency as 'RWF'), 'fr')}
+                          </span>
+                        )}
                       </td>
                       <td className="text-content-muted px-4 py-3 text-xs">
                         {rate.minDeliveryDays && rate.maxDeliveryDays
@@ -97,22 +102,18 @@ export default async function ShippingPage() {
         </div>
       )}
 
-      <Section title="Comment le tarif est calculé">
+      <Section title="Combien coûte la livraison ?">
         <p>
-          Le montant dépend de la <strong className="text-content">province</strong> indiquée dans
-          votre adresse de livraison. Le panier affiche une estimation basée sur le tarif le plus
-          bas ; le montant définitif apparaît au moment de la commande, une fois l’adresse
-          renseignée.
-        </p>
-        <p>
-          Lorsque votre commande dépasse le seuil indiqué ci-dessus, la livraison devient gratuite
-          automatiquement — rien à faire.
+          <strong className="text-content">Rien.</strong> La livraison est gratuite partout en
+          Afrique, quel que soit le montant de la commande. Le prix affiché sur la fiche produit est
+          le prix que vous payez, livraison comprise.
         </p>
       </Section>
 
       <Section title="Délais">
         <p>
-          Les délais sont indicatifs et courent à partir de la{' '}
+          Votre commande est livrée <strong className="text-content">sous 2 semaines</strong>. Le
+          délai court à partir de la{' '}
           <strong className="text-content">confirmation du paiement</strong>, non de la commande.
           Une commande impayée n’est pas préparée.
         </p>
@@ -125,11 +126,15 @@ export default async function ShippingPage() {
         </p>
       </Section>
 
-      <Section title="Zones non desservies">
+      <Section title="Autres pays d’Afrique">
         <p>
-          Beralshopp livre actuellement au Rwanda. L’ouverture à d’autres pays d’Afrique est prévue.
-          Si votre région n’apparaît pas, contactez-nous : certaines livraisons peuvent être
-          organisées au cas par cas.
+          La livraison est gratuite dans toute l’Afrique. La commande en ligne est ouverte au Rwanda
+          aujourd’hui et s’ouvre progressivement aux autres pays. En attendant, si vous commandez
+          depuis un autre pays,{' '}
+          <Link href="/contact" className="text-gold-700 underline">
+            écrivez-nous
+          </Link>{' '}
+          : nous organisons la livraison avec vous.
         </p>
       </Section>
 
