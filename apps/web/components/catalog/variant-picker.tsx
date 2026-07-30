@@ -1,10 +1,11 @@
 'use client';
 
 import { useMemo, useState } from 'react';
-import { Check, Minus, Plus, ShoppingCart, Zap } from 'lucide-react';
+import { Check, Minus, Plus } from 'lucide-react';
 
 import type { VariantView } from '@beralshopp/core';
 
+import { AddToCart } from './add-to-cart';
 import { Price } from './price';
 
 /**
@@ -14,9 +15,9 @@ import { Price } from './price';
  * C'est délibéré — n'envoyer au navigateur que le JavaScript strictement nécessaire
  * est ce qui tient la cible de performance sur téléphone d'entrée de gamme.
  *
- * Les boutons d'achat sont présents mais inactifs : le panier arrive au lot 4.
- * Ils sont explicitement désactivés plutôt que masqués, pour valider dès maintenant
- * la mise en page définitive.
+ * L'ajout au panier est confié à <AddToCart>, qui possède son propre état de
+ * soumission. Les séparer évite qu'un ajout en cours ne fige la sélection de
+ * variante et la quantité.
  */
 
 interface VariantPickerProps {
@@ -156,29 +157,8 @@ export function VariantPicker({ variants, optionNames }: VariantPickerProps) {
         </div>
       </div>
 
-      {/* ——— Achat (actif au lot 4) ——— */}
-      <div className="flex flex-col gap-2 sm:flex-row">
-        <button
-          type="button"
-          disabled
-          className="beral-btn-gold rounded-control inline-flex flex-1 items-center justify-center gap-2 px-6 py-3 font-semibold disabled:cursor-not-allowed disabled:opacity-60"
-        >
-          <ShoppingCart className="h-5 w-5" aria-hidden />
-          Ajouter au panier
-        </button>
-        <button
-          type="button"
-          disabled
-          className="bg-ink-900 rounded-control inline-flex flex-1 items-center justify-center gap-2 px-6 py-3 font-semibold text-white disabled:cursor-not-allowed disabled:opacity-60"
-        >
-          <Zap className="h-5 w-5" aria-hidden />
-          Acheter maintenant
-        </button>
-      </div>
-
-      <p className="text-content-muted text-xs">
-        Le panier et le paiement sont en cours de développement (lots 4 à 6).
-      </p>
+      {/* ——— Achat ——— */}
+      <AddToCart variantId={selected.id} quantity={quantity} disabled={isOutOfStock} />
     </div>
   );
 }

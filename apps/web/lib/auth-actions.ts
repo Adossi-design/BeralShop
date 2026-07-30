@@ -10,6 +10,7 @@ import {
   registerAccount,
   requestPasswordReset,
   resetPassword,
+  mergeGuestCart,
   revokeAllSessions,
   revokeSession,
 } from '@beralshopp/core';
@@ -20,6 +21,7 @@ import {
   resetPasswordSchema,
 } from '@beralshopp/shared';
 
+import { clearGuestCartCookie, getGuestCartToken } from './cart';
 import { getCurrentUser, getRequestContext, getSessionToken } from './session';
 
 /**
@@ -70,6 +72,25 @@ function safeRedirect(target: string | null): string {
   return target;
 }
 
+/**
+ * Rattache le panier du visiteur à son compte, juste après identification.
+ *
+ * Sans cette étape, un client qui remplit son panier puis se connecte pour payer
+ * le verrait se vider. C'est une cause classique d'abandon au moment décisif.
+ */
+async function attachGuestCart(userId: string): Promise<void> {
+  const guestToken = await getGuestCartToken();
+  if (!guestToken) return;
+
+  try {
+    await mergeGuestCart(guestToken, userId);
+  } catch {
+    // Un échec de fusion ne doit jamais empêcher la connexion : le client garde
+    // son accès, quitte à devoir réajouter un article.
+  }
+  await clearGuestCartCookie();
+}
+
 export async function registerAction(_previous: FormState, formData: FormData): Promise<FormState> {
   const parsed = registerSchema.safeParse({
     fullName: formData.get('fullName'),
@@ -107,6 +128,7 @@ export async function registerAction(_previous: FormState, formData: FormData): 
   }
 
   await setSessionCookie(result.session.token, result.session.expiresAt);
+  await attachGuestCart(result.userId);
   redirect(safeRedirect(formData.get('suite') as string | null));
 }
 
@@ -128,6 +150,7 @@ export async function loginAction(_previous: FormState, formData: FormData): Pro
   }
 
   await setSessionCookie(result.session.token, result.session.expiresAt);
+  await attachGuestCart(result.userId);
   redirect(safeRedirect(formData.get('suite') as string | null));
 }
 

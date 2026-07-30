@@ -1,8 +1,9 @@
 import Link from 'next/link';
 import { LayoutGrid, ShoppingCart, User } from 'lucide-react';
 
-import { listCategoryTree } from '@beralshopp/core';
+import { getCartItemCount, listCategoryTree } from '@beralshopp/core';
 
+import { getCartOwnerForRead } from '@/lib/cart';
 import { getCurrentUser } from '@/lib/session';
 
 import { BeralshoppLogo, BeralshoppMark } from './beralshopp-logo';
@@ -24,6 +25,11 @@ import { SearchBox } from './search-box';
  */
 export async function SiteHeader() {
   const [categories, user] = await Promise.all([listCategoryTree(), getCurrentUser()]);
+
+  // Le propriétaire du panier dépend de l'utilisateur : cette résolution ne peut pas
+  // partir en parallèle des deux appels ci-dessus.
+  const cartOwner = await getCartOwnerForRead();
+  const cartCount = cartOwner ? await getCartItemCount(cartOwner) : 0;
 
   return (
     <header className="beral-surface-brand sticky top-0 z-40">
@@ -65,8 +71,22 @@ export async function SiteHeader() {
               href="/panier"
               className="text-ink-100 hover:bg-ink-800 hover:text-gold-300 rounded-control relative flex items-center gap-2 px-2 py-2 text-sm transition-colors sm:px-3"
             >
-              <ShoppingCart className="h-5 w-5" aria-hidden />
+              <span className="relative">
+                <ShoppingCart className="h-5 w-5" aria-hidden />
+                {cartCount > 0 ? (
+                  <span
+                    className="bg-gold-400 text-ink-950 absolute -end-2 -top-2 flex h-4 min-w-4 items-center justify-center rounded-full px-1 text-[0.65rem] font-bold"
+                    aria-hidden
+                  >
+                    {cartCount > 99 ? '99+' : cartCount}
+                  </span>
+                ) : null}
+              </span>
               <span className="hidden lg:inline">Panier</span>
+              {/* La pastille est décorative ; le nombre est annoncé ici aux lecteurs d'écran. */}
+              {cartCount > 0 ? (
+                <span className="sr-only">{cartCount} article(s) dans le panier</span>
+              ) : null}
             </Link>
           </div>
         </div>
