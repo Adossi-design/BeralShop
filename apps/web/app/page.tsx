@@ -53,9 +53,9 @@ function Section({
   readonly children: React.ReactNode;
 }) {
   return (
-    <section className="beral-container py-4">
-      <div className="mb-3 flex items-baseline justify-between gap-4">
-        <h2 className="text-content text-lg font-bold sm:text-xl">{title}</h2>
+    <section className="beral-container py-3">
+      <div className="mb-2 flex items-baseline justify-between gap-4">
+        <h2 className="text-content text-base font-bold sm:text-lg">{title}</h2>
         <Link
           href={href}
           className="text-gold-600 hover:text-gold-700 shrink-0 text-sm font-medium"
@@ -90,7 +90,7 @@ export default async function HomePage() {
           repousse les produits — la vraie raison de la visite — sous la pliure.
           Le détail n'apparaît qu'à partir des écrans moyens. */}
       <section className="border-border bg-surface border-b">
-        <div className="beral-container grid grid-cols-3 gap-2 py-3 sm:py-4">
+        <div className="beral-container grid grid-cols-3 gap-2 py-2.5">
           {GUARANTEES.map((item) => (
             <div key={item.label} className="flex items-center gap-2 sm:gap-3">
               <item.icon className="text-gold-600 h-5 w-5 shrink-0 sm:h-6 sm:w-6" aria-hidden />

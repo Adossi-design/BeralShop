@@ -31,7 +31,14 @@ interface ProductCardProps {
 export function ProductCard({ product, priority, compact = false }: ProductCardProps) {
   return (
     <article className="group border-border bg-surface rounded-card shadow-card hover:shadow-raised relative flex h-full flex-col overflow-hidden border transition-shadow">
-      <div className="bg-surface-muted relative aspect-square overflow-hidden">
+      {/* En compact, l'image est moins haute que large (4/3) : c'est elle qui fixe
+          la longueur de la carte. Le recadrage rogne un peu le haut et le bas de la
+          photo — acceptable sur des photos produit détourées, centrées par nature. */}
+      <div
+        className={`bg-surface-muted relative overflow-hidden ${
+          compact ? 'aspect-[4/3]' : 'aspect-square'
+        }`}
+      >
         <ProductImage
           image={product.image}
           name={product.name}
@@ -63,7 +70,7 @@ export function ProductCard({ product, priority, compact = false }: ProductCardP
         ) : null}
       </div>
 
-      <div className={`flex flex-1 flex-col gap-1 ${compact ? 'p-2' : 'p-2.5'}`}>
+      <div className={`flex flex-1 flex-col ${compact ? 'gap-0.5 p-2' : 'gap-1 p-2.5'}`}>
         {!compact && product.brandName ? (
           <p className="text-content-muted text-[0.7rem] tracking-wide uppercase">
             {product.brandName}
@@ -85,10 +92,13 @@ export function ProductCard({ product, priority, compact = false }: ProductCardP
           </Link>
         </h3>
 
-        <StarRating value={product.ratingAvg} count={product.ratingCount} showCount={!compact} />
+        {/* En vue compacte, les étoiles sautent aussi : chaque ligne de moins,
+            multipliée par deux rangées, décide si la seconde rangée est visible.
+            La note reste sur la fiche produit, où se joue la comparaison. */}
+        {!compact ? <StarRating value={product.ratingAvg} count={product.ratingCount} /> : null}
 
         {/* `mt-auto` colle le prix en bas : toutes les cartes s'alignent. */}
-        <div className={`mt-auto ${compact ? 'pt-1' : 'pt-1.5'}`}>
+        <div className={`mt-auto ${compact ? 'pt-0.5' : 'pt-1.5'}`}>
           <Price price={product.price} showFrom={product.hasMultiplePrices} size="sm" />
         </div>
       </div>

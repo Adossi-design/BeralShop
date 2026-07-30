@@ -54,7 +54,7 @@ export function ProductRail({ products }: { readonly products: readonly ProductS
       {products.map((product) => (
         <li
           key={product.id}
-          className="flex w-[30%] shrink-0 snap-start sm:w-[19%] lg:w-[14%] xl:w-[11.5%]"
+          className="flex w-[28%] shrink-0 snap-start sm:w-[17%] lg:w-[13%] xl:w-[10.4%]"
         >
           <ProductCard product={product} compact />
         </li>
