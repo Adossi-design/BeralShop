@@ -38,12 +38,18 @@ function Buttons({ disabled }: { readonly disabled: boolean }) {
         {pending ? 'Ajout…' : 'Ajouter au panier'}
       </button>
 
-      {/* « Acheter maintenant » mène au tunnel de commande, qui arrive au lot 5. */}
+      {/*
+        « Acheter maintenant » soumet LE MÊME formulaire, avec une intention
+        différente : l'article est ajouté au panier puis le client part directement
+        au tunnel de commande. Un second formulaire dupliquerait la sélection de
+        variante et la quantité, avec le risque qu'ils divergent.
+      */}
       <button
-        type="button"
-        disabled
-        title="Disponible avec le tunnel de commande"
-        className="bg-ink-900 rounded-control inline-flex flex-1 items-center justify-center gap-2 px-6 py-3 font-semibold text-white disabled:cursor-not-allowed disabled:opacity-50"
+        type="submit"
+        name="intent"
+        value="checkout"
+        disabled={disabled || pending}
+        className="bg-ink-900 hover:bg-ink-800 rounded-control inline-flex flex-1 items-center justify-center gap-2 px-6 py-3 font-semibold text-white transition-colors disabled:cursor-not-allowed disabled:opacity-50"
       >
         <Zap className="h-5 w-5" aria-hidden />
         Acheter maintenant

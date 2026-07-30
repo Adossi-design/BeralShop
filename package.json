@@ -27,7 +27,8 @@
     "pesapal:check": "pnpm --filter @beralshopp/core run pesapal:check",
     "pesapal:ipn": "pnpm --filter @beralshopp/core run pesapal:ipn",
     "preflight": "pnpm --filter @beralshopp/core run preflight",
-    "db:import": "pnpm --filter @beralshopp/db run import"
+    "db:import": "pnpm --filter @beralshopp/db run import",
+    "db:publish": "pnpm --filter @beralshopp/db run publish-catalogue"
   },
   "devDependencies": {
     "prettier": "^3.6.2",

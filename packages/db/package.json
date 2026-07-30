@@ -17,7 +17,8 @@
     "verify": "tsx scripts/verify-schema.ts",
     "typecheck": "tsc --noEmit",
     "reconcile": "tsx scripts/reconcile-stock.ts",
-    "import": "tsx scripts/import-catalogue.ts"
+    "import": "tsx scripts/import-catalogue.ts",
+    "publish-catalogue": "tsx scripts/publish-catalogue.ts"
   },
   "dependencies": {
     "@beralshopp/shared": "workspace:*",

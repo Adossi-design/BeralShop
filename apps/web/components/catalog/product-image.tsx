@@ -15,12 +15,18 @@ import type { ProductImageView } from '@beralshopp/core';
  * incohérence d'hydratation.
  */
 
+/**
+ * Six teintes distinctes définies dans globals.css.
+ * Leur diversité est fonctionnelle : dans une grille sans photos, c'est le seul
+ * repère qui distingue une vignette de sa voisine.
+ */
 const PLACEHOLDER_GRADIENTS = [
-  'from-gold-100 to-gold-200 text-gold-700',
-  'from-gold-100 to-gold-200 text-gold-800',
-  'from-ink-100 to-ink-200 text-ink-600',
-  'from-gold-50 to-gold-100 text-gold-700',
-  'from-gold-50 to-gold-100 text-gold-800',
+  'beral-ph-1',
+  'beral-ph-2',
+  'beral-ph-3',
+  'beral-ph-4',
+  'beral-ph-5',
+  'beral-ph-6',
 ];
 
 function gradientFor(seed: string): string {
@@ -62,7 +68,9 @@ export function ProductImage({ image, name, sizes, priority, className }: Produc
       // aria-hidden : l'information est déjà portée par le nom du produit juste à côté.
       // Un lecteur d'écran n'a pas besoin d'entendre « image manquante ».
       aria-hidden
-      className={`flex h-full w-full items-center justify-center bg-gradient-to-br ${gradientFor(name)} ${className ?? ''}`}
+      // Pas de `bg-gradient-to-br` ici : ce serait un utilitaire `background-image`,
+      // et la couche `utilities` prime sur `components` — il écraserait la teinte.
+      className={`flex h-full w-full items-center justify-center ${gradientFor(name)} ${className ?? ''}`}
     >
       <span className="flex flex-col items-center gap-1">
         <span className="text-3xl font-bold opacity-70 sm:text-4xl">{initial}</span>

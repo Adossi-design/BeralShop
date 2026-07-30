@@ -1,6 +1,7 @@
 'use server';
 
 import { revalidatePath } from 'next/cache';
+import { redirect } from 'next/navigation';
 
 import { addToCart, clearCart, updateCartItem } from '@beralshopp/core';
 
@@ -34,6 +35,13 @@ export async function addToCartAction(
 
   // L'en-tête affiche le nombre d'articles : il doit être rafraîchi sur tout le site.
   revalidatePath('/', 'layout');
+
+  // « Acheter maintenant » : l'article est au panier, on enchaîne sur la commande.
+  // La redirection a lieu APRÈS l'ajout, jamais avant : si l'ajout échouait, le
+  // client arriverait sur un tunnel de commande vide.
+  if (formData.get('intent') === 'checkout') {
+    redirect('/commande');
+  }
 
   // Horodatage plutôt qu'un simple booléen : deux ajouts successifs du même article
   // produisent des valeurs différentes, ce qui permet de rejouer la confirmation.

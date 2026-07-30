@@ -220,6 +220,37 @@
     letter-spacing: -0.01em;
   }
 
+  /* ——— Substituts d'image produit ———
+     Six teintes DISTINCTES, à saturation basse. Leur rôle n'est pas décoratif :
+     tant que les photos manquent, c'est la couleur qui permet de distinguer une
+     vignette d'une autre dans une grille. Six variations d'un même beige — l'erreur
+     commise en dérivant ces teintes de la palette dorée — rendent la grille illisible.
+     Elles restent volontairement sourdes pour ne pas concurrencer l'or de la marque. */
+  .beral-ph-1 {
+    background-image: linear-gradient(135deg, #f4ede0, #e8dcc6);
+    color: #8a6d3b;
+  }
+  .beral-ph-2 {
+    background-image: linear-gradient(135deg, #e6eef0, #cfe0e5);
+    color: #3d6470;
+  }
+  .beral-ph-3 {
+    background-image: linear-gradient(135deg, #eceee8, #d8ddd2);
+    color: #55634a;
+  }
+  .beral-ph-4 {
+    background-image: linear-gradient(135deg, #f2e9ea, #e3d2d4);
+    color: #7a5257;
+  }
+  .beral-ph-5 {
+    background-image: linear-gradient(135deg, #eaebef, #d5d7e0);
+    color: #4e5266;
+  }
+  .beral-ph-6 {
+    background-image: linear-gradient(135deg, #f3eee6, #e2d8c8);
+    color: #6f5a3e;
+  }
+
   /* Bandeau sombre de la marque — en-tête, pied de page, bannières. */
   .beral-surface-brand {
     background-color: var(--surface-brand);
