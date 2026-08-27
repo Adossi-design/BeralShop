@@ -12,13 +12,19 @@ concurrency:
   cancel-in-progress: true
 
 env:
-  # Valeurs factices : le typage et le build n'ouvrent aucune connexion réelle.
+  # Valeurs factices, suffisantes pour cette tâche : le formatage, le typage, le lint
+  # et les tests unitaires n'ouvrent aucune connexion.
+  #
+  # ⚠️ Le BUILD, lui, interroge vraiment la base — il pré-génère les pages statiques
+  # et les fiches des meilleures ventes. Il vit donc dans la tâche « database », qui
+  # dispose d'un vrai PostgreSQL. L'avoir placé ici, avec une URL factice, rendait le
+  # CI rouge en permanence.
   DATABASE_URL: 'postgresql://ci:ci@localhost:5432/ci'
   DIRECT_URL: 'postgresql://ci:ci@localhost:5432/ci'
 
 jobs:
   verify:
-    name: Typage, lint, tests, build
+    name: Typage, lint, tests
     runs-on: ubuntu-latest
     timeout-minutes: 20
 
@@ -50,15 +56,16 @@ jobs:
       - name: Tests unitaires
         run: pnpm test
 
-      - name: Build
-        run: pnpm build
-
   # Le schéma doit être valide et les migrations doivent s'appliquer sur une base
   # vierge. C'est ce qui empêche une migration cassée d'atteindre la production.
+  #
+  # Le build se fait ici, et non dans la tâche précédente, parce qu'il a besoin d'une
+  # base joignable : c'est le seul endroit du CI qui reproduit ce que fait réellement
+  # Vercel au déploiement.
   database:
-    name: Migrations sur base vierge
+    name: Migrations, amorçage et build
     runs-on: ubuntu-latest
-    timeout-minutes: 15
+    timeout-minutes: 25
 
     services:
       postgres:
@@ -102,3 +109,7 @@ jobs:
       # de la séquence des commandes ou des contraintes anti-survente.
       - name: Contrôle de santé du schéma
         run: pnpm db:verify
+
+      # Dernière étape : ce que fera Vercel, sur une base réelle et amorcée.
+      - name: Build
+        run: pnpm build
