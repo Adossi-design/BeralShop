@@ -1,5 +1,7 @@
 import { MessageCircle } from 'lucide-react';
 
+import { BOUTIQUE } from '@beralshopp/shared';
+
 /**
  * Bouton WhatsApp flottant.
  *
@@ -14,10 +16,7 @@ import { MessageCircle } from 'lucide-react';
  *     fiches produits — un bouton d'aide qui empêche d'acheter serait absurde.
  */
 export function WhatsAppButton() {
-  const number = process.env['NEXT_PUBLIC_WHATSAPP_NUMBER'] ?? '';
-  if (!number) return null;
-
-  const digits = number.replace(/\D/g, '');
+  const digits = BOUTIQUE.whatsapp.replace(/\D/g, '');
   if (digits.length < 8) return null;
 
   return (

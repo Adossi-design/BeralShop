@@ -45,15 +45,19 @@ indiqués dans la colonne « Portée ».
 
 ### À reprendre telles quelles depuis `.env.local`
 
-| Variable                      | Portée              | Rôle                                  |
-| ----------------------------- | ------------------- | ------------------------------------- |
-| `DATABASE_URL`                | **Production seul** | Base Neon (via le pooler)             |
-| `DIRECT_URL`                  | **Production seul** | Migrations Prisma (connexion directe) |
-| `PESAPAL_CONSUMER_KEY`        | Production          | Paiement                              |
-| `PESAPAL_CONSUMER_SECRET`     | Production          | Paiement                              |
-| `NEXT_PUBLIC_WHATSAPP_NUMBER` | Toutes              | Bouton WhatsApp                       |
-| `NEXT_PUBLIC_CONTACT_PHONE`   | Toutes              | Pied de page, page contact            |
-| `NEXT_PUBLIC_CONTACT_EMAIL`   | Toutes              | Pied de page, page contact            |
+| Variable                  | Portée              | Rôle                                  |
+| ------------------------- | ------------------- | ------------------------------------- |
+| `DATABASE_URL`            | **Production seul** | Base Neon (via le pooler)             |
+| `DIRECT_URL`              | **Production seul** | Migrations Prisma (connexion directe) |
+| `PESAPAL_CONSUMER_KEY`    | Production          | Paiement                              |
+| `PESAPAL_CONSUMER_SECRET` | Production          | Paiement                              |
+
+> **Les coordonnées de la boutique ne sont plus des variables d'environnement.**
+> Téléphone, WhatsApp, e-mail et ville vivent dans
+> `packages/shared/src/config/boutique.ts`, versionné avec le code. Ce ne sont pas des
+> secrets — ils figurent sur chaque page — et ils ne changent pas d'un environnement à
+> l'autre. Surtout : une variable oubliée dans Vercel faisait disparaître le numéro du
+> pied de page sans le moindre message d'erreur.
 
 > **Pourquoi `DATABASE_URL` en Production seulement ?** Si les déploiements de
 > prévisualisation partageaient cette variable, chaque branche d'essai écrirait dans les

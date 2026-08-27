@@ -2,6 +2,8 @@ import type { Metadata } from 'next';
 import Link from 'next/link';
 import { Mail, MapPin, MessageCircle, Phone } from 'lucide-react';
 
+import { BOUTIQUE, BOUTIQUE_LOCALISATION } from '@beralshopp/shared';
+
 import { Section, StaticPage } from '@/components/static-page';
 
 export const metadata: Metadata = {
@@ -12,9 +14,9 @@ export const metadata: Metadata = {
   alternates: { canonical: '/contact' },
 };
 
-const WHATSAPP = process.env['NEXT_PUBLIC_WHATSAPP_NUMBER'] ?? '';
-const PHONE = process.env['NEXT_PUBLIC_CONTACT_PHONE'] ?? '';
-const EMAIL = process.env['NEXT_PUBLIC_CONTACT_EMAIL'] ?? 'contact@beralshopp.com';
+const WHATSAPP = BOUTIQUE.whatsapp;
+const PHONE = BOUTIQUE.telephone;
+const EMAIL = BOUTIQUE.email;
 
 export default function ContactPage() {
   return (
@@ -72,7 +74,7 @@ export default function ContactPage() {
           <MapPin className="text-gold-600 h-6 w-6 shrink-0" aria-hidden />
           <span>
             <span className="text-content block font-semibold">Adresse</span>
-            <span className="text-content-muted block text-sm">Kigali, Rwanda</span>
+            <span className="text-content-muted block text-sm">{BOUTIQUE_LOCALISATION}</span>
           </span>
         </div>
       </div>

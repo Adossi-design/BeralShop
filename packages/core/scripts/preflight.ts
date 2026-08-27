@@ -1,6 +1,7 @@
 import '../../db/src/load-env.ts';
 
 import { prisma } from '@beralshopp/db';
+import { BOUTIQUE, coordonneesIncompletes } from '@beralshopp/shared';
 
 import { getAccessToken, readPesapalConfig } from '../src/payments/pesapal/pesapal-client.ts';
 
@@ -87,10 +88,21 @@ async function checkEnvironment(): Promise<void> {
     ok('Données de démonstration désactivées');
   }
 
-  if (!env('NEXT_PUBLIC_WHATSAPP_NUMBER')) {
-    warn('NEXT_PUBLIC_WHATSAPP_NUMBER', 'absent — le bouton WhatsApp sera masqué');
+  /**
+   * Coordonnées de la boutique — BLOQUANT, et non un simple avertissement.
+   * Une boutique dont les clients ne peuvent joindre personne ne doit pas ouvrir :
+   * la question sans réponse devient un litige, puis un impayé.
+   */
+  const coordonneesFictives = coordonneesIncompletes();
+  if (coordonneesFictives.length > 0) {
+    block(
+      'Coordonnées de la boutique',
+      `encore fictives (${coordonneesFictives.join(', ')}) — ` +
+        'les clients ne pourraient joindre personne. À corriger dans ' +
+        'packages/shared/src/config/boutique.ts',
+    );
   } else {
-    ok('Numéro WhatsApp configuré');
+    ok(`Coordonnées — ${BOUTIQUE.whatsapp} · ${BOUTIQUE.email}`);
   }
 
   if (!env('NEXT_PUBLIC_IMAGE_HOST')) {

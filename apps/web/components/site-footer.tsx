@@ -1,6 +1,8 @@
 import Link from 'next/link';
 import { Mail, MapPin, MessageCircle, Phone } from 'lucide-react';
 
+import { BOUTIQUE, BOUTIQUE_LOCALISATION } from '@beralshopp/shared';
+
 import { BeralshoppLogo } from './beralshopp-logo';
 
 /**
@@ -9,15 +11,13 @@ import { BeralshoppLogo } from './beralshopp-logo';
  * Le numéro WhatsApp est délibérément mis en avant : au Rwanda comme dans la plupart
  * des marchés visés, WhatsApp est le canal de contact attendu par les acheteurs, bien
  * avant l'e-mail. Un client qui hésite écrit sur WhatsApp — ou n'achète pas.
- *
- * Les coordonnées réelles seront renseignées par variables d'environnement au lot 9.
  */
 
 const CONTACT = {
-  whatsapp: process.env['NEXT_PUBLIC_WHATSAPP_NUMBER'] ?? '',
-  phone: process.env['NEXT_PUBLIC_CONTACT_PHONE'] ?? '',
-  email: process.env['NEXT_PUBLIC_CONTACT_EMAIL'] ?? 'contact@beralshopp.com',
-  city: 'Kigali, Rwanda',
+  whatsapp: BOUTIQUE.whatsapp,
+  phone: BOUTIQUE.telephone,
+  email: BOUTIQUE.email,
+  city: BOUTIQUE_LOCALISATION,
 };
 
 const SECTIONS = [
