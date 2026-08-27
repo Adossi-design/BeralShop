@@ -7,6 +7,8 @@ import { hashPassword } from '../src/auth/password.ts';
 
 import { prisma } from '@beralshopp/db';
 
+import { demanderMotDePasse } from './saisie-masquee.ts';
+
 /**
  * Création ou promotion d'un compte administrateur.
  *
@@ -61,7 +63,11 @@ async function main(): Promise<void> {
     console.log('\nAucun compte avec ce numéro. Création d’un administrateur.\n');
     const fullName = (await rl.question('Nom complet : ')).trim();
     const email = (await rl.question('E-mail (facultatif) : ')).trim();
-    const password = (await rl.question('Mot de passe (min. 8 caractères) : ')).trim();
+
+    // On ferme l'interface avant la saisie masquée : `readline` retient l'entrée
+    // standard, et le mode brut ne peut pas s'installer par-dessus.
+    rl.close();
+    const password = (await demanderMotDePasse('Mot de passe (min. 8 caractères) : ')).trim();
 
     if (fullName.length < 2 || password.length < 8) {
       console.error('\n✖ Nom trop court ou mot de passe de moins de 8 caractères.\n');
