@@ -8,3 +8,10 @@ pnpm-lock.yaml
 packages/db/generated
 packages/db/prisma/migrations
 *.min.*
+
+# Régénéré par Next.js à chaque `dev` et à chaque `build`, avec son propre style
+# (guillemets doubles) et un chemin qui diffère entre les deux modes. Le formater
+# créait un aller-retour permanent : Prettier corrigeait, Next réécrivait, et le
+# contrôle de formatage du CI échouait à chaque poussée. Le fichier porte
+# lui-même la mention « should not be edited ».
+apps/web/next-env.d.ts
