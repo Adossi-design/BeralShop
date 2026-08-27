@@ -20,7 +20,9 @@
     "reconcile": "tsx scripts/reconcile-stock.ts",
     "import": "tsx scripts/import-catalogue.ts",
     "publish-catalogue": "tsx scripts/publish-catalogue.ts",
-    "link-images": "tsx scripts/link-images.ts"
+    "link-images": "tsx scripts/link-images.ts",
+    "depublier-demo": "tsx scripts/depublier-demo.ts",
+    "republier-demo": "tsx scripts/depublier-demo.ts --republier"
   },
   "dependencies": {
     "@beralshopp/shared": "workspace:*",

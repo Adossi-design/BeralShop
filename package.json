@@ -29,7 +29,9 @@
     "preflight": "pnpm --filter @beralshopp/core run preflight",
     "db:import": "pnpm --filter @beralshopp/db run import",
     "db:publish": "pnpm --filter @beralshopp/db run publish-catalogue",
-    "db:images": "pnpm --filter @beralshopp/db run link-images"
+    "db:images": "pnpm --filter @beralshopp/db run link-images",
+    "db:depublier-demo": "pnpm --filter @beralshopp/db run depublier-demo",
+    "db:republier-demo": "pnpm --filter @beralshopp/db run republier-demo"
   },
   "devDependencies": {
     "prettier": "^3.6.2",
