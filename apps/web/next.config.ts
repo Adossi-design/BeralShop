@@ -55,6 +55,17 @@ const nextConfig: NextConfig = {
    */
   transpilePackages: ['@beralshopp/shared', '@beralshopp/core', '@beralshopp/db'],
 
+  /**
+   * Racine à partir de laquelle Next trace les fichiers à embarquer dans les
+   * fonctions serveur.
+   *
+   * Sans ce réglage, Next prend `apps/web` pour racine et ignore tout ce qui vit
+   * au-dessus — dont `packages/db/generated`, le client Prisma. Le site se
+   * construit sans erreur, puis échoue à l'exécution sur un module introuvable :
+   * la pire des pannes, celle qui ne se voit qu'en production.
+   */
+  outputFileTracingRoot: resolve(dirname(fileURLToPath(import.meta.url)), '../..'),
+
   images: {
     /**
      * AVIF en premier : environ 30 % plus léger que le WebP à qualité égale.

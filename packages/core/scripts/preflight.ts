@@ -45,7 +45,7 @@ function env(name: string): string {
 const CADENCE_ATTENDUE = '*/10 * * * *';
 
 function verifierCadenceDesTaches(): void {
-  const chemin = resolve(dirname(fileURLToPath(import.meta.url)), '../../../vercel.json');
+  const chemin = resolve(dirname(fileURLToPath(import.meta.url)), '../../../apps/web/vercel.json');
 
   let cadence: string | undefined;
   try {

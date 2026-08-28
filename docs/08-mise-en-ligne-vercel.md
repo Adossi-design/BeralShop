@@ -28,10 +28,16 @@
 
 1. vercel.com → **Add New… → Project**
 2. **Import Git Repository** → choisir `BeralShop`
-3. Sur l'écran de configuration, **ne rien changer** : le fichier `vercel.json` du dépôt
-   impose déjà la commande de compilation, le dossier de sortie, la région `fra1` et la
-   tâche planifiée.
-4. **Ne pas déployer tout de suite.** Ouvrir d'abord **Environment Variables** (étape 2).
+3. **Root Directory → `apps/web`.** Réglage décisif, et contre-intuitif dans un
+   monorepo : Vercel cherche la dépendance `next` dans le `package.json` du dossier
+   désigné. À la racine du dépôt elle n'y est pas, et le déploiement échoue sur
+   « No Next.js version detected ». C'est aussi dans ce dossier que Vercel lit
+   `vercel.json` — d'où sa présence dans `apps/web/` et non à la racine.
+4. **Project Name → `beralshopp`.** Il détermine l'adresse `beralshopp.vercel.app`.
+5. **Ne pas déployer tout de suite.** Ouvrir d'abord **Environment Variables** (étape 2).
+
+> Le reste (région `fra1`, tâche planifiée, commande d'installation) vient de
+> `apps/web/vercel.json` : rien d'autre à régler à la main.
 
 > Si le premier déploiement part sans les variables, il échouera : la compilation lit la
 > base de données pour pré-générer les fiches produit.
