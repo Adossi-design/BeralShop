@@ -1,8 +1,8 @@
-import { timingSafeEqual } from 'node:crypto';
-
 import { NextResponse } from 'next/server';
 
 import { releaseExpiredReservations, reconcilePendingPayments } from '@beralshopp/core';
+
+import { isAuthorizedBySecret } from '@/lib/secret-auth';
 
 /**
  * Tâches périodiques.
@@ -29,23 +29,8 @@ export const dynamic = 'force-dynamic';
 /** Ces traitements peuvent dépasser le délai par défaut sur un gros volume. */
 export const maxDuration = 60;
 
-function isAuthorized(request: Request): boolean {
-  const expected = process.env['CRON_SECRET'];
-  // Pas de secret configuré = route désactivée. Refuser vaut mieux qu'ouvrir.
-  if (!expected) return false;
-
-  const header = request.headers.get('authorization') ?? '';
-  const provided = header.startsWith('Bearer ') ? header.slice(7) : '';
-
-  const a = Buffer.from(provided);
-  const b = Buffer.from(expected);
-  // Comparaison à durée constante : une comparaison classique laisse deviner le
-  // secret caractère par caractère en mesurant le temps de réponse.
-  return a.length === b.length && timingSafeEqual(a, b);
-}
-
 export async function GET(request: Request): Promise<NextResponse> {
-  if (!isAuthorized(request)) {
+  if (!isAuthorizedBySecret(request)) {
     return NextResponse.json({ error: 'non autorisé' }, { status: 401 });
   }
 
