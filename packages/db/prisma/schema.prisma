@@ -413,6 +413,15 @@ model User {
   phoneVerifiedAt DateTime?
   emailVerifiedAt DateTime?
 
+  /// Preuve du consentement aux conditions de vente et à la politique de
+  /// confidentialité, horodatée. Le formulaire l'exige déjà, mais l'exiger sans
+  /// le CONSERVER ne prouve rien : en cas de litige, c'est cette date qui
+  /// atteste que le client a accepté, et `termsVersion` QUELLE version il a
+  /// acceptée — les conditions évoluant, savoir laquelle l'engageait au moment
+  /// de son achat est indispensable.
+  termsAcceptedAt DateTime?
+  termsVersion    String?   @db.VarChar(20)
+
   role     UserRole @default(CLIENT)
   isActive Boolean  @default(true)
 

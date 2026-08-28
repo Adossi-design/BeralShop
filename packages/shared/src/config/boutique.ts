@@ -40,6 +40,19 @@ export const BOUTIQUE = {
   pays: 'Rwanda',
 } as const;
 
+/**
+ * Version des documents légaux en vigueur.
+ *
+ * Enregistrée avec chaque consentement. À INCRÉMENTER à chaque modification de
+ * fond des conditions de vente ou de la politique de confidentialité : sans
+ * cela, on sait qu'un client a accepté, mais pas QUOI — et la preuve ne vaut
+ * plus rien le jour où le texte change.
+ *
+ * Un changement de version implique de redemander le consentement aux comptes
+ * existants ; ce n'est donc pas une valeur qu'on modifie à la légère.
+ */
+export const TERMS_VERSION = '2026-08-28';
+
 /** Ce qu'affiche le pied de page sous l'icône de localisation. */
 export const BOUTIQUE_LOCALISATION = `${BOUTIQUE.ville}, ${BOUTIQUE.pays}`;
 

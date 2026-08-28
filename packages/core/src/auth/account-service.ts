@@ -1,6 +1,7 @@
 import { randomBytes } from 'node:crypto';
 
 import { prisma } from '@beralshopp/db';
+import { TERMS_VERSION } from '@beralshopp/shared';
 
 import { checkPasswordStrength, hashPassword, verifyPassword } from './password.ts';
 import { type CreatedSession, createSession, hashToken, revokeAllSessions } from './session.ts';
@@ -192,6 +193,19 @@ export async function registerAccount(
       locale: input.locale ?? 'fr',
       countryCode: input.countryCode ?? 'RW',
       lastLoginAt: new Date(),
+
+      /**
+       * Trace du consentement.
+       *
+       * Le formulaire EXIGE déjà l'acceptation — la validation la refuse sinon.
+       * Mais l'exiger sans la conserver ne prouve rien : en cas de litige, c'est
+       * cette date qui atteste que le client a accepté, et la version qui dit
+       * lesquelles de nos conditions l'engageaient à ce moment-là. Sans le
+       * numéro de version, une mise à jour des conditions rendrait la preuve
+       * inutilisable.
+       */
+      termsAcceptedAt: new Date(),
+      termsVersion: TERMS_VERSION,
     },
     select: { id: true, role: true },
   });

@@ -1,6 +1,7 @@
 import Link from 'next/link';
 import { LogOut, MapPin, Package, ShieldCheck, User } from 'lucide-react';
 
+import { LegalLinks } from '@/components/legal-links';
 import { logoutAction } from '@/lib/auth-actions';
 import { requireUser } from '@/lib/session';
 
@@ -63,6 +64,8 @@ export default async function AccountLayout({ children }: { children: React.Reac
               </button>
             </form>
           </nav>
+
+          <LegalLinks className="border-border mt-3 border-t pt-3" />
         </aside>
 
         <div>{children}</div>

@@ -360,33 +360,19 @@
   }
 
   /* ——— 4. Pied de page ———
-     Le grand bloc — marque, coordonnées, colonnes de liens — disparaît sur
-     téléphone et tablette. Sa fonction de navigation est désormais assurée par
-     la barre basse, et le contact par le bouton WhatsApp flottant : le répéter
-     en bas de page ne faisait qu'allonger le défilement. C'est aussi ce que fait
-     l'application prise en référence, qui n'a pas de pied de page du tout.
+     Masqué en entier sur téléphone et tablette. Sa navigation est reprise par la
+     barre basse, son contact par le bouton WhatsApp, et ses documents légaux
+     vivent désormais dans l'espace de connexion — accessibles sans compte.
+     Le répéter en bas de page ne faisait qu'allonger le défilement, et c'est ce
+     que fait l'application prise en référence, qui n'a pas de pied de page.
 
-     ⚠️ LA LIGNE LÉGALE EST CONSERVÉE, ET CE N'EST PAS UN OUBLI.
-     « Conditions de vente », « Confidentialité » et « Retours et
-     remboursements » ne sont liées de nulle part ailleurs sur le site, hormis le
-     formulaire d'inscription. Les masquer rendrait ces pages inatteignables pour
-     un visiteur sur téléphone — c'est-à-dire l'essentiel du trafic — alors
-     qu'une boutique qui encaisse doit pouvoir les présenter à tout moment. */
-  footer > div:has(nav) {
+     ⚠️ Ce masquage n'est acceptable QUE parce que « Conditions de vente »,
+     « Confidentialité » et « Retours et remboursements » restent atteignables
+     depuis /connexion et /compte. Si ces liens disparaissaient de là, il faudrait
+     rouvrir le pied de page : des documents que le client ne peut pas consulter
+     équivalent à des documents non publiés. */
+  footer {
     display: none;
-  }
-
-  /* La ligne légale s'empilait sur trois blocs et débordait sous la barre de
-     navigation, qui en masquait la moitié. Mise sur une seule rangée qui se
-     replie, elle tient dans la hauteur réservée. */
-  footer > div:last-child > .beral-container {
-    flex-direction: row;
-    flex-wrap: wrap;
-    align-items: center;
-    justify-content: center;
-    gap: 0.25rem 1rem;
-    padding-block: 0.875rem;
-    text-align: center;
   }
 
   /* ——— 6. Fil d'Ariane ———

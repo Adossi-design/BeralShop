@@ -4,6 +4,7 @@ import { redirect } from 'next/navigation';
 import { CheckCircle2 } from 'lucide-react';
 
 import { LoginForm } from '@/components/auth/login-form';
+import { LegalLinks } from '@/components/legal-links';
 import { getCurrentUser } from '@/lib/session';
 
 export const metadata: Metadata = {
@@ -60,6 +61,10 @@ export default async function LoginPage({ searchParams }: PageProps) {
             Créer un compte
           </Link>
         </div>
+
+        {/* Le pied de page étant masqué sur téléphone, c'est ici que les documents
+            légaux restent atteignables pour un visiteur non connecté. */}
+        <LegalLinks className="border-border mt-8 border-t pt-6" />
       </div>
     </main>
   );
