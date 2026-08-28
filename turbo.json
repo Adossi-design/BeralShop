@@ -2,7 +2,17 @@
   "$schema": "https://turbo.build/schema.json",
   "ui": "stream",
   "globalEnv": ["NODE_ENV"],
-  "globalPassThroughEnv": ["DATABASE_URL", "DIRECT_URL"],
+
+  "globalPassThroughEnv": [
+    "DATABASE_URL",
+    "DIRECT_URL",
+    "AUTH_SECRET",
+    "CRON_SECRET",
+    "PESAPAL_CONSUMER_KEY",
+    "PESAPAL_CONSUMER_SECRET",
+    "PESAPAL_ENVIRONMENT",
+    "PESAPAL_IPN_ID"
+  ],
   "tasks": {
     "build": {
       "dependsOn": ["^build"],

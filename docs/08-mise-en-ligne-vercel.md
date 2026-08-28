@@ -36,8 +36,24 @@
 4. **Project Name → `beralshopp`.** Il détermine l'adresse `beralshopp.vercel.app`.
 5. **Ne pas déployer tout de suite.** Ouvrir d'abord **Environment Variables** (étape 2).
 
-> Le reste (région `fra1`, tâche planifiée, commande d'installation) vient de
-> `apps/web/vercel.json` : rien d'autre à régler à la main.
+> Le reste (région `fra1`, tâche planifiée, commandes d'installation et de
+> compilation, dossier de sortie) vient de `apps/web/vercel.json` : rien d'autre à
+> régler à la main.
+
+> ⚠️ **Ne rien saisir dans Build Command / Output Directory du tableau de bord.**
+> Un réglage saisi une fois y survit indéfiniment. Lors du premier import,
+> `outputDirectory` avait été enregistré à `apps/web/.next` ; après le passage du
+> Root Directory à `apps/web`, les deux se cumulaient et Vercel cherchait
+> `apps/web/apps/web/.next`. Ces valeurs sont désormais déclarées dans
+> `vercel.json`, qui prime sur le tableau de bord — le dépôt reste la source de
+> vérité. Si un champ du tableau de bord est déjà rempli, le vider.
+
+> **Variables d'environnement et Turborepo.** Turbo filtre l'environnement des
+> tâches pour rendre les compilations reproductibles : une variable absente de
+> `globalPassThroughEnv` dans `turbo.json` n'atteint jamais le processus de
+> compilation, même définie sur Vercel. Toute nouvelle variable de serveur doit y
+> être ajoutée. Les `NEXT_PUBLIC_*` font exception : Turbo les inclut d'office pour
+> les applications Next.js.
 
 > Si le premier déploiement part sans les variables, il échouera : la compilation lit la
 > base de données pour pré-générer les fiches produit.
