@@ -1,5 +1,5 @@
 import Link from 'next/link';
-import { CreditCard, PackageCheck, Search, ShieldCheck, ShoppingBag, Truck } from 'lucide-react';
+import { PackageCheck, ShieldCheck, Truck } from 'lucide-react';
 
 import { listBestSellers, listNewArrivals, listOnSale } from '@beralshopp/core';
 
@@ -13,29 +13,6 @@ import { ProductRail } from '@/components/catalog/product-grid';
  * aux autres, ce qui se voit immédiatement sur une connexion lente.
  */
 export const revalidate = 300;
-
-const STEPS = [
-  {
-    icon: Search,
-    title: 'Trouvez votre produit',
-    text: 'Cherchez par nom, marque ou référence, ou parcourez les catégories.',
-  },
-  {
-    icon: ShoppingBag,
-    title: 'Ajoutez au panier',
-    text: 'Vérifiez la quantité et les options. La livraison est gratuite.',
-  },
-  {
-    icon: CreditCard,
-    title: 'Payez en toute sécurité',
-    text: 'MTN MoMo, Airtel Money, Visa ou Mastercard. Paiement protégé.',
-  },
-  {
-    icon: Truck,
-    title: 'Suivez votre colis',
-    text: 'Vous êtes prévenu à chaque étape, jusqu’à la livraison.',
-  },
-];
 
 const GUARANTEES = [
   { icon: ShieldCheck, label: 'Paiement sécurisé', detail: 'Vérifié côté serveur' },
@@ -123,36 +100,6 @@ export default async function HomePage() {
           <ProductRail products={newArrivals.items} />
         </Section>
       ) : null}
-
-      {/* ——— Comment commander ——— */}
-      <section className="bg-surface-muted mt-6">
-        <div className="beral-container py-12">
-          <h2 className="text-content text-center text-xl font-bold sm:text-2xl">
-            Comment commander ?
-          </h2>
-          <p className="text-content-muted mx-auto mt-2 max-w-xl text-center text-sm">
-            Quatre étapes simples, de la recherche à la livraison.
-          </p>
-
-          <ol className="mt-8 grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
-            {STEPS.map((step, index) => (
-              <li
-                key={step.title}
-                className="border-border bg-surface shadow-card rounded-card border p-5"
-              >
-                <div className="flex items-center gap-3">
-                  <span className="bg-ink-900 flex h-10 w-10 items-center justify-center rounded-full font-bold text-white">
-                    {index + 1}
-                  </span>
-                  <step.icon className="text-gold-600 h-5 w-5" aria-hidden />
-                </div>
-                <h3 className="text-content mt-4 font-semibold">{step.title}</h3>
-                <p className="text-content-muted mt-1.5 text-sm">{step.text}</p>
-              </li>
-            ))}
-          </ol>
-        </div>
-      </section>
     </main>
   );
 }

@@ -42,7 +42,6 @@ const SECTIONS = [
   {
     title: 'Aide',
     links: [
-      { href: '/comment-commander', label: 'Comment commander ?' },
       { href: '/livraison', label: 'Livraison' },
       { href: '/paiement', label: 'Moyens de paiement' },
       { href: '/contact', label: 'Nous contacter' },

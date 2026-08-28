@@ -344,14 +344,6 @@
     padding-block: 2.25rem;
   }
 
-  /* ——— 3. Étapes « Comment commander ? » ———
-     Empilées une par une, ces quatre cartes occupaient presque un écran entier
-     alors que chacune tient en deux lignes. Deux colonnes suffisent. */
-  main ol.grid {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-    gap: 0.75rem;
-  }
-
   /* ——— 4. Pied de page ———
      Une colonne par rubrique produisait un pied de page plus long que la page
      elle-même. Le bloc de marque garde toute la largeur, les rubriques passent
@@ -368,26 +360,37 @@
   footer div:has(> nav) > div:first-child {
     grid-column: 1 / -1;
   }
-}
 
-@media (max-width: 639.98px) {
-  /* ——— 5. Téléphone : resserrer sans rendre illisible ———
-     Les cartes d'étapes étaient calées sur le bureau : beaucoup de vide autour
-     de deux lignes de texte. On récupère cette hauteur pour du contenu.
-
-     ⚠️ Sélecteurs volontairement STRUCTURELS, sans aucun nom de classe Tailwind.
-     Une première version visait `span[class*='rounded-full']` : la chaîne
-     « rounded-full » présente dans ce fichier était détectée par le scanner de
-     Tailwind, qui régénérait l'utilitaire et décalait l'ordre de la feuille de
-     styles. Résultat, deux pixels de l'icône panier changeaient d'anticrénelage
-     SUR LE BUREAU — que ce bloc n'est pourtant jamais censé atteindre. */
-  main ol > li {
-    padding: 0.875rem;
+  /* ——— 6. Fil d'Ariane ———
+     Sur la fiche produit, il occupait TROIS lignes avant qu'on aperçoive
+     l'article. Le chemin complet reste présent — rien n'est retiré — mais il
+     tient sur une seule ligne que l'on fait glisser. La référence n'affiche
+     aucun fil d'Ariane sur mobile ; ici il sert au référencement et au retour en
+     arrière, on le garde donc, simplement rangé. */
+  nav[aria-label="Fil d'Ariane"] > ol {
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    scrollbar-width: none;
   }
 
-  main ol > li > div > span:first-child {
-    height: 2rem;
-    width: 2rem;
-    font-size: 0.875rem;
+  nav[aria-label="Fil d'Ariane"] > ol::-webkit-scrollbar {
+    display: none;
+  }
+
+  nav[aria-label="Fil d'Ariane"] > ol > li {
+    flex: 0 0 auto;
+  }
+
+  /* ——— 7. Tableau des caractéristiques ———
+     Treize lignes espacées comme sur un écran large repoussaient les avis
+     clients très loin. Lignes resserrées, colonne de gauche moins large : la
+     valeur — ce que le client vient lire — récupère la place. */
+  main table th,
+  main table td {
+    padding: 0.5rem 0.75rem;
+  }
+
+  main table th {
+    width: 38%;
   }
 }
