@@ -304,3 +304,90 @@
 [dir='rtl'] .beral-flip {
   transform: scaleX(-1);
 }
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   PETITS ÉCRANS — TÉLÉPHONE ET TABLETTE UNIQUEMENT
+
+   ⚠️ TOUT CE BLOC EST BORNÉ À 1023.98 px. Rien ici ne peut atteindre le bureau,
+   qui est figé. Les règles ne sont volontairement PAS dans un `@layer` : du CSS
+   hors couche l'emporte sur les utilitaires Tailwind, ce qui évite une course à
+   la spécificité et permet de ne toucher ni au JSX ni aux règles de base.
+
+   Les sélecteurs s'accrochent à des ancres stables — `footer`, `nav`, `ol`,
+   `ul.snap-x`, `.beral-container` — et jamais à une classe de valeur arbitraire.
+   Si le balisage change, la règle cesse simplement de s'appliquer : elle ne
+   casse rien.
+
+   Ce qui a été retenu de la référence : la densité verticale (moins de vide
+   entre les blocs), l'écart de taille resserré entre titres et texte, et des
+   vignettes assez larges pour que le nom du produit se lise. Ce qui a été
+   écarté : sa grille infinie à deux colonnes, qui suppose des centaines de
+   références — ici il y en a deux.
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+@media (max-width: 1023.98px) {
+  /* ——— 1. Carrousels peu fournis ———
+     Une rangée dimensionnée pour sept cartes paraît vide avec deux produits, et
+     les noms se coupent au milieu d'un mot. Quand le carrousel contient moins de
+     quatre articles, les cartes se partagent la largeur : plus rien à faire
+     défiler, donc autant tout montrer lisiblement. Dès la quatrième, la densité
+     voulue (3 par rangée sur téléphone) reprend d'elle-même. */
+  ul.snap-x:not(:has(> li:nth-child(4))) > li {
+    width: auto;
+    flex: 1 1 0;
+  }
+
+  /* ——— 2. Rythme vertical ———
+     Les grands blocs respirent sur un écran large ; sur un téléphone, ce vide
+     repousse le contenu suivant hors de vue et allonge le défilement pour rien. */
+  .beral-container.py-12 {
+    padding-block: 2.25rem;
+  }
+
+  /* ——— 3. Étapes « Comment commander ? » ———
+     Empilées une par une, ces quatre cartes occupaient presque un écran entier
+     alors que chacune tient en deux lignes. Deux colonnes suffisent. */
+  main ol.grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 0.75rem;
+  }
+
+  /* ——— 4. Pied de page ———
+     Une colonne par rubrique produisait un pied de page plus long que la page
+     elle-même. Le bloc de marque garde toute la largeur, les rubriques passent
+     côte à côte. */
+  footer .beral-container {
+    padding-block: 2.25rem;
+  }
+
+  footer div:has(> nav) {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 1.75rem;
+  }
+
+  footer div:has(> nav) > div:first-child {
+    grid-column: 1 / -1;
+  }
+}
+
+@media (max-width: 639.98px) {
+  /* ——— 5. Téléphone : resserrer sans rendre illisible ———
+     Les cartes d'étapes étaient calées sur le bureau : beaucoup de vide autour
+     de deux lignes de texte. On récupère cette hauteur pour du contenu.
+
+     ⚠️ Sélecteurs volontairement STRUCTURELS, sans aucun nom de classe Tailwind.
+     Une première version visait `span[class*='rounded-full']` : la chaîne
+     « rounded-full » présente dans ce fichier était détectée par le scanner de
+     Tailwind, qui régénérait l'utilitaire et décalait l'ordre de la feuille de
+     styles. Résultat, deux pixels de l'icône panier changeaient d'anticrénelage
+     SUR LE BUREAU — que ce bloc n'est pourtant jamais censé atteindre. */
+  main ol > li {
+    padding: 0.875rem;
+  }
+
+  main ol > li > div > span:first-child {
+    height: 2rem;
+    width: 2rem;
+    font-size: 0.875rem;
+  }
+}
