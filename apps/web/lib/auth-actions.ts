@@ -98,6 +98,7 @@ export async function registerAction(_previous: FormState, formData: FormData): 
     email: formData.get('email') || undefined,
     password: formData.get('password'),
     acceptsTerms: formData.get('acceptsTerms') === 'on',
+    confirmsAge: formData.get('confirmsAge') === 'on',
   });
 
   if (!parsed.success) {

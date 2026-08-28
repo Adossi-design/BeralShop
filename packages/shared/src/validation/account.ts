@@ -3,7 +3,6 @@ import { z } from 'zod';
 import { ADDRESS_FIELDS, getCountry } from '../geo/countries.ts';
 import {
   countryCodeSchema,
-  currencySchema,
   emailSchema,
   fullNameSchema,
   localeSchema,
@@ -24,7 +23,27 @@ export const registerSchema = z.object({
   locale: localeSchema.optional(),
   countryCode: countryCodeSchema.optional(),
   acceptsTerms: z.literal(true, 'Vous devez accepter les conditions de vente.'),
+
+  /**
+   * Déclaration d'âge — CASE DISTINCTE, et c'est délibéré.
+   *
+   * La boutique est réservée aux 16 ans et plus. En dessous, la plupart des lois
+   * sur les données personnelles exigent le consentement d'un parent : une
+   * mécanique lourde, disproportionnée pour une boutique tenue par une personne,
+   * et que ce seuil évite entièrement.
+   *
+   * Séparée de l'acceptation des conditions plutôt que fondue dedans : une
+   * déclaration cachée au milieu d'un texte de dix pages n'en est pas une, et
+   * ne vaudrait rien le jour où il faudrait la produire.
+   *
+   * On ne demande PAS la date de naissance : elle serait une donnée personnelle
+   * de plus à protéger, alors qu'une déclaration suffit à établir la bonne foi.
+   */
+  confirmsAge: z.literal(true, 'La boutique est réservée aux personnes de 16 ans et plus.'),
 });
+
+/** Âge minimal pour ouvrir un compte. Repris dans les conditions de vente. */
+export const AGE_MINIMUM = 16;
 
 /** Connexion par téléphone OU e-mail — les deux identifiants sont acceptés. */
 export const loginSchema = z.object({
@@ -47,11 +66,23 @@ export const resetPasswordSchema = z
     path: ['passwordConfirmation'],
   });
 
+/**
+ * Rectification des données personnelles par le client lui-même.
+ *
+ * Le téléphone en fait partie : c'est une donnée personnelle comme les autres, et
+ * le droit de rectification ne s'arrête pas aux champs commodes à modifier. Il
+ * sert aussi d'identifiant de connexion, d'où le mot de passe exigé — sans lui,
+ * quelqu'un ayant accès à une session ouverte pourrait détourner le compte en
+ * remplaçant simplement le numéro.
+ *
+ * L'e-mail est facultatif et peut être VIDÉ : un client qui ne veut plus nous le
+ * confier doit pouvoir le retirer, pas seulement le corriger.
+ */
 export const updateProfileSchema = z.object({
-  fullName: fullNameSchema.optional(),
-  email: emailSchema.optional(),
-  locale: localeSchema.optional(),
-  preferredCurrency: currencySchema.optional(),
+  fullName: fullNameSchema,
+  phone: phoneSchema,
+  email: z.union([emailSchema, z.literal('')]).optional(),
+  currentPassword: z.string().min(1, 'Mot de passe requis pour modifier vos informations.'),
 });
 
 export const changePasswordSchema = z

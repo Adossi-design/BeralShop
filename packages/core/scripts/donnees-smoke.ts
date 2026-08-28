@@ -4,7 +4,11 @@ import '../../db/src/load-env.ts';
 import { prisma } from '@beralshopp/db';
 
 import { registerAccount } from '../src/auth/account-service.ts';
-import { exporterDonneesPersonnelles, supprimerCompte } from '../src/auth/personal-data.ts';
+import {
+  exporterDonneesPersonnelles,
+  rectifierProfil,
+  supprimerCompte,
+} from '../src/auth/personal-data.ts';
 
 /**
  * Contrôle des droits du client sur ses données : export et effacement.
@@ -126,6 +130,29 @@ async function main(): Promise<void> {
   verifier(donnees.compte.addresses.length === 1, 'Contient l’adresse');
   verifier(!brut.includes('passwordHash'), 'N’expose PAS le condensé du mot de passe');
   verifier(!brut.includes('totpSecret'), 'N’expose PAS le secret de double authentification');
+
+  // ——— Droit de rectification ———
+  console.log('\nRectification :');
+  const refusRect = await rectifierProfil(
+    userId,
+    { fullName: 'Nom Corrige', phone: TELEPHONE, email: null },
+    'mauvais-mot-de-passe',
+  );
+  verifier(!refusRect.ok, 'Refusee avec un mauvais mot de passe');
+
+  const rect = await rectifierProfil(
+    userId,
+    { fullName: 'Nom Corrige', phone: TELEPHONE, email: null },
+    MOT_DE_PASSE,
+  );
+  verifier(rect.ok, 'Acceptee avec le bon mot de passe');
+
+  const apresRect = await prisma.user.findUniqueOrThrow({
+    where: { id: userId },
+    select: { fullName: true, email: true },
+  });
+  verifier(apresRect.fullName === 'Nom Corrige', 'Nom effectivement modifie', apresRect.fullName);
+  verifier(apresRect.email === null, 'E-mail retire a la demande du client');
 
   // ——— Droit d'effacement ———
   console.log('\nEffacement :');

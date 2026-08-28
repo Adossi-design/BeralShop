@@ -3,6 +3,8 @@
 import { useActionState } from 'react';
 import Link from 'next/link';
 
+import { AGE_MINIMUM } from '@beralshopp/shared';
+
 import { type FormState, registerAction } from '@/lib/auth-actions';
 
 import { Field, FormAlert, SubmitButton } from './form-kit';
@@ -82,6 +84,26 @@ export function RegisterForm({ returnTo }: { readonly returnTo?: string }) {
         </label>
         {state.fieldErrors?.['acceptsTerms'] ? (
           <p className="text-danger-500 mt-1.5 text-sm">{state.fieldErrors['acceptsTerms']}</p>
+        ) : null}
+      </div>
+
+      {/* Déclaration d'âge, volontairement séparée de l'acceptation des conditions :
+          noyée dans un long texte, elle ne vaudrait rien le jour où il faudrait la
+          produire. */}
+      <div>
+        <label className="flex items-start gap-2.5 text-sm">
+          <input
+            type="checkbox"
+            name="confirmsAge"
+            required
+            className="border-border accent-gold-500 mt-0.5 h-4 w-4 shrink-0 rounded"
+          />
+          <span className="text-content-muted">
+            Je déclare avoir <strong>{AGE_MINIMUM} ans ou plus</strong>.
+          </span>
+        </label>
+        {state.fieldErrors?.['confirmsAge'] ? (
+          <p className="text-danger-500 mt-1.5 text-sm">{state.fieldErrors['confirmsAge']}</p>
         ) : null}
       </div>
 

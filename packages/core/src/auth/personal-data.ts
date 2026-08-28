@@ -105,6 +105,85 @@ export async function exporterDonneesPersonnelles(userId: string): Promise<unkno
   };
 }
 
+/* ═══════════════════════════ RECTIFICATION ═══════════════════════════ */
+
+export type ResultatRectification =
+  { readonly ok: true } | { readonly ok: false; readonly champ?: string; readonly message: string };
+
+export interface RectificationInput {
+  readonly fullName: string;
+  readonly phone: string;
+  readonly email: string | null;
+}
+
+/**
+ * Correction par le client de ses propres données.
+ *
+ * Le mot de passe est exigé pour TOUTE modification, pas seulement pour les
+ * identifiants. Le téléphone sert à se connecter et l'e-mail à réinitialiser le
+ * mot de passe : quelqu'un ayant mis la main sur une session ouverte pourrait,
+ * sans cette barrière, remplacer les deux et s'approprier définitivement le
+ * compte — le vrai propriétaire ne pourrait plus ni se connecter ni récupérer
+ * son accès.
+ */
+export async function rectifierProfil(
+  userId: string,
+  input: RectificationInput,
+  motDePasse: string,
+): Promise<ResultatRectification> {
+  const utilisateur = await prisma.user.findUnique({
+    where: { id: userId },
+    select: { passwordHash: true },
+  });
+
+  if (!utilisateur) return { ok: false, message: 'Compte introuvable.' };
+
+  if (!(await verifyPassword(utilisateur.passwordHash, motDePasse))) {
+    return { ok: false, champ: 'currentPassword', message: 'Mot de passe incorrect.' };
+  }
+
+  const email = input.email?.trim() ? input.email.trim().toLowerCase() : null;
+
+  /**
+   * Unicité vérifiée AVANT l'écriture, pour renvoyer un message clair plutôt
+   * qu'une erreur de contrainte que le client ne comprendrait pas.
+   * La contrainte en base reste la garantie ultime en cas de concurrence.
+   */
+  const collisionTelephone = await prisma.user.findFirst({
+    where: { phone: input.phone, id: { not: userId } },
+    select: { id: true },
+  });
+  if (collisionTelephone) {
+    return {
+      ok: false,
+      champ: 'phone',
+      message: 'Ce numéro est déjà utilisé par un autre compte.',
+    };
+  }
+
+  if (email) {
+    const collisionEmail = await prisma.user.findFirst({
+      where: { email, id: { not: userId } },
+      select: { id: true },
+    });
+    if (collisionEmail) {
+      return { ok: false, champ: 'email', message: 'Cette adresse est déjà utilisée.' };
+    }
+  }
+
+  try {
+    await prisma.user.update({
+      where: { id: userId },
+      data: { fullName: input.fullName, phone: input.phone, email },
+    });
+  } catch {
+    // Filet en cas de course entre la vérification ci-dessus et l'écriture.
+    return { ok: false, message: 'Ces informations sont déjà utilisées par un autre compte.' };
+  }
+
+  return { ok: true };
+}
+
 /* ═══════════════════════════ EFFACEMENT ═══════════════════════════ */
 
 export type ResultatSuppression =
