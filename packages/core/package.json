@@ -20,7 +20,8 @@
     "admin": "tsx scripts/create-admin.ts",
     "pesapal:check": "tsx scripts/pesapal-check.ts",
     "pesapal:ipn": "tsx scripts/pesapal-register-ipn.ts",
-    "preflight": "tsx scripts/preflight.ts"
+    "preflight": "tsx scripts/preflight.ts",
+    "donnees:smoke": "tsx scripts/donnees-smoke.ts"
   },
   "dependencies": {
     "@beralshopp/db": "workspace:*",

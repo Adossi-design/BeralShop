@@ -1,5 +1,5 @@
 import Link from 'next/link';
-import { LogOut, MapPin, Package, ShieldCheck, User } from 'lucide-react';
+import { DatabaseZap, LogOut, MapPin, Package, ShieldCheck, User } from 'lucide-react';
 
 import { LegalLinks } from '@/components/legal-links';
 import { logoutAction } from '@/lib/auth-actions';
@@ -18,6 +18,7 @@ const NAV = [
   { href: '/compte/commandes', label: 'Mes commandes', icon: Package },
   { href: '/compte/adresses', label: 'Mes adresses', icon: MapPin },
   { href: '/compte/securite', label: 'Sécurité', icon: ShieldCheck },
+  { href: '/compte/donnees', label: 'Mes données', icon: DatabaseZap },
 ];
 
 export default async function AccountLayout({ children }: { children: React.ReactNode }) {

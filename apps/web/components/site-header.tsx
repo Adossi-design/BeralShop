@@ -1,7 +1,7 @@
 import Link from 'next/link';
 import { listCategoryTree } from '@beralshopp/core';
 
-import { BeralshoppLogo, BeralshoppMark } from './beralshopp-logo';
+import { BeralshoppLogo } from './beralshopp-logo';
 import { HeaderAccount } from './header-account';
 import { SearchBox } from './search-box';
 
@@ -37,10 +37,12 @@ export async function SiteHeader() {
               de même spécificité, et c'est l'ordre de la feuille de style qui
               tranche. Résultat observé : les deux logos affichés en même temps.
             */}
-            <span className="hidden sm:block">
-              <BeralshoppLogo onDark />
-            </span>
-            <BeralshoppMark className="h-9 w-9 sm:hidden" />
+            {/* Le nom complet est affiché à TOUTES les tailles depuis que les
+                trois boutons d'action ont quitté l'en-tête sur petit écran : la
+                place ainsi libérée revient à l'identité de la boutique. Un
+                simple pictogramme n'apprend rien à un visiteur qui arrive pour
+                la première fois. */}
+            <BeralshoppLogo onDark />
           </Link>
 
           {/* Recherche — masquée ici sur mobile, affichée en pleine largeur en dessous */}
@@ -48,7 +50,13 @@ export async function SiteHeader() {
             <SearchBox variant="desktop" />
           </div>
 
-          <HeaderAccount />
+          {/* Catégories, compte et panier ne sont plus ici sous 1024 px : ils
+              figurent à l'identique dans la barre de navigation basse, à portée
+              du pouce. Les afficher aux deux endroits dupliquait les mêmes
+              actions et encombrait l'en-tête. */}
+          <div className="ms-auto hidden lg:block">
+            <HeaderAccount />
+          </div>
         </div>
 
         {/* ——— Recherche mobile, toujours visible ——— */}
