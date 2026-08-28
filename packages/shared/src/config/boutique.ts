@@ -24,14 +24,14 @@ export const BOUTIQUE = {
   nom: 'Beralshopp',
 
   /** Numéro appelé par les clients. Format international, sans espaces. */
-  telephone: '+250793227205',
+  telephone: '+250733545633',
 
   /**
    * Numéro WhatsApp.
    * Identique au numéro d'appel ci-dessus. S'il devait un jour différer — une
    * ligne dédiée au service client, par exemple — c'est ici qu'on les sépare.
    */
-  whatsapp: '+250793227205',
+  whatsapp: '+250733545633',
 
   /** Adresse à laquelle les clients écrivent. */
   email: 'beralshopp@gmail.com',

@@ -47,19 +47,16 @@ export function ProductCard({ product, priority, compact = false }: ProductCardP
           className="transition-transform duration-300 group-hover:scale-105"
         />
 
-        {/* Badges — au maximum deux, pour ne pas masquer le produit. */}
-        <div className="absolute start-2 top-2 flex flex-col gap-1">
-          {product.price.isOnSale ? (
-            <span className="bg-sale-500 rounded px-1.5 py-0.5 text-[0.65rem] font-bold text-white">
-              −{product.price.discountPercent} %
-            </span>
-          ) : null}
-          {product.isNew && !product.price.isOnSale ? (
-            <span className="bg-ink-900 rounded px-1.5 py-0.5 text-[0.65rem] font-bold text-white">
-              Nouveau
-            </span>
-          ) : null}
-        </div>
+        {/* UNE SEULE étiquette, et uniquement sur les articles en promotion.
+            L'étiquette « Nouveau » a été retirée : posée sur presque chaque
+            vignette d'un catalogue récent, elle ne distinguait plus rien et ne
+            faisait que recouvrir la photo. Le pourcentage de remise, lui, porte
+            une information que le client cherche vraiment. */}
+        {product.price.isOnSale ? (
+          <span className="bg-sale-500 absolute start-2 top-2 rounded px-1.5 py-0.5 text-[0.65rem] font-bold text-white">
+            −{product.price.discountPercent} %
+          </span>
+        ) : null}
 
         {!product.isAvailable ? (
           <div className="absolute inset-0 flex items-center justify-center bg-white/70 dark:bg-black/60">
