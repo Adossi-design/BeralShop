@@ -1,7 +1,7 @@
+import Image from 'next/image';
 import Link from 'next/link';
 import { listCategoryTree } from '@beralshopp/core';
 
-import { BeralshoppLogo } from './beralshopp-logo';
 import { HeaderAccount } from './header-account';
 import { SearchBox } from './search-box';
 
@@ -28,21 +28,35 @@ export async function SiteHeader() {
     <header className="beral-surface-brand sticky top-0 z-40">
       <div className="beral-container">
         {/* ——— Ligne principale ——— */}
-        <div className="flex h-16 items-center gap-3">
-          <Link href="/" className="shrink-0" aria-label="Beralshopp, accueil">
+        {/* Ligne plus haute sous `lg` : le logo y est seul et centré, et c'est un
+            emblème circulaire — à la hauteur d'un en-tête classique, le nom qu'il
+            contient devient une tache illisible. Au-delà, la ligne retrouve sa
+            hauteur habituelle puisque le logo y côtoie recherche et compte. */}
+        <div className="flex h-24 items-center gap-3 lg:h-16">
+          {/*
+            `mx-auto` centre le logo tant qu'il est seul sur la ligne — c'est le
+            cas sous 1024 px, depuis que les boutons d'action sont partis dans la
+            barre basse. À partir de `lg`, la recherche et le compte reprennent
+            leur place et le logo revient à gauche : le centrer là déplacerait la
+            barre de recherche, qui est l'outil le plus utilisé d'une boutique.
+          */}
+          <Link href="/" className="mx-auto shrink-0 lg:mx-0" aria-label="Beralshopp, accueil">
             {/*
-              La visibilité est portée par un <span> enveloppant, PAS par le logo
-              lui-même : le composant fixe son propre `inline-flex`, qui entrerait
-              en conflit avec un `hidden` ajouté ici — deux utilitaires de display
-              de même spécificité, et c'est l'ordre de la feuille de style qui
-              tranche. Résultat observé : les deux logos affichés en même temps.
+              Le logo réel de la boutique, détouré sur fond transparent. Le
+              fichier d'origine est un JPEG à fond gris foncé : posé tel quel sur
+              l'en-tête noir, il y dessinait un carré visible.
+
+              `priority` : c'est le premier élément visible de chaque page, il ne
+              doit pas apparaître après le reste.
             */}
-            {/* Le nom complet est affiché à TOUTES les tailles depuis que les
-                trois boutons d'action ont quitté l'en-tête sur petit écran : la
-                place ainsi libérée revient à l'identité de la boutique. Un
-                simple pictogramme n'apprend rien à un visiteur qui arrive pour
-                la première fois. */}
-            <BeralshoppLogo onDark />
+            <Image
+              src="/images/logo-beralshopp.png"
+              alt="Beralshopp"
+              width={512}
+              height={512}
+              priority
+              className="h-22 w-auto lg:h-14"
+            />
           </Link>
 
           {/* Recherche — masquée ici sur mobile, affichée en pleine largeur en dessous */}
