@@ -13,7 +13,7 @@
   "crons": [
     {
       "path": "/api/v1/taches",
-      "schedule": "*/10 * * * *"
+      "schedule": "0 3 * * *"
     }
   ]
 }

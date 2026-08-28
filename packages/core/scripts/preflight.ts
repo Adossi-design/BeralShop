@@ -1,5 +1,9 @@
 import '../../db/src/load-env.ts';
 
+import { readFileSync } from 'node:fs';
+import { dirname, resolve } from 'node:path';
+import { fileURLToPath } from 'node:url';
+
 import { prisma } from '@beralshopp/db';
 import { BOUTIQUE, coordonneesIncompletes } from '@beralshopp/shared';
 
@@ -35,6 +39,41 @@ function warn(label: string, detail: string): void {
 
 function env(name: string): string {
   return (process.env[name] ?? '').trim();
+}
+
+/** Cadence attendue en production : toutes les 10 minutes. */
+const CADENCE_ATTENDUE = '*/10 * * * *';
+
+function verifierCadenceDesTaches(): void {
+  const chemin = resolve(dirname(fileURLToPath(import.meta.url)), '../../../vercel.json');
+
+  let cadence: string | undefined;
+  try {
+    const config = JSON.parse(readFileSync(chemin, 'utf8')) as {
+      crons?: { path?: string; schedule?: string }[];
+    };
+    cadence = config.crons?.find((c) => c.path === '/api/v1/taches')?.schedule;
+  } catch {
+    block('Tâches planifiées', `vercel.json illisible (${chemin})`);
+    return;
+  }
+
+  if (!cadence) {
+    block(
+      'Tâches planifiées',
+      'aucune tâche déclarée dans vercel.json — les stocks réservés ne seraient ' +
+        'jamais libérés et les paiements non notifiés jamais rattrapés',
+    );
+  } else if (cadence !== CADENCE_ATTENDUE) {
+    block(
+      'Tâches planifiées',
+      `cadence « ${cadence} » au lieu de « ${CADENCE_ATTENDUE} » — abaissée pour le ` +
+        'plan Hobby de Vercel. À rétablir dans vercel.json APRÈS le passage en Pro : ' +
+        'sinon un paiement dont la notification se perd attend jusqu’à 24 h',
+    );
+  } else {
+    ok('Tâches planifiées — toutes les 10 minutes');
+  }
 }
 
 async function checkEnvironment(): Promise<void> {
@@ -87,6 +126,21 @@ async function checkEnvironment(): Promise<void> {
   } else {
     ok('Données de démonstration désactivées');
   }
+
+  /**
+   * Fréquence de la tâche planifiée — BLOQUANT.
+   *
+   * Le plan Hobby de Vercel n'autorise qu'une exécution par jour ; la cadence a donc
+   * été abaissée pour permettre un premier déploiement. Il FAUT la rétablir avant
+   * d'ouvrir : cette tâche rattrape les paiements dont la notification Pesapal s'est
+   * perdue. Une fois par jour, un client ayant payé attendrait jusqu'à 24 heures que
+   * sa commande passe en « payée » — et il écrira bien avant.
+   *
+   * Ce contrôle existe parce qu'un réglage « provisoire » qui n'est vérifié nulle
+   * part devient définitif. `vercel.json` étant du JSON strict, il ne peut pas
+   * porter de commentaire d'avertissement : la garde vit donc ici.
+   */
+  verifierCadenceDesTaches();
 
   /**
    * Coordonnées de la boutique — BLOQUANT, et non un simple avertissement.

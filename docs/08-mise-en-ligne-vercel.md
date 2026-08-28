@@ -166,6 +166,13 @@ Mettre le site en ligne et **ouvrir la boutique** sont deux choses différentes.
 peut être déployé dès maintenant ; il ne doit pas encaisser d'argent tant que ces points
 ne sont pas levés. `pnpm preflight` les vérifie tous.
 
+> ⚠️ **Cadence des tâches planifiées abaissée.** Le plan Hobby n'autorise qu'une
+> exécution par jour ; `vercel.json` est passé de `*/10 * * * *` à `0 3 * * *` pour
+> permettre le premier déploiement. **À rétablir dès le passage en Pro.** Cette tâche
+> rattrape les paiements dont la notification Pesapal s'est perdue : une fois par jour,
+> un client ayant payé attendrait jusqu'à 24 h que sa commande passe en « payée ».
+> `pnpm preflight` refuse d'ouvrir la boutique tant que la cadence n'est pas rétablie.
+
 | Point                                       | Action                                                                |
 | ------------------------------------------- | --------------------------------------------------------------------- |
 | **Aucun compte administrateur**             | `pnpm db:admin` — sans lui, personne ne peut traiter les commandes    |
