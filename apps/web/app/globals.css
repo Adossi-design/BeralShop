@@ -326,6 +326,21 @@
    ═══════════════════════════════════════════════════════════════════════════ */
 
 @media (max-width: 1023.98px) {
+  /* ——— 0. Place réservée à la barre de navigation basse ———
+     Elle est `fixed` : sans cette réserve, elle recouvrirait les dernières
+     lignes du pied de page — mentions légales comprises — et personne ne
+     saurait qu'il manque quelque chose. */
+  body {
+    padding-bottom: calc(4rem + env(safe-area-inset-bottom, 0px));
+  }
+
+  /* Le bouton WhatsApp flottant se posait exactement sur la barre. On le
+     remonte au-dessus plutôt que de le masquer : c'est le canal de contact
+     principal, il doit rester atteignable. */
+  a[aria-label='Nous contacter sur WhatsApp'] {
+    bottom: calc(5rem + env(safe-area-inset-bottom, 0px));
+  }
+
   /* ——— 1. Carrousels peu fournis ———
      Une rangée dimensionnée pour sept cartes paraît vide avec deux produits, et
      les noms se coupent au milieu d'un mot. Quand le carrousel contient moins de
