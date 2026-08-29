@@ -42,20 +42,22 @@ export async function SiteHeader() {
           */}
           <Link href="/" className="mx-auto shrink-0 lg:mx-0" aria-label="Beralshopp, accueil">
             {/*
-              Le logo réel de la boutique, détouré sur fond transparent. Le
-              fichier d'origine est un JPEG à fond gris foncé : posé tel quel sur
-              l'en-tête noir, il y dessinait un carré visible.
+              Version ALLONGÉE du logo : sac couronné à gauche, nom à droite,
+              rapport 4,13:1. Le logo d'origine empile les deux et forme un bloc
+              presque carré — dans un bandeau, cette hauteur se paie en espace
+              produit. Le fichier carré reste disponible pour le partage social
+              et la favicone, où le format ramassé est le bon.
 
-              `priority` : c'est le premier élément visible de chaque page, il ne
-              doit pas apparaître après le reste.
+              `priority` : premier élément visible de chaque page, il ne doit pas
+              apparaître après le reste.
             */}
             <Image
-              src="/images/logo-beralshopp.png"
+              src="/images/logo-beralshopp-large.png"
               alt="Beralshopp"
-              width={1188}
-              height={881}
+              width={992}
+              height={240}
               priority
-              className="h-auto w-70 max-w-full lg:h-16 lg:w-auto"
+              className="h-auto w-full max-w-88 lg:h-11 lg:w-auto lg:max-w-none"
             />
           </Link>
 
