@@ -28,11 +28,11 @@ export async function SiteHeader() {
     <header className="beral-surface-brand sticky top-0 z-40">
       <div className="beral-container">
         {/* ——— Ligne principale ——— */}
-        {/* Ligne plus haute sous `lg` : le logo y est seul et centré, et c'est un
-            emblème circulaire — à la hauteur d'un en-tête classique, le nom qu'il
-            contient devient une tache illisible. Au-delà, la ligne retrouve sa
-            hauteur habituelle puisque le logo y côtoie recherche et compte. */}
-        <div className="flex h-24 items-center gap-3 lg:h-16">
+        {/* Sous `lg`, la hauteur suit le logo : il y est seul, centré, et occupe
+            l'essentiel de la largeur pour que le motif se voie dès l'arrivée.
+            À partir de `lg`, la ligne reprend une hauteur fixe puisque le logo y
+            partage la place avec la recherche et le compte. */}
+        <div className="flex items-center gap-3 py-3 lg:h-20 lg:py-0">
           {/*
             `mx-auto` centre le logo tant qu'il est seul sur la ligne — c'est le
             cas sous 1024 px, depuis que les boutons d'action sont partis dans la
@@ -52,15 +52,17 @@ export async function SiteHeader() {
             <Image
               src="/images/logo-beralshopp.png"
               alt="Beralshopp"
-              width={512}
-              height={512}
+              width={1188}
+              height={881}
               priority
-              className="h-22 w-auto lg:h-14"
+              className="h-auto w-70 max-w-full lg:h-16 lg:w-auto"
             />
           </Link>
 
-          {/* Recherche — masquée ici sur mobile, affichée en pleine largeur en dessous */}
-          <div className="hidden flex-1 md:block">
+          {/* Recherche en ligne uniquement à partir de 1024 px. En dessous, elle passe
+              sous le logo : le logo y est grand et centré, et la coincer à côté le
+              décalerait sur le bord. */}
+          <div className="hidden flex-1 lg:block">
             <SearchBox variant="desktop" />
           </div>
 
@@ -74,7 +76,7 @@ export async function SiteHeader() {
         </div>
 
         {/* ——— Recherche mobile, toujours visible ——— */}
-        <div className="pb-3 md:hidden">
+        <div className="pb-3 lg:hidden">
           <SearchBox variant="mobile" />
         </div>
       </div>
