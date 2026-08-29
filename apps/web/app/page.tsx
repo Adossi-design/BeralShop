@@ -1,8 +1,9 @@
 import Link from 'next/link';
 import { PackageCheck, ShieldCheck, Truck } from 'lucide-react';
 
-import { listBestSellers, listNewArrivals, listOnSale } from '@beralshopp/core';
+import { listBestSellers, listCategoryTree, listNewArrivals, listOnSale } from '@beralshopp/core';
 
+import { CategoryShortcuts } from '@/components/catalog/category-shortcuts';
 import { ProductRail } from '@/components/catalog/product-grid';
 
 /**
@@ -46,7 +47,8 @@ function Section({
 }
 
 export default async function HomePage() {
-  const [bestSellers, newArrivals, onSale] = await Promise.all([
+  const [categories, bestSellers, newArrivals, onSale] = await Promise.all([
+    listCategoryTree(),
     listBestSellers(undefined, 10),
     listNewArrivals(undefined, 10),
     listOnSale(undefined, 10),
@@ -55,10 +57,9 @@ export default async function HomePage() {
   return (
     <main id="contenu" className="flex-1">
       {/*
-        Choix du propriétaire (30 juillet 2026) : pas de bannière d'accueil ni de
-        grille de catégories ici. La page va droit aux produits — le titre h1
-        reste, pour l'accessibilité et le référencement, mais discret.
-        La navigation par catégorie vit dans l'en-tête et sur /categories.
+        Pas de bannière promotionnelle : il n'y a aucune campagne à y mettre, et
+        une bannière décorative ne ferait que repousser les produits.
+        Le titre h1 reste, discret, pour l'accessibilité et le référencement.
       */}
       <h1 className="sr-only">Beralshopp — vente en ligne au Rwanda</h1>
 
@@ -81,6 +82,12 @@ export default async function HomePage() {
           ))}
         </div>
       </section>
+
+      {/* ——— Accès rapide aux rubriques ———
+          Placé avant tout produit, comme dans les applications marchandes : le
+          visiteur qui sait ce qu'il cherche part directement, celui qui furète
+          continue vers les rails plus bas. */}
+      <CategoryShortcuts categories={categories} />
 
       {/* ——— Rails marchands ——— */}
       {bestSellers.items.length > 0 ? (
