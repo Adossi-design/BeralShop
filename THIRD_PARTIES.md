@@ -35,7 +35,7 @@ sans lire.
 | **Vercel**      | Hébergement du site et des fonctions serveur                     | Toute donnée transitant par une page : adresse IP, en-têtes du navigateur, contenu des formulaires | Fonctions en région `fra1` (Francfort, Allemagne) ; réseau de diffusion mondial | **Oui — Allemagne**   |
 | **Neon**        | Base de données PostgreSQL                                       | Comptes clients, commandes, adresses de livraison, paniers, sessions                               | `eu-central-1` (Francfort, Allemagne)                                           | **Oui — Allemagne**   |
 | **Pesapal**     | Encaissement des paiements                                       | Nom, téléphone, e-mail, montant et référence de commande                                           | Kenya                                                                           | **Oui — Kenya**       |
-| **Vercel Blob** | Stockage des photos produits téléversées depuis l administration | Aucune donnée personnelle — uniquement des photos de produits                                      | Même compte Vercel                                                              | **Oui — hors Rwanda** |
+| **Vercel Blob** | Stockage des photos produits téléversées depuis l administration | Aucune donnée personnelle — uniquement des photos de produits                                      | `fra1` (Francfort, Allemagne)                                                   | **Oui — Allemagne**   |
 
 ---
 
@@ -74,6 +74,11 @@ boutique. C'est le point le plus favorable de l'architecture actuelle.
 Reçoit **uniquement des photos de produits** déposées par l administration.
 Aucune donnée personnelle : ni nom, ni adresse, ni commande. Les fichiers sont
 publics par nature — ce sont les images affichées sur la boutique.
+
+Magasin `beralshopp-blob`, région **Francfort** — la même que les fonctions et
+que la base de données. Tout le dispositif reste donc dans une seule
+juridiction. Accès **public** : les photos sont lisibles par tout visiteur, ce
+qui est leur raison d être.
 
 Même fournisseur que l hébergement : aucun compte supplémentaire à surveiller.
 Un client ne téléverse jamais de fichier ; seul le propriétaire le peut.
