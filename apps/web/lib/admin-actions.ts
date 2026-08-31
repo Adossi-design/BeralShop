@@ -10,10 +10,14 @@ import {
   adminSetTracking,
   adminUpdateProductPricing,
   adminUpdateStock,
+  ajouterImage,
+  definirImagePrincipale,
+  supprimerImage,
 } from '@beralshopp/core';
 import type { OrderStatus } from '@beralshopp/db';
 
 import { getCurrentUser, getRequestContext } from './session';
+import { supprimerFichier, televerserImage } from './stockage';
 
 /**
  * Actions d'administration.
@@ -140,4 +144,92 @@ export async function toggleCustomerAction(formData: FormData): Promise<void> {
 
   await adminSetCustomerActive(actor, userId, isActive);
   revalidatePath('/admin/clients');
+}
+
+/* ═══════════════════════════ Images des produits ═══════════════════════════ */
+
+/**
+ * Téléverse une ou plusieurs images et les rattache au produit.
+ *
+ * ⚠️ Le rôle est REVÉRIFIÉ ici, comme dans toute action d'administration : cette
+ * fonction est un point d'entrée à part entière, appelable sans jamais charger la
+ * page qui l'expose. Sans ce contrôle, n'importe qui pourrait déposer des
+ * fichiers sur la boutique.
+ */
+export async function televerserImagesAction(
+  _precedent: AdminActionState,
+  formData: FormData,
+): Promise<AdminActionState> {
+  const actor = await requireActor();
+  if (!actor) return { error: 'Action réservée à l’administration.' };
+
+  const productId = String(formData.get('productId') ?? '');
+  if (!productId) return { error: 'Produit introuvable.' };
+
+  const fichiers = formData.getAll('fichiers').filter((f): f is File => f instanceof File);
+  const reels = fichiers.filter((f) => f.size > 0);
+  if (reels.length === 0) return { error: 'Choisissez au moins une image.' };
+
+  const altText = String(formData.get('altText') ?? '');
+
+  let ajoutees = 0;
+  const echecs: string[] = [];
+
+  for (const fichier of reels) {
+    const depot = await televerserImage(fichier, `produits/${productId}`);
+    if (!depot.ok) {
+      echecs.push(`${fichier.name} — ${depot.message}`);
+      continue;
+    }
+    await ajouterImage(productId, depot.url, altText);
+    ajoutees += 1;
+  }
+
+  revalidatePath(`/admin/produits/${productId}`);
+  // La boutique affiche ces images : sans cette invalidation, le propriétaire
+  // les verrait dans l'administration mais pas sur le site avant 5 minutes.
+  revalidatePath('/', 'layout');
+
+  if (echecs.length > 0) {
+    return {
+      ...(ajoutees > 0 ? { success: `${ajoutees} image(s) ajoutée(s).` } : {}),
+      error: echecs.join(' · '),
+    };
+  }
+
+  return { success: `${ajoutees} image(s) ajoutée(s).` };
+}
+
+export async function supprimerImageAction(formData: FormData): Promise<void> {
+  const actor = await requireActor();
+  if (!actor) return;
+
+  const imageId = String(formData.get('imageId') ?? '');
+  const productId = String(formData.get('productId') ?? '');
+  if (!imageId) return;
+
+  const { urlAEffacer } = await supprimerImage(imageId);
+
+  /**
+   * La référence en base part D'ABORD, le fichier ensuite. Si l'ordre était
+   * inverse et que la seconde opération échouait, la boutique afficherait une
+   * image morte — un carré cassé sur une fiche produit.
+   */
+  if (urlAEffacer) await supprimerFichier(urlAEffacer);
+
+  revalidatePath(`/admin/produits/${productId}`);
+  revalidatePath('/', 'layout');
+}
+
+export async function imagePrincipaleAction(formData: FormData): Promise<void> {
+  const actor = await requireActor();
+  if (!actor) return;
+
+  const imageId = String(formData.get('imageId') ?? '');
+  const productId = String(formData.get('productId') ?? '');
+  if (!imageId || !productId) return;
+
+  await definirImagePrincipale(productId, imageId);
+  revalidatePath(`/admin/produits/${productId}`);
+  revalidatePath('/', 'layout');
 }

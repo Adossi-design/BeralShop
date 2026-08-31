@@ -30,11 +30,12 @@ sans lire.
 
 ## Services recevant des données
 
-| Service     | Rôle                                         | Données transmises                                                                                 | Hébergement                                                                     | Transfert hors Rwanda |
-| ----------- | -------------------------------------------- | -------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------- | --------------------- |
-| **Vercel**  | Hébergement du site et des fonctions serveur | Toute donnée transitant par une page : adresse IP, en-têtes du navigateur, contenu des formulaires | Fonctions en région `fra1` (Francfort, Allemagne) ; réseau de diffusion mondial | **Oui — Allemagne**   |
-| **Neon**    | Base de données PostgreSQL                   | Comptes clients, commandes, adresses de livraison, paniers, sessions                               | `eu-central-1` (Francfort, Allemagne)                                           | **Oui — Allemagne**   |
-| **Pesapal** | Encaissement des paiements                   | Nom, téléphone, e-mail, montant et référence de commande                                           | Kenya                                                                           | **Oui — Kenya**       |
+| Service         | Rôle                                                             | Données transmises                                                                                 | Hébergement                                                                     | Transfert hors Rwanda |
+| --------------- | ---------------------------------------------------------------- | -------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------- | --------------------- |
+| **Vercel**      | Hébergement du site et des fonctions serveur                     | Toute donnée transitant par une page : adresse IP, en-têtes du navigateur, contenu des formulaires | Fonctions en région `fra1` (Francfort, Allemagne) ; réseau de diffusion mondial | **Oui — Allemagne**   |
+| **Neon**        | Base de données PostgreSQL                                       | Comptes clients, commandes, adresses de livraison, paniers, sessions                               | `eu-central-1` (Francfort, Allemagne)                                           | **Oui — Allemagne**   |
+| **Pesapal**     | Encaissement des paiements                                       | Nom, téléphone, e-mail, montant et référence de commande                                           | Kenya                                                                           | **Oui — Kenya**       |
+| **Vercel Blob** | Stockage des photos produits téléversées depuis l administration | Aucune donnée personnelle — uniquement des photos de produits                                      | Même compte Vercel                                                              | **Oui — hors Rwanda** |
 
 ---
 
@@ -67,6 +68,15 @@ Reçoit le nom, le téléphone, l'e-mail et le montant, nécessaires à
 l'encaissement. Beralshopp **ne voit ni ne stocke aucune donnée bancaire** : le
 client saisit sa carte ou son code Mobile Money chez Pesapal, jamais sur la
 boutique. C'est le point le plus favorable de l'architecture actuelle.
+
+### Vercel Blob — photos produits
+
+Reçoit **uniquement des photos de produits** déposées par l administration.
+Aucune donnée personnelle : ni nom, ni adresse, ni commande. Les fichiers sont
+publics par nature — ce sont les images affichées sur la boutique.
+
+Même fournisseur que l hébergement : aucun compte supplémentaire à surveiller.
+Un client ne téléverse jamais de fichier ; seul le propriétaire le peut.
 
 ---
 

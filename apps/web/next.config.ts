@@ -76,7 +76,19 @@ const nextConfig: NextConfig = {
     deviceSizes: [360, 414, 640, 750, 828, 1080, 1200, 1920],
     imageSizes: [64, 96, 128, 256, 384],
     minimumCacheTTL: 60 * 60 * 24 * 30,
-    remotePatterns: imageHost ? [{ protocol: 'https' as const, hostname: imageHost }] : [],
+    /**
+     * Domaines externes autorisés pour les images.
+     *
+     * ⚠️ Next REFUSE toute image dont le domaine n'est pas listé ici — et le
+     * refus est silencieux côté visiteur : un carré vide, sans message. Le
+     * stockage Blob de Vercel sert les photos téléversées depuis
+     * l'administration ; sans cette ligne, elles seraient déposées avec succès
+     * puis invisibles sur la boutique.
+     */
+    remotePatterns: [
+      { protocol: 'https' as const, hostname: '*.public.blob.vercel-storage.com' },
+      ...(imageHost ? [{ protocol: 'https' as const, hostname: imageHost }] : []),
+    ],
   },
 
   experimental: {

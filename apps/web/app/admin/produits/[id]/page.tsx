@@ -3,8 +3,12 @@ import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import { ChevronLeft, ExternalLink } from 'lucide-react';
 
+import { listerImages } from '@beralshopp/core';
 import { prisma } from '@beralshopp/db';
 
+import { stockageConfigure } from '@/lib/stockage';
+
+import { ProductImages } from '@/components/admin/product-images';
 import { ProductPricingForm, StockForm } from '@/components/admin/product-forms';
 
 export const metadata: Metadata = {
@@ -60,6 +64,8 @@ export default async function AdminProductPage({ params }: PageProps) {
   });
 
   if (!product) notFound();
+
+  const images = await listerImages(product.id);
 
   const name = product.translations[0]?.name ?? product.sku;
 
@@ -130,15 +136,18 @@ export default async function AdminProductPage({ params }: PageProps) {
         </section>
       </div>
 
+      <div className="mt-4">
+        <ProductImages productId={product.id} images={images} stockageActif={stockageConfigure()} />
+      </div>
+
       <section className="border-border bg-surface rounded-card mt-4 border p-5">
         <h2 className="text-content mb-2 font-semibold">Description</h2>
         <p className="text-content-muted text-sm whitespace-pre-line">
           {product.translations[0]?.description ?? 'Aucune description.'}
         </p>
         <p className="text-content-muted mt-4 text-xs">
-          L&apos;édition du nom, de la description, des photos et des variantes arrive avec
-          l&apos;éditeur complet. Le prix, le stock et la publication — les réglages du quotidien —
-          sont modifiables dès maintenant.
+          L&apos;édition du nom, de la description et des variantes arrive avec l&apos;éditeur
+          complet. Prix, stock, publication et photos sont modifiables dès maintenant.
         </p>
       </section>
     </>
