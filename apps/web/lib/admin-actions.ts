@@ -1,6 +1,7 @@
 'use server';
 
 import { revalidatePath } from 'next/cache';
+import { redirect } from 'next/navigation';
 
 import {
   type AdminActor,
@@ -11,6 +12,7 @@ import {
   adminUpdateProductPricing,
   adminUpdateStock,
   ajouterImage,
+  creerProduit,
   definirImagePrincipale,
   supprimerImage,
 } from '@beralshopp/core';
@@ -232,4 +234,64 @@ export async function imagePrincipaleAction(formData: FormData): Promise<void> {
   await definirImagePrincipale(productId, imageId);
   revalidatePath(`/admin/produits/${productId}`);
   revalidatePath('/', 'layout');
+}
+
+/* ═══════════════════════════ Création d'un produit ═══════════════════════════ */
+
+export interface EtatCreationProduit {
+  readonly erreurs?: Record<string, string>;
+  /**
+   * Valeurs saisies, renvoyees telles quelles en cas de refus.
+   *
+   * ⚠️ SANS CELA, un refus de validation vide le formulaire : React le re-rend,
+   * et les champs non controles reprennent leur valeur par defaut. Le prix et le
+   * stock retombaient a 0. Le proprietaire corrigeait la reference, renvoyait, et
+   * creait un produit a 0 Frw sans rien remarquer.
+   */
+  readonly valeurs?: Record<string, string>;
+}
+
+/**
+ * Crée un produit puis redirige vers sa fiche d'administration.
+ *
+ * La redirection est délibérée : après création, la suite naturelle est
+ * d'ajouter les photos et de vérifier le stock. Laisser le propriétaire sur un
+ * formulaire vide l'obligerait à retrouver son produit dans la liste.
+ */
+export async function creerProduitAction(
+  _precedent: EtatCreationProduit,
+  formData: FormData,
+): Promise<EtatCreationProduit> {
+  const actor = await requireActor();
+  if (!actor) return { erreurs: { general: 'Action réservée à l’administration.' } };
+
+  const prixSaisi = Number(String(formData.get('prix') ?? '').replace(/\s/g, ''));
+  const stockSaisi = Number(String(formData.get('stock') ?? '0').replace(/\s/g, ''));
+  const categoryId = String(formData.get('categoryId') ?? '') || null;
+
+  const resultat = await creerProduit({
+    sku: String(formData.get('sku') ?? ''),
+    nom: String(formData.get('nom') ?? ''),
+    description: String(formData.get('description') ?? ''),
+    prixMinor: Number.isFinite(prixSaisi) ? Math.round(prixSaisi) : -1,
+    stockInitial: Number.isFinite(stockSaisi) ? Math.round(stockSaisi) : -1,
+    categoryId,
+  });
+
+  if (!resultat.ok) {
+    return {
+      erreurs: { [resultat.champ ?? 'general']: resultat.message },
+      valeurs: {
+        sku: String(formData.get('sku') ?? ''),
+        nom: String(formData.get('nom') ?? ''),
+        description: String(formData.get('description') ?? ''),
+        prix: String(formData.get('prix') ?? ''),
+        stock: String(formData.get('stock') ?? ''),
+        categoryId: categoryId ?? '',
+      },
+    };
+  }
+
+  revalidatePath('/admin/produits');
+  redirect(`/admin/produits/${resultat.productId}?cree=1`);
 }

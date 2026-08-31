@@ -1,6 +1,6 @@
 import type { Metadata } from 'next';
 import Link from 'next/link';
-import { Search } from 'lucide-react';
+import { PackagePlus, Search } from 'lucide-react';
 
 import { listAdminProducts } from '@beralshopp/core';
 import { formatMoney } from '@beralshopp/shared';
@@ -46,7 +46,16 @@ export default async function AdminProductsPage({ searchParams }: PageProps) {
 
   return (
     <>
-      <h1 className="text-content text-xl font-bold sm:text-2xl">Produits</h1>
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <h1 className="text-content text-xl font-bold sm:text-2xl">Produits</h1>
+        <Link
+          href="/admin/produits/nouveau"
+          className="beral-btn-gold rounded-control inline-flex items-center gap-2 px-4 py-2.5 text-sm font-semibold"
+        >
+          <PackagePlus className="h-4 w-4" aria-hidden />
+          Nouveau produit
+        </Link>
+      </div>
       <p className="text-content-muted mt-1 text-sm">
         {products.length} produit{products.length > 1 ? 's' : ''} affiché
         {products.length > 1 ? 's' : ''}
