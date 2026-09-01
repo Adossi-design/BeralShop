@@ -48,7 +48,10 @@ export default async function AdminLayout({ children }: { children: React.ReactN
        ressemble à la boutique avec un menu greffé : on ne sait plus si l'on
        agit sur le site ou si on le consulte, et une erreur de contexte ici
        coûte cher. */
-    <div data-espace="admin" className="bg-surface-muted flex min-h-screen flex-col lg:flex-row">
+    <div
+      data-espace="admin"
+      className="bg-surface-muted flex min-h-screen flex-col lg:h-screen lg:flex-row lg:overflow-hidden"
+    >
       {/* ——— Barre latérale ——— */}
       {/* Barre latérale FIXE sur grand écran : `sticky top-0` + `h-screen`.
           Elle défilait avec le contenu, et sur une liste de commandes un peu
@@ -109,7 +112,13 @@ export default async function AdminLayout({ children }: { children: React.ReactN
         </nav>
       </aside>
 
-      <main id="contenu" className="bg-surface-muted min-w-0 flex-1 p-4 sm:p-6">
+      {/* Colonne de la hauteur exacte de l'écran, sans débordement : c'est ce
+          qui permet à chaque écran de faire défiler SA liste plutôt que la
+          page entière. Voir components/admin/console.tsx. */}
+      <main
+        id="contenu"
+        className="bg-surface-muted min-w-0 flex-1 p-4 sm:p-6 lg:flex lg:h-screen lg:flex-col lg:overflow-hidden"
+      >
         {children}
       </main>
     </div>

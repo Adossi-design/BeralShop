@@ -3,6 +3,7 @@ import type { Metadata } from 'next';
 import { listerCategories } from '@beralshopp/core';
 
 import { CategoryManager } from '@/components/admin/category-manager';
+import { ConsoleCorps, ConsoleEnTete } from '@/components/admin/console';
 
 export const metadata: Metadata = {
   title: 'Catégories',
@@ -17,15 +18,19 @@ export default async function CategoriesAdminPage() {
 
   return (
     <>
-      <h1 className="text-content text-xl font-bold sm:text-2xl">Catégories</h1>
-      <p className="text-content-muted mt-1 text-sm">
-        {rubriques} rubrique{rubriques > 1 ? 's' : ''} et {categories.length - rubriques}{' '}
-        sous-catégorie{categories.length - rubriques > 1 ? 's' : ''}
-      </p>
+      <ConsoleEnTete>
+        <h1 className="text-content text-xl font-bold sm:text-2xl">Catégories</h1>
+        <p className="text-content-muted mt-1 text-sm">
+          {rubriques} rubrique{rubriques > 1 ? 's' : ''} et {categories.length - rubriques}{' '}
+          sous-catégorie{categories.length - rubriques > 1 ? 's' : ''}
+        </p>
+      </ConsoleEnTete>
 
-      <div className="mt-5">
-        <CategoryManager categories={categories} />
-      </div>
+      <ConsoleCorps>
+        <div className="mt-5">
+          <CategoryManager categories={categories} />
+        </div>
+      </ConsoleCorps>
     </>
   );
 }

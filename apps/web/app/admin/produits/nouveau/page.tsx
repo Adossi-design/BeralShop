@@ -5,6 +5,7 @@ import { ChevronLeft } from 'lucide-react';
 import { listCategoryTree } from '@beralshopp/core';
 
 import { NewProductForm } from '@/components/admin/new-product-form';
+import { ConsoleCorps, ConsoleEnTete } from '@/components/admin/console';
 
 export const metadata: Metadata = {
   title: 'Nouveau produit',
@@ -31,19 +32,23 @@ export default async function NouveauProduitPage() {
 
   return (
     <>
-      <Link
-        href="/admin/produits"
-        className="text-content-muted hover:text-gold-700 inline-flex items-center gap-1 text-sm transition-colors"
-      >
-        <ChevronLeft className="h-4 w-4" aria-hidden />
-        Tous les produits
-      </Link>
+      <ConsoleEnTete>
+        <Link
+          href="/admin/produits"
+          className="text-content-muted hover:text-gold-700 inline-flex items-center gap-1 text-sm transition-colors"
+        >
+          <ChevronLeft className="h-4 w-4" aria-hidden />
+          Tous les produits
+        </Link>
 
-      <h1 className="text-content mt-2 text-xl font-bold sm:text-2xl">Nouveau produit</h1>
+        <h1 className="text-content mt-2 text-xl font-bold sm:text-2xl">Nouveau produit</h1>
+      </ConsoleEnTete>
 
-      <section className="border-border bg-surface rounded-card mt-4 max-w-2xl border p-5">
-        <NewProductForm categories={categories} />
-      </section>
+      <ConsoleCorps>
+        <section className="border-border bg-surface rounded-card mt-4 max-w-2xl border p-5">
+          <NewProductForm categories={categories} />
+        </section>
+      </ConsoleCorps>
     </>
   );
 }
