@@ -2,7 +2,7 @@ import type { Metadata } from 'next';
 import Link from 'next/link';
 import { ChevronRight, PackageOpen } from 'lucide-react';
 
-import { listUserOrders } from '@beralshopp/core';
+import { ETAPES_CLIENT, type EtapeClient, listUserOrders } from '@beralshopp/core';
 import { FUSEAU_BOUTIQUE, formatMoney } from '@beralshopp/shared';
 
 import { ProductImage } from '@/components/catalog/product-image';
@@ -33,16 +33,63 @@ const dateFormat = new Intl.DateTimeFormat('fr-FR', {
   timeZone: FUSEAU_BOUTIQUE,
 });
 
-export default async function OrdersPage() {
+/**
+ * Onglets d'étape, dans l'ordre du parcours d'une commande.
+ *
+ * Les mêmes quatre que sur la page du compte, et tirés de la MÊME définition :
+ * un client qui voit « 2 en préparation » sur son accueil doit retrouver
+ * exactement deux commandes en cliquant.
+ */
+const ETAPES: readonly { readonly cle: EtapeClient | ''; readonly libelle: string }[] = [
+  { cle: '', libelle: 'Toutes' },
+  { cle: 'paiement', libelle: 'À payer' },
+  { cle: 'preparation', libelle: 'En préparation' },
+  { cle: 'livraison', libelle: 'En livraison' },
+  { cle: 'livrees', libelle: 'Livrées' },
+];
+
+interface PageProps {
+  searchParams: Promise<Record<string, string | string[] | undefined>>;
+}
+
+export default async function OrdersPage({ searchParams }: PageProps) {
   const user = await getCurrentUser();
   if (!user) return null;
 
-  const orders = await listUserOrders(user.id);
+  const requete = await searchParams;
+  const demandee = typeof requete['etape'] === 'string' ? requete['etape'] : '';
+  const etape = (demandee in ETAPES_CLIENT ? demandee : '') as EtapeClient | '';
+
+  const orders = await listUserOrders(user.id, 20, etape ? ETAPES_CLIENT[etape] : undefined);
+
+  const onglets = (
+    <ul className="mt-4 flex flex-wrap gap-2">
+      {ETAPES.map((o) => {
+        const actif = o.cle === etape;
+        return (
+          <li key={o.cle || 'toutes'}>
+            <Link
+              href={o.cle ? `/compte/commandes?etape=${o.cle}` : '/compte/commandes'}
+              aria-current={actif ? 'page' : undefined}
+              className={`block rounded-full border px-3 py-1.5 text-xs transition-colors ${
+                actif
+                  ? 'border-gold-400 bg-gold-400 text-ink-950 font-semibold'
+                  : 'border-border bg-surface text-content-muted hover:border-gold-400'
+              }`}
+            >
+              {o.libelle}
+            </Link>
+          </li>
+        );
+      })}
+    </ul>
+  );
 
   if (orders.length === 0) {
     return (
       <>
         <h1 className="text-content text-xl font-bold sm:text-2xl">Mes commandes</h1>
+        {onglets}
         <div className="border-border bg-surface-muted/50 rounded-card mt-6 border border-dashed px-6 py-14 text-center">
           <PackageOpen className="text-content-muted mx-auto h-8 w-8" aria-hidden />
           <p className="text-content mt-3 font-medium">Aucune commande pour le moment</p>
@@ -63,11 +110,12 @@ export default async function OrdersPage() {
   return (
     <>
       <h1 className="text-content text-xl font-bold sm:text-2xl">Mes commandes</h1>
-      <p className="text-content-muted mt-1 text-sm">
+      {onglets}
+      <p className="text-content-muted mt-3 text-sm">
         {orders.length} commande{orders.length > 1 ? 's' : ''}
       </p>
 
-      <ul className="mt-6 space-y-3">
+      <ul className="mt-3 space-y-3">
         {orders.map((order) => {
           const status = STATUS_LABELS[order.status] ?? {
             label: order.status,

@@ -1,5 +1,6 @@
 import { DatabaseZap, LogOut, MapPin, Package, ShieldCheck, User } from 'lucide-react';
 
+import { RetourCompte } from '@/components/account/retour-compte';
 import { LegalLinks } from '@/components/legal-links';
 import { LienActif } from '@/components/lien-actif';
 import { logoutAction } from '@/lib/auth-actions';
@@ -22,23 +23,23 @@ const NAV = [
 ];
 
 export default async function AccountLayout({ children }: { children: React.ReactNode }) {
-  const user = await requireUser('/compte');
+  /* La valeur n'est plus lue ici — le bandeau de la page « Mon compte » porte
+     l'identité — mais l'APPEL reste : c'est lui qui protège toute la section. */
+  await requireUser('/compte');
 
   return (
     <main id="contenu" className="beral-container flex-1 py-6">
       <div className="grid gap-6 lg:grid-cols-[16rem_1fr]">
-        <aside>
-          <div className="border-border bg-surface rounded-card border p-4">
-            <p className="text-content font-semibold">{user.fullName}</p>
-            <p className="text-content-muted beral-price mt-0.5 text-sm">{user.phone}</p>
-            {user.role !== 'CLIENT' ? (
-              <span className="bg-ink-900 mt-2 inline-block rounded px-2 py-0.5 text-[0.65rem] font-semibold tracking-wide text-white uppercase">
-                {user.role === 'ADMIN' ? 'Administrateur' : 'Support'}
-              </span>
-            ) : null}
-          </div>
-
-          <nav aria-label="Espace client" className="mt-4">
+        {/* Masque sous 1024 px : la page « Mon compte » y tient le role de menu,
+            comme dans les applications marchandes. Le repeter au-dessus de chaque
+            sous-page obligeait a defiler tout le menu avant d atteindre le
+            contenu qu on venait lire. */}
+        <aside className="max-lg:hidden">
+          {/* L'identité vivait ici, en double : la page « Mon compte » porte
+              désormais un bandeau qui la donne déjà, et l'en-tête du site affiche
+              le prénom sur toutes les pages. Trois fois le même nom sur un même
+              écran, c'est du bruit — le menu s'en tient à la navigation. */}
+          <nav aria-label="Espace client">
             <ul className="space-y-1">
               {NAV.map((item) => (
                 <li key={item.href}>
@@ -71,7 +72,10 @@ export default async function AccountLayout({ children }: { children: React.Reac
           <LegalLinks className="border-border mt-3 border-t pt-3" />
         </aside>
 
-        <div>{children}</div>
+        <div>
+          <RetourCompte />
+          {children}
+        </div>
       </div>
     </main>
   );

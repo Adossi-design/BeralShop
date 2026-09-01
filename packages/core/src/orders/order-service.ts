@@ -520,9 +520,55 @@ export interface OrderSummary {
   readonly progress: number;
 }
 
-export async function listUserOrders(userId: string, limit = 20): Promise<readonly OrderSummary[]> {
-  const rows = await prisma.order.findMany({
+/**
+ * Étapes visibles par le client, et les statuts internes qu'elles regroupent.
+ *
+ * Dix statuts techniques ne veulent rien dire pour l'acheteur. Il se pose
+ * quatre questions : dois-je payer ? est-ce préparé ? est-ce parti ? est-ce
+ * arrivé ? Le regroupement est fait ICI, une seule fois, et non dans chaque
+ * écran : deux définitions divergentes du mot « en cours » donneraient deux
+ * compteurs contradictoires sur la même page.
+ *
+ * Les statuts d'échec — expirée, annulée, remboursée — ne forment pas d'étape :
+ * ils n'appellent aucune action et leur donner une case reviendrait à mettre en
+ * avant ce qui n'a pas marché. Ils restent visibles dans la liste complète.
+ */
+export const ETAPES_CLIENT = {
+  paiement: ['PENDING_PAYMENT'],
+  preparation: ['PAID', 'PROCESSING'],
+  livraison: ['SHIPPED', 'OUT_FOR_DELIVERY'],
+  livrees: ['DELIVERED'],
+} as const satisfies Record<string, readonly OrderStatus[]>;
+
+export type EtapeClient = keyof typeof ETAPES_CLIENT;
+
+/** Nombre de commandes du client dans chaque étape. */
+export async function compterMesCommandes(userId: string): Promise<Record<EtapeClient, number>> {
+  const lignes = await prisma.order.groupBy({
+    by: ['status'],
     where: { userId },
+    _count: { _all: true },
+  });
+
+  const parStatut = new Map(lignes.map((l) => [String(l.status), l._count._all]));
+  const total = (statuts: readonly OrderStatus[]): number =>
+    statuts.reduce((somme, statut) => somme + (parStatut.get(statut) ?? 0), 0);
+
+  return {
+    paiement: total(ETAPES_CLIENT.paiement),
+    preparation: total(ETAPES_CLIENT.preparation),
+    livraison: total(ETAPES_CLIENT.livraison),
+    livrees: total(ETAPES_CLIENT.livrees),
+  };
+}
+
+export async function listUserOrders(
+  userId: string,
+  limit = 20,
+  statuts?: readonly OrderStatus[],
+): Promise<readonly OrderSummary[]> {
+  const rows = await prisma.order.findMany({
+    where: { userId, ...(statuts && statuts.length > 0 ? { status: { in: [...statuts] } } : {}) },
     orderBy: { placedAt: 'desc' },
     take: limit,
     select: {
