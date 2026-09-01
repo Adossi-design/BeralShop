@@ -127,7 +127,7 @@ export function SelecteurPhotos({
                   <img
                     src={c.apercu}
                     alt=""
-                    className={`h-full w-full object-cover ${c.probleme ? 'opacity-40' : ''}`}
+                    className={`h-full w-full object-contain ${c.probleme ? 'opacity-40' : ''}`}
                   />
                 </div>
                 <p className="text-content-muted truncate px-1.5 py-1 text-[0.65rem]">

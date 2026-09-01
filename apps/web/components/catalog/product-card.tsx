@@ -31,14 +31,14 @@ interface ProductCardProps {
 export function ProductCard({ product, priority, compact = false }: ProductCardProps) {
   return (
     <article className="group border-border bg-surface rounded-card shadow-card hover:shadow-raised relative flex h-full flex-col overflow-hidden border transition-shadow">
-      {/* En compact, l'image est moins haute que large (4/3) : c'est elle qui fixe
-          la longueur de la carte. Le recadrage rogne un peu le haut et le bas de la
-          photo — acceptable sur des photos produit détourées, centrées par nature. */}
-      <div
-        className={`bg-surface-muted relative overflow-hidden ${
-          compact ? 'aspect-[4/3]' : 'aspect-square'
-        }`}
-      >
+      {/* CADRE CARRÉ, EN COMPACT COMME AILLEURS.
+          Il était en 4/3 sur les carrousels de l'accueil pour gagner de la
+          hauteur. Mais les photos de la boutique sont carrées : un quart de
+          chacune disparaissait, en haut et en bas. Le cadre épouse donc leur
+          proportion — la photo l'occupe alors de bord à bord, entière, sans
+          bande vide. La hauteur regagnée l'a été sur le texte de la carte, pas
+          sur la marchandise ; les deux rangées restent visibles d'un écran. */}
+      <div className="bg-surface-muted relative aspect-square overflow-hidden">
         <ProductImage
           image={product.image}
           name={product.name}

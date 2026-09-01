@@ -56,7 +56,21 @@ export function ProductImage({ image, name, sizes, priority, className }: Produc
         fill
         sizes={sizes}
         priority={priority ?? false}
-        className={`object-cover ${className ?? ''}`}
+        /**
+         * `object-contain` ET NON `object-cover`.
+         *
+         * `cover` remplit le cadre en rognant ce qui dépasse. Mesuré sur la
+         * boutique : les photos livrées sont carrées, les vignettes de l'accueil
+         * étaient en 4/3 — 25 % de chaque photo était coupé, en haut et en bas.
+         * Sur une montre, c'est le bracelet ; sur un flacon, c'est le bouchon.
+         * Le client ne voit pas ce qu'il achète, et le vendeur ne sait pas ce
+         * qui manque.
+         *
+         * `contain` montre la photo ENTIÈRE. Le cadre étant désormais carré comme
+         * les photos, elle l'occupe de bord à bord ; une photo de proportion
+         * différente est simplement complétée par le fond, jamais amputée.
+         */
+        className={`object-contain ${className ?? ''}`}
       />
     );
   }

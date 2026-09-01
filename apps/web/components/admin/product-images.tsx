@@ -84,7 +84,9 @@ export function ProductImages({
                   alt={image.altText ?? ''}
                   fill
                   sizes="(max-width: 640px) 45vw, 200px"
-                  className="object-cover"
+                  /* Entière, comme dans la boutique : le propriétaire doit voir
+                     exactement ce que verra son client. */
+                  className="object-contain"
                 />
               </div>
 

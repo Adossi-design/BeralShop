@@ -326,6 +326,22 @@
    ═══════════════════════════════════════════════════════════════════════════ */
 
 @media (max-width: 1023.98px) {
+  /* ——— 0 bis. Rembourrage des pastilles de rubriques ———
+     Les vignettes produit sont passées d'un cadre 4/3 à un cadre carré, pour
+     cesser d'amputer un quart de chaque photo. Chaque rangée a donc grandi, et
+     sur un écran de 800 px la SECONDE rangée de produits basculait sous la
+     ligne de flottaison — à sept pixels près. Or voir deux rangées d'un coup
+     est une exigence posée pour cet écran.
+
+     Les seize pixels manquants sont repris ici, sur le rembourrage du bandeau
+     de pastilles : de l'espace vide, pas de la marchandise. Sélecteur d'attribut
+     et non de classe, pour que le générateur de Tailwind ne reconstruise pas
+     l'utilitaire correspondant et ne déplace pas l'ordre de la feuille. */
+  nav[aria-label='Accès rapide aux rubriques'] {
+    padding-top: 0.5rem;
+    padding-bottom: 0.5rem;
+  }
+
   /* ——— 0. Place réservée à la barre de navigation basse ———
      Elle est `fixed` : sans cette réserve, elle recouvrirait les dernières
      lignes du pied de page — mentions légales comprises — et personne ne
