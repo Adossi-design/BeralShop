@@ -4,7 +4,13 @@ import { CreditCard, ScrollText } from 'lucide-react';
 import { listAuditLog } from '@beralshopp/core';
 import { prisma } from '@beralshopp/db';
 import { FUSEAU_BOUTIQUE, formatMoney, money } from '@beralshopp/shared';
-import { ConsoleCorps, ConsoleEnTete } from '@/components/admin/console';
+import {
+  ConsoleCorps,
+  ConsoleEnTete,
+  ConsoleTh,
+  ConsoleThead,
+  LIGNE_CONSOLE,
+} from '@/components/admin/console';
 
 export const metadata: Metadata = {
   title: 'Paiements',
@@ -75,15 +81,15 @@ export default async function AdminPaymentsPage() {
           <div className="border-border bg-surface rounded-card mt-6 overflow-hidden border">
             <div className="overflow-x-auto">
               <table className="w-full min-w-[40rem] text-sm">
-                <thead className="bg-surface-muted text-content-muted text-xs">
+                <ConsoleThead fixe={false}>
                   <tr>
-                    <th className="px-4 py-2.5 text-start font-medium">Commande</th>
-                    <th className="px-4 py-2.5 text-start font-medium">Prestataire</th>
-                    <th className="px-4 py-2.5 text-start font-medium">Statut</th>
-                    <th className="px-4 py-2.5 text-end font-medium">Montant</th>
-                    <th className="px-4 py-2.5 text-start font-medium">Date</th>
+                    <ConsoleTh>Commande</ConsoleTh>
+                    <ConsoleTh>Prestataire</ConsoleTh>
+                    <ConsoleTh>Statut</ConsoleTh>
+                    <ConsoleTh fin>Montant</ConsoleTh>
+                    <ConsoleTh>Date</ConsoleTh>
                   </tr>
-                </thead>
+                </ConsoleThead>
                 <tbody className="divide-border divide-y">
                   {payments.map((payment) => {
                     const meta = STATUS_META[payment.status] ?? {
@@ -91,7 +97,7 @@ export default async function AdminPaymentsPage() {
                       className: 'bg-ink-100 text-ink-600',
                     };
                     return (
-                      <tr key={payment.id}>
+                      <tr key={payment.id} className={LIGNE_CONSOLE}>
                         <td className="beral-price text-content px-4 py-3 font-medium">
                           {payment.order.orderNumber}
                         </td>

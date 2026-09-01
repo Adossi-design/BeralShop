@@ -54,11 +54,81 @@ export function ConsoleCorps({ children }: { readonly children: ReactNode }) {
  *
  * Sur mobile la hauteur reste libre : seul l'axe horizontal défile, comme
  * avant.
+ *
+ * PAS DE `flex-1` : le cadre épouse son contenu et ne se contraint que s'il
+ * déborde. Avec `flex-1`, une liste d'une seule commande étirait un cadre vide
+ * sur toute la hauteur de l'écran — un tableau qui a l'air amputé. Le retrait
+ * fonctionne parce que `min-h-0` autorise le rétrécissement en dessous du
+ * contenu, et que le bandeau, lui, porte `shrink-0`.
  */
 export function ConsoleTableau({ children }: { readonly children: ReactNode }) {
   return (
-    <div className="border-border bg-surface rounded-card mt-6 overflow-auto border lg:min-h-0 lg:flex-1">
+    <div className="border-border bg-surface rounded-card mt-6 overflow-auto border lg:min-h-0">
       {children}
     </div>
   );
 }
+
+/* ═══════════════════════════ Tableaux ═══════════════════════════ */
+
+/**
+ * En-tête de tableau : sombre, comme la barre latérale.
+ *
+ * Le gris clair d'origine sur fond blanc ne se distinguait presque pas des
+ * lignes de données : l'œil ne trouvait pas où commençait le tableau, et une
+ * fois l'en-tête figé en haut du cadre, rien ne disait qu'il s'agissait d'un
+ * repère et non d'une ligne comme les autres.
+ *
+ * Le fond sombre et les libellés dorés reprennent exactement la barre latérale.
+ * Aucune couleur nouvelle : ce sont les deux teintes déjà portées par l'espace
+ * d'administration, et elles disent la même chose ici — ceci est le cadre, pas
+ * la donnée.
+ */
+export function ConsoleThead({
+  children,
+  fixe = true,
+}: {
+  readonly children: ReactNode;
+  /** À laisser à `false` quand le cadre n'est pas une zone de défilement : un
+      `sticky` sans zone de défilement ne fait rien, autant ne pas le poser. */
+  readonly fixe?: boolean;
+}) {
+  return (
+    <thead
+      className={`beral-surface-brand text-gold-300 text-[0.7rem] tracking-wider uppercase ${
+        fixe ? 'sticky top-0 z-10' : ''
+      }`}
+    >
+      {children}
+    </thead>
+  );
+}
+
+export function ConsoleTh({
+  children,
+  fin = false,
+}: {
+  readonly children?: ReactNode;
+  /** Colonne de chiffres : alignée à droite, comme les valeurs qu'elle coiffe. */
+  readonly fin?: boolean;
+}) {
+  return (
+    <th className={`px-4 py-2.5 font-semibold ${fin ? 'text-end' : 'text-start'}`}>{children}</th>
+  );
+}
+
+/**
+ * Ligne de tableau : alternance discrète, survol doré.
+ *
+ * Les lignes tiennent sur deux niveaux — un nom, puis sa référence en petit.
+ * Sans alternance, l'œil ne sait plus, au milieu du tableau, quel prix va avec
+ * quel produit ; c'est le genre d'erreur de lecture qui se paie en stock.
+ *
+ * LE SURVOL EST POSÉ SUR LES CELLULES, ET NON SUR LA LIGNE. `even:` et `hover:`
+ * ont la même spécificité CSS : lequel l'emporte dépendrait de l'ordre où
+ * Tailwind les écrit, et le survol d'une ligne paire pourrait ne rien faire.
+ * Le fond d'une cellule se peint par-dessus celui de sa ligne — la question ne
+ * se pose plus.
+ */
+export const LIGNE_CONSOLE =
+  'even:bg-surface-muted [&:hover>td]:bg-gold-50 [&>td]:transition-colors';

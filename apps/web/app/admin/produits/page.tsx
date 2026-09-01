@@ -4,7 +4,13 @@ import { PackagePlus, Search } from 'lucide-react';
 
 import { listAdminProducts } from '@beralshopp/core';
 import { formatMoney } from '@beralshopp/shared';
-import { ConsoleEnTete, ConsoleTableau } from '@/components/admin/console';
+import {
+  ConsoleEnTete,
+  ConsoleTableau,
+  ConsoleTh,
+  ConsoleThead,
+  LIGNE_CONSOLE,
+} from '@/components/admin/console';
 
 export const metadata: Metadata = {
   title: 'Produits',
@@ -118,15 +124,15 @@ export default async function AdminProductsPage({ searchParams }: PageProps) {
       ) : (
         <ConsoleTableau>
           <table className="w-full min-w-[46rem] text-sm">
-            <thead className="bg-surface-muted text-content-muted sticky top-0 z-10 text-xs">
+            <ConsoleThead>
               <tr>
-                <th className="px-4 py-2.5 text-start font-medium">Produit</th>
-                <th className="px-4 py-2.5 text-start font-medium">Statut</th>
-                <th className="px-4 py-2.5 text-end font-medium">Prix</th>
-                <th className="px-4 py-2.5 text-end font-medium">Stock</th>
-                <th className="px-4 py-2.5 text-end font-medium">Vendus</th>
+                <ConsoleTh>Produit</ConsoleTh>
+                <ConsoleTh>Statut</ConsoleTh>
+                <ConsoleTh fin>Prix</ConsoleTh>
+                <ConsoleTh fin>Stock</ConsoleTh>
+                <ConsoleTh fin>Vendus</ConsoleTh>
               </tr>
-            </thead>
+            </ConsoleThead>
             <tbody className="divide-border divide-y">
               {products.map((product) => {
                 const meta = STATUS_META[product.status] ?? {
@@ -134,7 +140,7 @@ export default async function AdminProductsPage({ searchParams }: PageProps) {
                   className: 'bg-ink-100 text-ink-600',
                 };
                 return (
-                  <tr key={product.id} className="hover:bg-surface-muted/50">
+                  <tr key={product.id} className={LIGNE_CONSOLE}>
                     <td className="px-4 py-3">
                       <Link
                         href={`/admin/produits/${product.id}`}

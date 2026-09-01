@@ -7,7 +7,13 @@ import type { OrderStatus } from '@beralshopp/db';
 import { FUSEAU_BOUTIQUE, formatMoney } from '@beralshopp/shared';
 
 import { ORDER_STATUS_META, OrderStatusBadge } from '@/components/admin/order-status-badge';
-import { ConsoleEnTete, ConsoleTableau } from '@/components/admin/console';
+import {
+  ConsoleEnTete,
+  ConsoleTableau,
+  ConsoleTh,
+  ConsoleThead,
+  LIGNE_CONSOLE,
+} from '@/components/admin/console';
 
 export const metadata: Metadata = {
   title: 'Commandes',
@@ -131,19 +137,19 @@ export default async function AdminOrdersPage({ searchParams }: PageProps) {
       ) : (
         <ConsoleTableau>
           <table className="w-full min-w-[46rem] text-sm">
-            <thead className="bg-surface-muted text-content-muted sticky top-0 z-10 text-xs">
+            <ConsoleThead>
               <tr>
-                <th className="px-4 py-2.5 text-start font-medium">Commande</th>
-                <th className="px-4 py-2.5 text-start font-medium">Client</th>
-                <th className="px-4 py-2.5 text-start font-medium">Statut</th>
-                <th className="px-4 py-2.5 text-end font-medium">Total</th>
-                <th className="px-4 py-2.5 text-start font-medium">Date</th>
-                <th className="px-4 py-2.5" />
+                <ConsoleTh>Commande</ConsoleTh>
+                <ConsoleTh>Client</ConsoleTh>
+                <ConsoleTh>Statut</ConsoleTh>
+                <ConsoleTh fin>Total</ConsoleTh>
+                <ConsoleTh>Date</ConsoleTh>
+                <ConsoleTh />
               </tr>
-            </thead>
+            </ConsoleThead>
             <tbody className="divide-border divide-y">
               {rows.map((order) => (
-                <tr key={order.orderNumber} className="hover:bg-surface-muted/50">
+                <tr key={order.orderNumber} className={LIGNE_CONSOLE}>
                   <td className="px-4 py-3">
                     <Link
                       href={`/admin/commandes/${order.orderNumber}`}

@@ -76,12 +76,15 @@ export default async function AdminOrderPage({ params }: PageProps) {
               <h2 className="text-content mb-3 font-semibold">Articles</h2>
               <div className="overflow-x-auto">
                 <table className="w-full min-w-[28rem] text-sm">
-                  <thead className="text-content-muted text-xs">
+                  {/* Meme langage que les tableaux de liste — dore, capitales,
+                      interlettrage — mais sans le bandeau sombre : dans un encadre
+                      de cette taille, il pesait plus que le contenu qu il coiffe. */}
+                  <thead className="text-gold-700 border-border border-b text-[0.7rem] tracking-wider uppercase">
                     <tr>
-                      <th className="pb-2 text-start font-medium">Produit</th>
-                      <th className="pb-2 text-end font-medium">P.U.</th>
-                      <th className="pb-2 text-end font-medium">Qté</th>
-                      <th className="pb-2 text-end font-medium">Total</th>
+                      <th className="pb-2 text-start font-semibold">Produit</th>
+                      <th className="pb-2 text-end font-semibold">P.U.</th>
+                      <th className="pb-2 text-end font-semibold">Qté</th>
+                      <th className="pb-2 text-end font-semibold">Total</th>
                     </tr>
                   </thead>
                   <tbody className="divide-border divide-y">

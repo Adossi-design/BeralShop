@@ -5,7 +5,13 @@ import { listAdminCustomers } from '@beralshopp/core';
 import { FUSEAU_BOUTIQUE, formatMoney } from '@beralshopp/shared';
 
 import { toggleCustomerAction } from '@/lib/admin-actions';
-import { ConsoleEnTete, ConsoleTableau } from '@/components/admin/console';
+import {
+  ConsoleEnTete,
+  ConsoleTableau,
+  ConsoleTh,
+  ConsoleThead,
+  LIGNE_CONSOLE,
+} from '@/components/admin/console';
 
 export const metadata: Metadata = {
   title: 'Clients',
@@ -67,18 +73,18 @@ export default async function AdminCustomersPage({ searchParams }: PageProps) {
       ) : (
         <ConsoleTableau>
           <table className="w-full min-w-[46rem] text-sm">
-            <thead className="bg-surface-muted text-content-muted sticky top-0 z-10 text-xs">
+            <ConsoleThead>
               <tr>
-                <th className="px-4 py-2.5 text-start font-medium">Client</th>
-                <th className="px-4 py-2.5 text-end font-medium">Commandes</th>
-                <th className="px-4 py-2.5 text-end font-medium">Total dépensé</th>
-                <th className="px-4 py-2.5 text-start font-medium">Inscrit le</th>
-                <th className="px-4 py-2.5 text-end font-medium">Accès</th>
+                <ConsoleTh>Client</ConsoleTh>
+                <ConsoleTh fin>Commandes</ConsoleTh>
+                <ConsoleTh fin>Total dépensé</ConsoleTh>
+                <ConsoleTh>Inscrit le</ConsoleTh>
+                <ConsoleTh fin>Accès</ConsoleTh>
               </tr>
-            </thead>
+            </ConsoleThead>
             <tbody className="divide-border divide-y">
               {customers.map((customer) => (
-                <tr key={customer.id} className="hover:bg-surface-muted/50">
+                <tr key={customer.id} className={LIGNE_CONSOLE}>
                   <td className="px-4 py-3">
                     <span className="text-content block font-medium">{customer.fullName}</span>
                     <span className="text-content-muted beral-price block text-xs">
