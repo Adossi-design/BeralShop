@@ -1,6 +1,7 @@
 import type { Metadata } from 'next';
 import Link from 'next/link';
 import {
+  Activity,
   ArrowRight,
   Boxes,
   CircleAlert,
@@ -16,6 +17,7 @@ import {
   type DashboardStats,
   getDashboardStats,
   listAdminOrders,
+  listAuditLog,
   listLowStock,
 } from '@beralshopp/core';
 import { FUSEAU_BOUTIQUE, type Money, formatMoney } from '@beralshopp/shared';
@@ -33,28 +35,23 @@ export const dynamic = 'force-dynamic';
 /**
  * Poste de supervision de la boutique.
  *
- * CE N'EST PAS UNE PAGE DE LA BOUTIQUE, et cela doit se voir en une seconde.
  * L'ordre de lecture suit les questions qu'on se pose en ouvrant l'écran le
- * matin, dans cet ordre :
+ * matin : est-ce que quelque chose est cassé ? qu'est-ce qui attend que je m'en
+ * occupe ? qu'est-ce qui est arrivé cette nuit ? qu'est-ce qui va manquer ?
  *
- *   1. « Est-ce que quelque chose est cassé ? »   → le bandeau d'état
- *   2. « Qu'est-ce qui attend que je m'en occupe ? » → les files
- *   3. « Qu'est-ce qui est arrivé depuis hier ? »  → les dernières commandes
- *   4. « Combien ai-je vendu ? »                   → les ventes
- *   5. « Qu'est-ce qui va manquer ? »              → les stocks
+ * LE BANDEAU DE TÊTE EST SOMBRE, et c'est la décision qui tient tout le reste.
+ * L'écran n'était que des cadres blancs sur fond crème : rien n'accrochait
+ * l'œil, et les chiffres du jour — la seule chose qu'on vient vraiment lire —
+ * avaient exactement le même poids visuel qu'un état vide. Le bandeau reprend
+ * la teinte et l'or de la barre latérale, et il reste figé en haut quand on
+ * fait défiler le reste : les constantes vitales ne quittent jamais l'écran.
  *
- * DEUX RÈGLES DE CONCEPTION, tirées de ce que le premier jet faisait mal.
- *
- * Le calme est l'état normal. Quatre voyants verts occupaient la bande la plus
- * visible de l'écran tous les jours de l'année ; un tableau qui crie en
- * permanence n'est plus lu le jour où il a quelque chose à dire. Quand tout va
- * bien, l'état tient sur une ligne grise. Le bloc sombre ne revient que si un
- * contrôle échoue. Même principe pour les files d'attente : trois cadres
- * affichant « 0 » deviennent une seule phrase.
- *
- * Les chiffres passent avant le décor. Lignes denses, chiffres à chasse fixe
- * qui s'alignent et se comparent d'un coup d'œil. Une console de pilotage se
- * lit, elle ne se contemple pas.
+ * Le calme est l'état normal. Quatre voyants verts occupaient autrefois la
+ * bande la plus visible tous les jours de l'année ; un tableau qui crie en
+ * permanence n'est plus lu le jour où il a quelque chose à dire. Tant que tout
+ * passe, l'état tient sur une ligne. Le détail ne revient que si un contrôle
+ * échoue. Même principe pour les files : trois cadres affichant « 0 »
+ * deviennent une phrase.
  */
 
 function fr(value: Money): string {
@@ -77,8 +74,14 @@ const horodatageLong = new Intl.DateTimeFormat('fr-FR', {
   timeZone: FUSEAU_BOUTIQUE,
 });
 
-/* ═══════════════════════════ Titre de panneau ═══════════════════════════ */
+/* ═══════════════════════════ Habillage commun ═══════════════════════════ */
 
+/**
+ * Titre de panneau, barré d'or.
+ *
+ * Le filet doré donne un point de départ à chaque colonne, là où quatre
+ * libellés gris flottaient sans attache sur le fond crème.
+ */
 function TitrePanneau({
   children,
   lien,
@@ -90,7 +93,7 @@ function TitrePanneau({
 }) {
   return (
     <div className="mb-2 flex items-baseline justify-between gap-3">
-      <h2 className="text-content-muted text-[0.65rem] font-semibold tracking-wider uppercase">
+      <h2 className="border-gold-400 text-content-muted border-s-2 ps-2 text-[0.65rem] font-semibold tracking-wider uppercase">
         {children}
       </h2>
       {lien ? (
@@ -113,7 +116,9 @@ function Panneau({
   readonly className?: string;
 }) {
   return (
-    <div className={`border-border bg-surface rounded-card overflow-hidden border ${className}`}>
+    <div
+      className={`border-border bg-surface rounded-card shadow-card overflow-hidden border ${className}`}
+    >
       {children}
     </div>
   );
@@ -123,7 +128,7 @@ function Vide({ children }: { readonly children: React.ReactNode }) {
   return <p className="text-content-muted px-4 py-4 text-sm">{children}</p>;
 }
 
-/* ═══════════════════════════ 1. État d'exploitation ═══════════════════════════ */
+/* ═══════════════════════════ Bandeau de tête ═══════════════════════════ */
 
 interface Controle {
   readonly libelle: string;
@@ -131,15 +136,14 @@ interface Controle {
   readonly detail: string;
 }
 
-function BandeauEtat({ controles }: { readonly controles: readonly Controle[] }) {
+function LigneEtat({ controles }: { readonly controles: readonly Controle[] }) {
   const ennuis = controles.filter((c) => !c.ok);
 
-  /* Tout va bien : une ligne, et on passe à autre chose. */
   if (ennuis.length === 0) {
     return (
-      <p className="text-content-muted mt-2 flex flex-wrap items-center gap-x-2 gap-y-1 text-xs">
+      <p className="text-ink-400 mt-1 flex flex-wrap items-center gap-x-2 gap-y-1 text-xs">
         <CircleCheck className="text-success-500 h-3.5 w-3.5 shrink-0" aria-hidden />
-        <span className="text-content font-medium">Exploitation nominale</span>
+        <span className="text-ink-100 font-medium">Exploitation nominale</span>
         {controles.map((c) => (
           <span key={c.libelle} className="before:mr-2 before:content-['·']">
             {c.detail}
@@ -153,12 +157,12 @@ function BandeauEtat({ controles }: { readonly controles: readonly Controle[] })
      fautifs. Sur un poste de supervision, ce qui fonctionne encore fait partie
      du diagnostic. */
   return (
-    <section className="beral-surface-brand rounded-card mt-3 p-4">
-      <h2 className="text-warning-500 flex items-center gap-1.5 text-[0.65rem] font-semibold tracking-wider uppercase">
+    <div className="mt-2">
+      <p className="text-warning-500 flex items-center gap-1.5 text-[0.65rem] font-semibold tracking-wider uppercase">
         <CircleAlert className="h-3.5 w-3.5" aria-hidden />
         {ennuis.length} point{ennuis.length > 1 ? 's' : ''} à régler
-      </h2>
-      <div className="mt-3 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+      </p>
+      <div className="mt-2 grid gap-2 sm:grid-cols-2 lg:grid-cols-4">
         {controles.map((c) => {
           const Icone = c.ok ? CircleCheck : CircleAlert;
           return (
@@ -177,11 +181,45 @@ function BandeauEtat({ controles }: { readonly controles: readonly Controle[] })
           );
         })}
       </div>
-    </section>
+    </div>
   );
 }
 
-/* ═══════════════════════════ 2. Files d'attente ═══════════════════════════ */
+/** Une des trois colonnes de chiffres du bandeau. */
+function Chiffre({
+  titre,
+  stats,
+  vedette = false,
+}: {
+  readonly titre: string;
+  readonly stats: DashboardStats['today'];
+  readonly vedette?: boolean;
+}) {
+  return (
+    <div className="min-w-0">
+      <p
+        className={`text-[0.6rem] font-semibold tracking-wider uppercase ${
+          vedette ? 'text-gold-300' : 'text-ink-400'
+        }`}
+      >
+        {titre}
+      </p>
+      <p
+        className={`beral-price truncate font-bold ${
+          vedette ? 'text-gold-300 text-2xl sm:text-3xl' : 'text-ink-100 mt-0.5 text-lg sm:text-xl'
+        }`}
+      >
+        {fr(stats.revenue)}
+      </p>
+      <p className="text-ink-400 truncate text-[0.7rem]">
+        {stats.orderCount} commande{stats.orderCount > 1 ? 's' : ''}
+        {vedette ? ` · ${stats.itemsSold} article${stats.itemsSold > 1 ? 's' : ''}` : ''}
+      </p>
+    </div>
+  );
+}
+
+/* ═══════════════════════════ Files d'attente ═══════════════════════════ */
 
 interface File {
   readonly libelle: string;
@@ -198,7 +236,7 @@ function Files({ files }: { readonly files: readonly File[] }) {
      compteurs, pour qu'on sache qu'ils ont été regardés. */
   if (files.every((f) => f.compte === 0)) {
     return (
-      <div className="border-border bg-surface rounded-card flex flex-wrap items-center gap-x-2 gap-y-1 border px-4 py-3">
+      <div className="border-border bg-surface rounded-card shadow-card flex flex-wrap items-center gap-x-2 gap-y-1 border px-4 py-3">
         <CircleCheck className="text-success-500 h-4 w-4 shrink-0" aria-hidden />
         <span className="text-content text-sm font-medium">Rien n’attend d’action.</span>
         <span className="text-content-muted text-xs">
@@ -209,64 +247,66 @@ function Files({ files }: { readonly files: readonly File[] }) {
   }
 
   return (
-    <div className="grid gap-2 sm:grid-cols-3">
-      {files.map((f) => (
-        <Link
-          key={f.libelle}
-          href={f.href}
-          className={`rounded-card group flex items-center justify-between gap-3 border px-4 py-3 transition-colors ${
-            f.compte === 0
-              ? 'border-border bg-surface'
-              : f.urgent
-                ? 'border-danger-500/40 bg-danger-500/5 hover:border-danger-500'
-                : 'border-warning-500/40 bg-warning-500/5 hover:border-warning-500'
-          }`}
-        >
-          <span className="flex min-w-0 items-center gap-2.5">
-            <f.icone
-              className={`h-4 w-4 shrink-0 ${
-                f.compte === 0
-                  ? 'text-content-muted'
-                  : f.urgent
-                    ? 'text-danger-500'
-                    : 'text-warning-500'
+    <div className="grid gap-3 sm:grid-cols-3">
+      {files.map((f) => {
+        const teinte = f.compte === 0 ? 'calme' : f.urgent ? 'danger' : 'warning';
+        return (
+          <Link
+            key={f.libelle}
+            href={f.href}
+            className={`rounded-card shadow-card hover:shadow-raised group relative flex items-center justify-between gap-3 overflow-hidden border py-3.5 ps-5 pe-4 transition-shadow ${
+              teinte === 'danger'
+                ? 'border-danger-500/40 bg-danger-500/5'
+                : teinte === 'warning'
+                  ? 'border-warning-500/40 bg-warning-500/5'
+                  : 'border-border bg-surface'
+            }`}
+          >
+            {/* Liseré vertical : porte l'alerte sans teinter tout le cadre, et
+                reste lisible pour qui distingue mal le rouge du vert. */}
+            <span
+              aria-hidden
+              className={`absolute inset-y-0 start-0 w-1 ${
+                teinte === 'danger'
+                  ? 'bg-danger-500'
+                  : teinte === 'warning'
+                    ? 'bg-warning-500'
+                    : 'bg-border'
               }`}
-              aria-hidden
             />
-            <span className="text-content truncate text-sm font-medium">{f.libelle}</span>
-          </span>
-          <span className="flex shrink-0 items-center gap-2">
-            <span className="beral-price text-content text-lg font-bold">{f.compte}</span>
-            <ArrowRight
-              className="text-content-muted h-4 w-4 transition-transform group-hover:translate-x-0.5"
-              aria-hidden
-            />
-          </span>
-        </Link>
-      ))}
-    </div>
-  );
-}
-
-/* ═══════════════════════════ 3. Ventes ═══════════════════════════ */
-
-function LignePeriode({
-  titre,
-  stats,
-}: {
-  readonly titre: string;
-  readonly stats: DashboardStats['today'];
-}) {
-  return (
-    <div className="border-border flex items-baseline justify-between gap-3 border-t px-4 py-3">
-      <div className="min-w-0">
-        <p className="text-content text-sm">{titre}</p>
-        <p className="text-content-muted text-xs">
-          {stats.orderCount} commande{stats.orderCount > 1 ? 's' : ''} · panier{' '}
-          <span className="beral-price">{fr(stats.averageBasket)}</span>
-        </p>
-      </div>
-      <p className="beral-price text-content shrink-0 font-semibold">{fr(stats.revenue)}</p>
+            <span className="flex min-w-0 items-center gap-2.5">
+              <f.icone
+                className={`h-4 w-4 shrink-0 ${
+                  teinte === 'danger'
+                    ? 'text-danger-500'
+                    : teinte === 'warning'
+                      ? 'text-warning-500'
+                      : 'text-content-muted'
+                }`}
+                aria-hidden
+              />
+              <span className="text-content truncate text-sm font-medium">{f.libelle}</span>
+            </span>
+            <span className="flex shrink-0 items-center gap-2">
+              <span
+                className={`beral-price text-2xl font-bold ${
+                  teinte === 'danger'
+                    ? 'text-danger-500'
+                    : teinte === 'warning'
+                      ? 'text-warning-500'
+                      : 'text-content-muted'
+                }`}
+              >
+                {f.compte}
+              </span>
+              <ArrowRight
+                className="text-content-muted h-4 w-4 transition-transform group-hover:translate-x-0.5"
+                aria-hidden
+              />
+            </span>
+          </Link>
+        );
+      })}
     </div>
   );
 }
@@ -274,10 +314,11 @@ function LignePeriode({
 /* ═══════════════════════════ Page ═══════════════════════════ */
 
 export default async function AdminDashboardPage() {
-  const [stats, lowStock, dernieres] = await Promise.all([
+  const [stats, lowStock, dernieres, journal] = await Promise.all([
     getDashboardStats(),
     listLowStock(6),
     listAdminOrders({ limit: 6 }),
+    listAuditLog(8),
   ]);
 
   const paiementConfigure =
@@ -343,61 +384,53 @@ export default async function AdminDashboardPage() {
   return (
     <>
       <ConsoleEnTete>
-        <div className="flex flex-wrap items-baseline justify-between gap-x-3 gap-y-1">
-          <h1 className="text-content text-xl font-bold sm:text-2xl">Supervision</h1>
-          <p className="text-content-muted beral-price text-xs">
-            {horodatageLong.format(new Date())}
-          </p>
+        {/* Les marges négatives font toucher le bandeau aux bords du panneau :
+            posé dans le rembourrage, il aurait flotté comme une carte de plus,
+            et c'est justement ce qu'il ne doit pas être. */}
+        <div className="beral-surface-brand -mx-4 -mt-4 px-4 pt-4 pb-4 sm:-mx-6 sm:-mt-6 sm:px-6 sm:pt-6">
+          <div className="flex flex-wrap items-baseline justify-between gap-x-3 gap-y-1">
+            <h1 className="text-ink-50 text-xl font-bold sm:text-2xl">Supervision</h1>
+            <p className="text-ink-400 beral-price text-xs">{horodatageLong.format(new Date())}</p>
+          </div>
+
+          <LigneEtat controles={controles} />
+
+          <div className="beral-rule-gold mt-3" aria-hidden />
+
+          <div className="mt-3 grid grid-cols-3 gap-3">
+            <Chiffre titre="Aujourd’hui" stats={stats.today} vedette />
+            <div className="border-ink-800 border-s ps-3">
+              <Chiffre titre="30 derniers jours" stats={stats.last30Days} />
+            </div>
+            <div className="border-ink-800 border-s ps-3">
+              <Chiffre titre="Depuis l’ouverture" stats={stats.allTime} />
+            </div>
+          </div>
         </div>
-        <BandeauEtat controles={controles} />
       </ConsoleEnTete>
 
       <ConsoleCorps>
         {/* Colonne d'au moins la hauteur du panneau : quand la boutique est
-            encore peu remplie, les reperes de fond s'ancrent en bas au lieu de
-            flotter au milieu d'une etendue vide, qui se lit comme un ecran
-            inacheve. Des que les donnees arrivent, la colonne s'allonge et le
-            pied reprend sa place a la suite. */}
+            encore peu remplie, les repères de fond s'ancrent en bas au lieu de
+            flotter au milieu d'une étendue vide. */}
         <div className="lg:flex lg:min-h-full lg:flex-col">
-          <section className="mt-4">
+          <section className="mt-5">
             <TitrePanneau>En attente d’action</TitrePanneau>
             <Files files={files} />
           </section>
 
           <div className="mt-5 grid gap-5 lg:grid-cols-3">
-            {/* ——— Ventes ——— */}
-            <section className="lg:col-span-1">
-              <TitrePanneau>Ventes</TitrePanneau>
-              <Panneau>
-                {/* Le chiffre du jour est celui qu'on vient chercher ; les deux
-                  autres périodes lui donnent son échelle. Trois cartes de même
-                  taille laissaient le lecteur choisir laquelle regarder. */}
-                <div className="bg-gold-50 px-4 py-3">
-                  <p className="text-content-muted text-[0.65rem] font-semibold tracking-wider uppercase">
-                    Aujourd’hui
-                  </p>
-                  <p className="beral-price text-content mt-1 text-2xl font-bold">
-                    {fr(stats.today.revenue)}
-                  </p>
-                  <p className="text-content-muted text-xs">
-                    {stats.today.orderCount} commande{stats.today.orderCount > 1 ? 's' : ''} ·{' '}
-                    {stats.today.itemsSold} article{stats.today.itemsSold > 1 ? 's' : ''}
-                  </p>
-                </div>
-                <LignePeriode titre="30 derniers jours" stats={stats.last30Days} />
-                <LignePeriode titre="Depuis l’ouverture" stats={stats.allTime} />
-              </Panneau>
-            </section>
-
             {/* ——— Dernières commandes ———
-              Le premier jet n'en montrait aucune. C'est pourtant la question
-              qu'on se pose en ouvrant l'écran : qu'est-ce qui est arrivé
-              pendant que je ne regardais pas ? */}
-            <section className="lg:col-span-2">
+                C'est la question qu'on se pose en ouvrant l'écran : qu'est-ce
+                qui est arrivé pendant que je ne regardais pas ? */}
+            {/* Les deux colonnes prennent la meme hauteur : sans cela, un
+                panneau court a gauche et deux panneaux a droite donnaient une
+                rangee en escalier, qui se lit comme un gabarit casse. */}
+            <section className="flex flex-col lg:col-span-2">
               <TitrePanneau lien="/admin/commandes" libelleLien="Toutes les commandes">
                 Dernières commandes
               </TitrePanneau>
-              <Panneau>
+              <Panneau className="flex-1">
                 {dernieres.rows.length === 0 ? (
                   <Vide>
                     Aucune commande pour le moment. La première apparaîtra ici dès qu’un client aura
@@ -409,7 +442,7 @@ export default async function AdminDashboardPage() {
                       <li key={order.orderNumber}>
                         <Link
                           href={`/admin/commandes/${order.orderNumber}`}
-                          className="hover:bg-surface-muted/60 flex items-center justify-between gap-3 px-4 py-2.5 transition-colors"
+                          className="hover:bg-gold-50 flex items-center justify-between gap-3 px-4 py-2.5 transition-colors"
                         >
                           <span className="min-w-0">
                             <span className="flex flex-wrap items-center gap-2">
@@ -436,119 +469,159 @@ export default async function AdminDashboardPage() {
                 )}
               </Panneau>
             </section>
-          </div>
 
-          <div className="mt-5 grid gap-5 lg:grid-cols-2">
-            {/* ——— Stocks au bord de la rupture ——— */}
-            <section className="flex flex-col">
-              <TitrePanneau lien="/admin/produits" libelleLien="Gérer les stocks">
-                Stocks à surveiller
-              </TitrePanneau>
-              <Panneau className="flex-1">
-                {lowStock.length === 0 ? (
-                  <Vide>
-                    Aucune variante sous son seuil d’alerte. Les articles proches de la rupture
-                    s’afficheront ici avant de manquer.
-                  </Vide>
-                ) : (
-                  <ul className="divide-border divide-y">
-                    {lowStock.map((v) => (
-                      <li
-                        key={v.variantId}
-                        className="flex items-center justify-between gap-3 px-4 py-2.5"
-                      >
-                        <span className="min-w-0">
-                          <Link
-                            href={`/produits/${v.productSlug}`}
-                            className="text-content hover:text-gold-700 block truncate text-sm font-medium transition-colors"
-                          >
-                            {v.productName}
-                          </Link>
-                          <span className="text-content-muted beral-price text-xs">{v.sku}</span>
-                        </span>
-                        <span className="shrink-0 text-end">
-                          <span
-                            className={`beral-price font-bold ${
-                              v.available === 0 ? 'text-danger-500' : 'text-warning-500'
-                            }`}
-                          >
-                            {v.available}
-                          </span>
-                          <span className="text-content-muted beral-price text-xs">
-                            {' '}
-                            / {v.threshold}
-                          </span>
-                        </span>
-                      </li>
-                    ))}
-                  </ul>
-                )}
-              </Panneau>
-            </section>
-
-            {/* ——— Ce qui se vend ——— */}
-            <section className="flex flex-col">
-              <TitrePanneau>Meilleures ventes — depuis l’ouverture</TitrePanneau>
-              <Panneau className="flex-1">
-                {stats.topProducts.length === 0 ? (
-                  <Vide>
-                    Aucune vente enregistrée. Le classement se remplira dès la première commande
-                    payée.
-                  </Vide>
-                ) : (
-                  <ul className="divide-border divide-y">
-                    {stats.topProducts.map((p, rang) => (
-                      <li
-                        key={p.sku}
-                        className="flex items-center justify-between gap-3 px-4 py-2.5 text-sm"
-                      >
-                        <span className="flex min-w-0 items-center gap-3">
-                          <span className="beral-price text-content-muted w-4 shrink-0 text-xs">
-                            {rang + 1}
-                          </span>
+            {/* ——— Colonne de droite : ce qui va manquer, ce qui part ——— */}
+            <div className="flex flex-col gap-5">
+              <section className="flex flex-1 flex-col">
+                <TitrePanneau lien="/admin/produits" libelleLien="Stocks">
+                  Stocks à surveiller
+                </TitrePanneau>
+                <Panneau className="flex-1">
+                  {lowStock.length === 0 ? (
+                    <Vide>
+                      Aucune variante sous son seuil d’alerte. Les articles proches de la rupture
+                      s’afficheront ici avant de manquer.
+                    </Vide>
+                  ) : (
+                    <ul className="divide-border divide-y">
+                      {lowStock.map((v) => (
+                        <li
+                          key={v.variantId}
+                          className="flex items-center justify-between gap-3 px-4 py-2.5"
+                        >
                           <span className="min-w-0">
-                            <span className="text-content block truncate font-medium">
-                              {p.name}
+                            <Link
+                              href={`/produits/${v.productSlug}`}
+                              className="text-content hover:text-gold-700 block truncate text-sm font-medium transition-colors"
+                            >
+                              {v.productName}
+                            </Link>
+                            <span className="text-content-muted beral-price text-xs">{v.sku}</span>
+                          </span>
+                          <span className="shrink-0 text-end">
+                            <span
+                              className={`beral-price font-bold ${
+                                v.available === 0 ? 'text-danger-500' : 'text-warning-500'
+                              }`}
+                            >
+                              {v.available}
                             </span>
-                            <span className="text-content-muted beral-price block text-xs">
-                              {p.sku} · {p.quantitySold} vendu{p.quantitySold > 1 ? 's' : ''}
+                            <span className="text-content-muted beral-price text-xs">
+                              {' '}
+                              / {v.threshold}
                             </span>
                           </span>
-                        </span>
-                        <span className="beral-price text-content shrink-0 font-semibold">
-                          {fr(p.revenue)}
-                        </span>
-                      </li>
-                    ))}
-                  </ul>
-                )}
-              </Panneau>
-            </section>
+                        </li>
+                      ))}
+                    </ul>
+                  )}
+                </Panneau>
+              </section>
+
+              <section className="flex flex-1 flex-col">
+                <TitrePanneau>Meilleures ventes</TitrePanneau>
+                <Panneau className="flex-1">
+                  {stats.topProducts.length === 0 ? (
+                    <Vide>
+                      Aucune vente enregistrée. Le classement se remplira dès la première commande
+                      payée.
+                    </Vide>
+                  ) : (
+                    <ul className="divide-border divide-y">
+                      {stats.topProducts.map((p, rang) => (
+                        <li
+                          key={p.sku}
+                          className="flex items-center justify-between gap-3 px-4 py-2.5 text-sm"
+                        >
+                          <span className="flex min-w-0 items-center gap-3">
+                            <span className="bg-ink-900 text-gold-300 beral-price flex h-5 w-5 shrink-0 items-center justify-center rounded-full text-[0.65rem] font-bold">
+                              {rang + 1}
+                            </span>
+                            <span className="min-w-0">
+                              <span className="text-content block truncate font-medium">
+                                {p.name}
+                              </span>
+                              <span className="text-content-muted beral-price block text-xs">
+                                {p.quantitySold} vendu{p.quantitySold > 1 ? 's' : ''}
+                              </span>
+                            </span>
+                          </span>
+                          <span className="beral-price text-content shrink-0 font-semibold">
+                            {fr(p.revenue)}
+                          </span>
+                        </li>
+                      ))}
+                    </ul>
+                  )}
+                </Panneau>
+              </section>
+            </div>
           </div>
+
+          {/* ——— Journal des actions ———
+              « Qui a modifié ça ? » est une question de supervision, et l'écran
+              n'y répondait pas : le journal ne vivait que sur l'écran des
+              paiements, où personne ne va le chercher. Les codes d’action restent
+              bruts, en chasse fixe — les traduire, ce serait risquer de mal nommer
+              une action que je n’ai pas énumérée. */}
+          <section className="mt-5">
+            <TitrePanneau>Activité récente</TitrePanneau>
+            <Panneau>
+              {journal.length === 0 ? (
+                <Vide>
+                  Aucune action enregistrée. Chaque modification faite depuis cet espace apparaîtra
+                  ici, avec son auteur et son horodatage.
+                </Vide>
+              ) : (
+                <ul className="divide-border divide-y">
+                  {journal.map((entree, index) => (
+                    <li
+                      key={`${entree.createdAt.getTime()}-${index}`}
+                      className="flex flex-wrap items-center justify-between gap-x-3 gap-y-1 px-4 py-2.5"
+                    >
+                      <span className="flex min-w-0 items-center gap-2.5">
+                        <Activity className="text-gold-600 h-3.5 w-3.5 shrink-0" aria-hidden />
+                        <span className="beral-price bg-surface-muted text-content rounded px-1.5 py-0.5 text-xs font-medium">
+                          {entree.action}
+                        </span>
+                        <span className="text-content-muted truncate text-xs">
+                          {entree.entityType}
+                        </span>
+                      </span>
+                      <span className="text-content-muted text-xs">
+                        {entree.actorName} ·{' '}
+                        <span className="beral-price">{horodatage.format(entree.createdAt)}</span>
+                      </span>
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </Panneau>
+          </section>
 
           {/* ——— Repères de fond ——— */}
           <section className="border-border mt-6 border-t pt-4 pb-1 lg:mt-auto">
             <dl className="text-content-muted grid gap-3 text-xs sm:grid-cols-2 lg:grid-cols-4">
               <div className="flex items-center gap-2">
-                <Users className="h-4 w-4 shrink-0" aria-hidden />
+                <Users className="text-gold-600 h-4 w-4 shrink-0" aria-hidden />
                 <dt>Clients inscrits</dt>
                 <dd className="beral-price text-content font-semibold">{stats.customerCount}</dd>
                 <dd>(+{stats.newCustomers30Days} sur 30 j)</dd>
               </div>
               <div className="flex items-center gap-2">
-                <Boxes className="h-4 w-4 shrink-0" aria-hidden />
+                <Boxes className="text-gold-600 h-4 w-4 shrink-0" aria-hidden />
                 <dt>Variantes sous seuil</dt>
                 <dd className="beral-price text-content font-semibold">{stats.lowStockVariants}</dd>
               </div>
               <div className="flex items-center gap-2">
-                <ReceiptText className="h-4 w-4 shrink-0" aria-hidden />
+                <ReceiptText className="text-gold-600 h-4 w-4 shrink-0" aria-hidden />
                 <dt>Commandes au total</dt>
                 <dd className="beral-price text-content font-semibold">
                   {stats.allTime.orderCount}
                 </dd>
               </div>
               <div className="flex items-center gap-2">
-                <Wallet className="h-4 w-4 shrink-0" aria-hidden />
+                <Wallet className="text-gold-600 h-4 w-4 shrink-0" aria-hidden />
                 <dt>Devise de référence</dt>
                 <dd className="text-content font-semibold">RWF</dd>
               </div>
