@@ -488,4 +488,13 @@ body:has([data-espace='admin']) {
     padding-top: 0.25rem;
     padding-bottom: 0.25rem;
   }
+
+  /* Une photo carrée occupant toute la largeur serait plus haute que l'écran :
+     on la borne à la hauteur visible. En requête média, `vh` seul est compris
+     partout — c'est la valeur composée `min(28rem,70svh)`, écrite dans le
+     balisage, que Safari rejetait en bloc. */
+  ul[aria-roledescription='galerie'] {
+    max-width: 70vh;
+    margin-inline: auto;
+  }
 }

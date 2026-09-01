@@ -41,7 +41,26 @@ export async function SiteHeader() {
             leur place et le logo revient à gauche : le centrer là déplacerait la
             barre de recherche, qui est l'outil le plus utilisé d'une boutique.
           */}
-          <Link href="/" className="mx-auto shrink-0 lg:mx-0" aria-label="Beralshopp, accueil">
+          {/* `shrink-0` NE VAUT PLUS QU'À PARTIR DE 1024 px.
+
+              Sous cette largeur, il empêchait le lien de se réduire, et le lien
+              contient une image bornée à 352 px. La largeur minimale de
+              l'en-tête valait donc 352 + 32 de marges = 384 px. Sur un écran
+              plus étroit — un iPhone mini, un Android d'entrée de gamme, ou
+              n'importe quel téléphone dont la police système est agrandie —
+              TOUTE LA PAGE s'élargissait pour contenir l'en-tête. Safari, qui ne
+              réduit rien, coupait alors le logo, le fil d'Ariane et la photo du
+              produit sur le bord droit.
+
+              `min-w-0` autorise le rétrécissement ; `w-full` sur l'image la
+              cale sur la place réellement disponible. À partir de 1024 px rien
+              ne change : le logo reprend sa hauteur fixe et sa largeur
+              naturelle. */}
+          <Link
+            href="/"
+            className="mx-auto min-w-0 lg:mx-0 lg:shrink-0"
+            aria-label="Beralshopp, accueil"
+          >
             {/*
               Version ALLONGÉE du logo : sac couronné à gauche, nom à droite,
               rapport 4,13:1. Le logo d'origine empile les deux et forme un bloc

@@ -133,15 +133,19 @@ export default async function ProductPage({ params }: PageProps) {
             soit la taille de l'écran, et la page débordait de 480 px à
             l'horizontale sur un téléphone de 320 px.
 
-            `max-w-[min(28rem,70svh)]` tient la deuxième moitié du problème. Une
-            image carrée occupant toute la largeur d'une tablette fait 720 px de
-            haut : le bouton « Ajouter au panier » tombait sous la ligne de
-            flottaison, et sur un téléphone tenu à l'horizontale la photo était
-            deux fois plus haute que l'écran. La borne prend la plus petite des
-            deux contraintes — largeur raisonnable, ou 70 % de la hauteur
-            visible — et ne s'applique jamais sur un téléphone tenu droit, où
-            la largeur de l'écran est déjà la plus petite des trois. */}
-        <div className="mx-auto w-full max-w-[min(28rem,70svh)] min-w-0 lg:mx-0 lg:max-w-none">
+            `max-w-[28rem]` tient la deuxième moitié du problème : une image
+            carrée occupant toute la largeur d'une tablette fait 720 px de haut,
+            et le bouton « Ajouter au panier » tombait sous la ligne de
+            flottaison.
+
+            Cette borne s'écrivait auparavant `min(28rem,70svh)`, pour rétrécir
+            aussi sur un écran bas. Une valeur composée est fragile : si UN de
+            ses termes n'est pas compris, le navigateur jette la déclaration
+            ENTIÈRE et il ne reste plus aucune borne — c'est ce qui se produisait
+            en Safari, où `max-width` valait `none`. Le cas de l'écran bas est
+            désormais traité par une requête média sur la hauteur, dans
+            globals.css : une syntaxe qu'aucun navigateur ne peut mal lire. */}
+        <div className="mx-auto w-full max-w-[28rem] min-w-0 lg:mx-0 lg:max-w-none">
           <ProductGallery images={product.images} name={product.name} />
         </div>
 
