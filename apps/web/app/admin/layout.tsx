@@ -50,7 +50,13 @@ export default async function AdminLayout({ children }: { children: React.ReactN
        coûte cher. */
     <div data-espace="admin" className="bg-surface-muted flex min-h-screen flex-col lg:flex-row">
       {/* ——— Barre latérale ——— */}
-      <aside className="beral-surface-brand lg:min-h-screen lg:w-60 lg:shrink-0">
+      {/* Barre latérale FIXE sur grand écran : `sticky top-0` + `h-screen`.
+          Elle défilait avec le contenu, et sur une liste de commandes un peu
+          longue le menu disparaissait — il fallait remonter toute la page pour
+          changer d'écran. Un poste de pilotage garde ses commandes sous la main.
+          `overflow-y-auto` protège le jour où le menu dépassera la hauteur
+          visible : il défilera alors DANS la barre, sans la déformer. */}
+      <aside className="beral-surface-brand lg:sticky lg:top-0 lg:flex lg:h-screen lg:w-60 lg:shrink-0 lg:flex-col lg:overflow-y-auto">
         <div className="flex items-center gap-2 px-4 py-4">
           <BeralshoppMark className="h-8 w-8" />
           <div className="min-w-0">
@@ -61,7 +67,7 @@ export default async function AdminLayout({ children }: { children: React.ReactN
 
         <div className="beral-rule-gold" aria-hidden />
 
-        <nav aria-label="Administration" className="p-3">
+        <nav aria-label="Administration" className="p-3 lg:flex lg:min-h-0 lg:flex-1 lg:flex-col">
           <ul className="flex gap-1 overflow-x-auto lg:flex-col lg:overflow-visible">
             {NAV.map((item) => (
               <li key={item.href}>
@@ -76,7 +82,12 @@ export default async function AdminLayout({ children }: { children: React.ReactN
             ))}
           </ul>
 
-          <div className="border-ink-800 mt-3 space-y-1 border-t pt-3">
+          {/* `lg:mt-auto` colle ce bloc au bas de la barre : « Voir la boutique »
+              et « Se déconnecter » ne sont pas des rubriques de travail, elles
+              sortent de l'administration. Les laisser à la suite du menu les
+              mettait au même niveau que « Commandes » ou « Produits », avec le
+              risque de cliquer « Se déconnecter » en visant « Paiements ». */}
+          <div className="border-ink-800 mt-3 space-y-1 border-t pt-3 lg:mt-auto">
             <Link
               href="/"
               className="text-ink-400 hover:bg-ink-800 hover:text-gold-300 rounded-control flex items-center gap-2.5 px-3 py-2.5 text-sm transition-colors"
