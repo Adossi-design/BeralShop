@@ -93,6 +93,22 @@ const nextConfig: NextConfig = {
 
   experimental: {
     optimizePackageImports: ['@beralshopp/shared'],
+
+    /**
+     * Taille maximale du corps d'une action serveur.
+     *
+     * NON POSE = 1 Mo, et le defaut ne previent personne. Mesure sur cette
+     * boutique : une photo de 4 ko s'ajoutait, une photo de 5,57 Mo ne faisait
+     * RIEN — pas d'image, pas de message d'erreur, pas d'erreur reseau. Le
+     * proprietaire cliquait « Ajouter les photos » et regardait un ecran qui ne
+     * repondait pas.
+     *
+     * 4 Mo, et pas davantage : Vercel plafonne le corps d'une requete de
+     * fonction a 4,5 Mo, ce qui ne se configure pas. Monter ce nombre plus haut
+     * ne ferait que deplacer l'echec vers une couche qui, elle, ne renvoie
+     * aucun message exploitable.
+     */
+    serverActions: { bodySizeLimit: '4mb' },
     /**
      * Nombre de processus utilisés pour le pré-rendu.
      *

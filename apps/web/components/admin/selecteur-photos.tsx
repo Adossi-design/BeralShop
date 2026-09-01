@@ -1,0 +1,192 @@
+'use client';
+
+import { useRef, useState } from 'react';
+import { AlertTriangle, ImagePlus, X } from 'lucide-react';
+
+import {
+  ACCEPT_PHOTO,
+  TAILLE_MAX_ENVOI,
+  TAILLE_MAX_PHOTO,
+  TYPES_PHOTO_AUTORISES,
+  formaterTaille,
+} from '@beralshopp/shared';
+
+/**
+ * Choix des photos d'un produit, avec aperçu et refus expliqué.
+ *
+ * POURQUOI CE COMPOSANT EXISTE
+ * Le champ de fichier nu envoyait la photo au serveur et attendait. Au-delà
+ * d'une certaine taille, l'action serveur était rejetée AVANT d'atteindre le
+ * code : ni image ajoutée, ni message d'erreur, ni erreur réseau. Le
+ * propriétaire cliquait « Ajouter les photos » et regardait un écran qui ne
+ * répondait pas. Mesuré : 4 ko passaient, 5,57 Mo ne faisaient rien.
+ *
+ * Le contrôle est donc fait ICI, avant tout envoi, et il EXPLIQUE. Il ne
+ * remplace pas celui du serveur — un contrôle côté navigateur se contourne en
+ * trois clics — il évite un aller-retour perdu et un silence.
+ *
+ * Les aperçus servent à autre chose qu'à faire joli : on téléverse rarement une
+ * photo, souvent cinq, et on se trompe de fichier. Voir avant d'envoyer coûte
+ * moins cher que supprimer après.
+ */
+
+interface Choisie {
+  readonly fichier: File;
+  readonly apercu: string;
+  readonly probleme: string | null;
+}
+
+function examiner(fichier: File): string | null {
+  if (!(TYPES_PHOTO_AUTORISES as readonly string[]).includes(fichier.type)) {
+    return `format « ${fichier.type || 'inconnu'} » refusé`;
+  }
+  if (fichier.size === 0) return 'fichier vide';
+  if (fichier.size > TAILLE_MAX_PHOTO) {
+    return `${formaterTaille(fichier.size)} — maximum ${formaterTaille(TAILLE_MAX_PHOTO)}`;
+  }
+  return null;
+}
+
+export function SelecteurPhotos({
+  name,
+  label = 'Photos du produit',
+  aide,
+}: {
+  /** Nom du champ envoyé au serveur. */
+  readonly name: string;
+  readonly label?: string;
+  readonly aide?: string;
+}) {
+  const champ = useRef<HTMLInputElement>(null);
+  const [choisies, setChoisies] = useState<readonly Choisie[]>([]);
+
+  function relire(): void {
+    const fichiers = Array.from(champ.current?.files ?? []);
+    /* Les URL d'aperçu précédentes sont révoquées : sans cela, chaque
+       changement de sélection laisse une image entière en mémoire. */
+    for (const c of choisies) URL.revokeObjectURL(c.apercu);
+    setChoisies(
+      fichiers.map((fichier) => ({
+        fichier,
+        apercu: URL.createObjectURL(fichier),
+        probleme: examiner(fichier),
+      })),
+    );
+  }
+
+  function vider(): void {
+    for (const c of choisies) URL.revokeObjectURL(c.apercu);
+    if (champ.current) champ.current.value = '';
+    setChoisies([]);
+  }
+
+  const total = choisies.reduce((s, c) => s + c.fichier.size, 0);
+  const refusees = choisies.filter((c) => c.probleme !== null);
+  const tropLourd = refusees.length === 0 && total > TAILLE_MAX_ENVOI;
+
+  return (
+    <div>
+      <label htmlFor={name} className="text-content block text-sm font-medium">
+        {label}
+      </label>
+
+      <input
+        ref={champ}
+        id={name}
+        name={name}
+        type="file"
+        accept={ACCEPT_PHOTO}
+        multiple
+        onChange={relire}
+        /* Le bouton natif est habille avec de VRAIES utilitaires. La variante
+           `file:` ne sait pas composer une classe maison comme `beral-btn-gold` :
+           elle ne genere une regle que pour un utilitaire connu de Tailwind. Le
+           bouton restait donc gris, au milieu d un formulaire dore. */
+        className="text-content-muted file:text-ink-950 file:bg-gold-400 hover:file:bg-gold-300 file:rounded-control mt-1 block w-full cursor-pointer text-sm file:mr-3 file:cursor-pointer file:border-0 file:px-4 file:py-2 file:font-semibold file:transition-colors"
+      />
+
+      <p className="text-content-muted mt-1 text-xs">
+        {aide ?? 'JPEG, PNG, WebP ou AVIF.'} {formaterTaille(TAILLE_MAX_PHOTO)} maximum par photo.
+      </p>
+
+      {choisies.length > 0 ? (
+        <>
+          <ul className="mt-3 grid grid-cols-3 gap-2 sm:grid-cols-4">
+            {choisies.map((c) => (
+              <li
+                key={c.fichier.name + c.fichier.size}
+                className={`rounded-control overflow-hidden border ${
+                  c.probleme ? 'border-danger-500' : 'border-border'
+                }`}
+              >
+                <div className="bg-surface-muted relative aspect-square">
+                  {/* Aperçu local : `next/image` ne sait pas traiter une URL
+                      blob:, et il n'y a rien à optimiser sur un fichier qui ne
+                      quittera peut-être jamais ce navigateur. */}
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img
+                    src={c.apercu}
+                    alt=""
+                    className={`h-full w-full object-cover ${c.probleme ? 'opacity-40' : ''}`}
+                  />
+                </div>
+                <p className="text-content-muted truncate px-1.5 py-1 text-[0.65rem]">
+                  {c.probleme ? (
+                    <span className="text-danger-500">{c.probleme}</span>
+                  ) : (
+                    formaterTaille(c.fichier.size)
+                  )}
+                </p>
+              </li>
+            ))}
+          </ul>
+
+          <div className="mt-2 flex flex-wrap items-center justify-between gap-2">
+            <p className="text-content-muted text-xs">
+              {choisies.length} photo{choisies.length > 1 ? 's' : ''} · {formaterTaille(total)}
+            </p>
+            <button
+              type="button"
+              onClick={vider}
+              className="text-content-muted hover:text-danger-500 inline-flex items-center gap-1 text-xs transition-colors"
+            >
+              <X className="h-3.5 w-3.5" aria-hidden />
+              Tout retirer
+            </button>
+          </div>
+        </>
+      ) : null}
+
+      {refusees.length > 0 ? (
+        <p
+          role="alert"
+          className="border-danger-500/40 bg-danger-500/5 text-danger-500 rounded-control mt-2 flex items-start gap-2 border px-3 py-2 text-xs"
+        >
+          <AlertTriangle className="mt-0.5 h-3.5 w-3.5 shrink-0" aria-hidden />
+          <span>
+            {refusees.length} photo{refusees.length > 1 ? 's' : ''} ne peu
+            {refusees.length > 1 ? 'vent' : 't'} pas être envoyée{refusees.length > 1 ? 's' : ''}.
+            Retirez-la{refusees.length > 1 ? 's' : ''} de la sélection ou redimensionnez-la
+            {refusees.length > 1 ? 's' : ''}.
+          </span>
+        </p>
+      ) : null}
+
+      {tropLourd ? (
+        <p
+          role="alert"
+          className="border-warning-500/40 bg-warning-500/5 text-warning-500 rounded-control mt-2 flex items-start gap-2 border px-3 py-2 text-xs"
+        >
+          <AlertTriangle className="mt-0.5 h-3.5 w-3.5 shrink-0" aria-hidden />
+          <span>
+            Ces {choisies.length} photos pèsent {formaterTaille(total)} au total, au-delà de{' '}
+            {formaterTaille(TAILLE_MAX_ENVOI)} par envoi. Envoyez-les en deux fois.
+          </span>
+        </p>
+      ) : null}
+    </div>
+  );
+}
+
+/** Icône exposée pour les boutons d'envoi, afin de garder un vocabulaire commun. */
+export { ImagePlus as IconePhoto };

@@ -1,5 +1,7 @@
 import { del, put } from '@vercel/blob';
 
+import { TAILLE_MAX_PHOTO, TYPES_PHOTO_AUTORISES, formaterTaille } from '@beralshopp/shared';
+
 /**
  * Stockage des fichiers téléversés depuis l'administration.
  *
@@ -15,15 +17,17 @@ import { del, put } from '@vercel/blob';
  * de moins vaut mieux qu'un centime de moins.
  */
 
-/** Types réellement acceptés. Une liste blanche, jamais une liste noire. */
-const TYPES_AUTORISES = new Set(['image/jpeg', 'image/png', 'image/webp', 'image/avif']);
-
 /**
- * 6 Mo. Une photo de produit correcte pèse moins de 1 Mo ; au-delà, c'est une
- * photo brute d'appareil que personne n'a redimensionnée, et qui ralentirait la
- * boutique pour tous les visiteurs.
+ * Les limites viennent de `@beralshopp/shared` : le navigateur les applique
+ * avant d'envoyer, ce serveur les réapplique parce qu'un contrôle côté
+ * navigateur se contourne. Une seule constante pour les deux — deux valeurs
+ * séparées finissent toujours par diverger.
+ *
+ * Elles y sont passées de 6 à 3 Mo : les 6 Mo annoncés ici étaient
+ * inatteignables, deux plafonds plus bas s'appliquant avant. Le détail est
+ * documenté dans ce fichier-là.
  */
-const TAILLE_MAX = 6 * 1024 * 1024;
+const TYPES_AUTORISES = new Set<string>(TYPES_PHOTO_AUTORISES);
 
 export type ResultatTeleversement =
   | { readonly ok: true; readonly url: string; readonly taille: number }
@@ -55,11 +59,12 @@ export async function televerserImage(
 
   if (fichier.size === 0) return { ok: false, message: 'Fichier vide.' };
 
-  if (fichier.size > TAILLE_MAX) {
-    const mo = (fichier.size / 1024 / 1024).toFixed(1);
+  if (fichier.size > TAILLE_MAX_PHOTO) {
     return {
       ok: false,
-      message: `Fichier trop lourd (${mo} Mo). Maximum 6 Mo — redimensionnez la photo avant de l'envoyer.`,
+      message:
+        `« ${fichier.name} » pèse ${formaterTaille(fichier.size)}. Maximum ` +
+        `${formaterTaille(TAILLE_MAX_PHOTO)} par photo — redimensionnez-la avant de l'envoyer.`,
     };
   }
 

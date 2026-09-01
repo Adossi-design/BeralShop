@@ -14,6 +14,8 @@ import {
   televerserImagesAction,
 } from '@/lib/admin-actions';
 
+import { SelecteurPhotos } from './selecteur-photos';
+
 /**
  * Gestion des photos d'un produit.
  *
@@ -137,23 +139,9 @@ export function ProductImages({
       <form action={action} className="border-border mt-5 space-y-3 border-t pt-5">
         <input type="hidden" name="productId" value={productId} />
 
-        <div>
-          <label htmlFor="fichiers" className="text-content block text-sm font-medium">
-            Ajouter des photos
-          </label>
-          <input
-            id="fichiers"
-            name="fichiers"
-            type="file"
-            accept="image/jpeg,image/png,image/webp,image/avif"
-            multiple
-            required
-            className="text-content-muted file:beral-btn-gold file:rounded-control mt-1 block w-full text-sm file:mr-3 file:border-0 file:px-4 file:py-2 file:font-semibold"
-          />
-          <p className="text-content-muted mt-1 text-xs">
-            JPEG, PNG, WebP ou AVIF. 6 Mo maximum par photo.
-          </p>
-        </div>
+        {/* Même sélecteur qu'à la création : aperçus, refus expliqué avant
+            l'envoi, et une seule limite de taille pour les deux écrans. */}
+        <SelecteurPhotos name="fichiers" label="Ajouter des photos" />
 
         <div>
           <label htmlFor="altText" className="text-content block text-sm font-medium">

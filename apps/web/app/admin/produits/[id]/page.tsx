@@ -1,7 +1,7 @@
 import type { Metadata } from 'next';
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
-import { ChevronLeft, ExternalLink } from 'lucide-react';
+import { AlertTriangle, ChevronLeft, ExternalLink } from 'lucide-react';
 
 import { etatRetrait, listerImages, listerVariantes } from '@beralshopp/core';
 import { prisma } from '@beralshopp/db';
@@ -22,6 +22,7 @@ export const dynamic = 'force-dynamic';
 
 interface PageProps {
   params: Promise<{ id: string }>;
+  searchParams: Promise<Record<string, string | string[] | undefined>>;
 }
 
 function variantLabel(options: unknown): string {
@@ -32,8 +33,16 @@ function variantLabel(options: unknown): string {
     .join(' · ');
 }
 
-export default async function AdminProductPage({ params }: PageProps) {
+export default async function AdminProductPage({ params, searchParams }: PageProps) {
   const { id } = await params;
+  const requete = await searchParams;
+
+  /* Renseigné par la création quand une photo n'a pas pu être déposée. Le
+     message exact reste dans la section « Photos », où l'envoi se refait : le
+     répéter ici obligerait à le faire voyager dans l'URL, à la vue de tous. */
+  const photosEchouees = Number(
+    typeof requete['photosEchouees'] === 'string' ? requete['photosEchouees'] : 0,
+  );
 
   const product = await prisma.product.findUnique({
     where: { id },
@@ -113,6 +122,21 @@ export default async function AdminProductPage({ params }: PageProps) {
       </ConsoleEnTete>
 
       <ConsoleCorps>
+        {photosEchouees > 0 ? (
+          <p
+            role="alert"
+            className="border-warning-500/40 bg-warning-500/5 text-warning-500 rounded-card mt-4 flex items-start gap-2 border px-4 py-3 text-sm"
+          >
+            <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0" aria-hidden />
+            <span>
+              Le produit est créé, mais {photosEchouees} photo
+              {photosEchouees > 1 ? 's' : ''} n’{photosEchouees > 1 ? 'ont' : 'a'} pas pu être
+              envoyée{photosEchouees > 1 ? 's' : ''}. Réessayez depuis « Photos du produit »
+              ci-dessous : le motif du refus y sera indiqué.
+            </span>
+          </p>
+        ) : null}
+
         <div className="mt-6 grid gap-4 lg:grid-cols-2">
           <section className="border-border bg-surface rounded-card border p-5">
             <h2 className="text-content mb-4 font-semibold">Prix et publication</h2>

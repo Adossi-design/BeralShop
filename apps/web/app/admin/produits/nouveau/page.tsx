@@ -5,6 +5,7 @@ import { ChevronLeft } from 'lucide-react';
 import { listCategoryTree } from '@beralshopp/core';
 
 import { NewProductForm } from '@/components/admin/new-product-form';
+import { stockageConfigure } from '@/lib/stockage';
 import { ConsoleCorps, ConsoleEnTete } from '@/components/admin/console';
 
 export const metadata: Metadata = {
@@ -45,9 +46,11 @@ export default async function NouveauProduitPage() {
       </ConsoleEnTete>
 
       <ConsoleCorps>
-        <section className="border-border bg-surface rounded-card mt-4 max-w-2xl border p-5">
-          <NewProductForm categories={categories} />
-        </section>
+        {/* Plus de cadre unique ni de `max-w-2xl` : le formulaire porte
+            desormais sa propre grille, et chaque groupe de champs son cadre. */}
+        <div className="mt-4">
+          <NewProductForm categories={categories} stockageActif={stockageConfigure()} />
+        </div>
       </ConsoleCorps>
     </>
   );

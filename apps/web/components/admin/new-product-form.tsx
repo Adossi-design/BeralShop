@@ -6,13 +6,27 @@ import { useFormStatus } from 'react-dom';
 
 import { type EtatCreationProduit, creerProduitAction } from '@/lib/admin-actions';
 
+import { SelecteurPhotos } from './selecteur-photos';
+
 /**
  * Création d'un produit.
  *
- * Volontairement COURT : référence, nom, prix, stock, catégorie. Photos,
- * description longue, variantes et publication se règlent ensuite sur la fiche.
- * Un formulaire de création qui demande tout d'un coup décourage, et pousse à
- * remplir n'importe quoi pour en finir.
+ * DEUX COLONNES, ET CE N'EST PAS DÉCORATIF. Le formulaire tenait dans une
+ * colonne étroite au milieu d'un écran vide : on descendait à l'aveugle sans
+ * jamais voir combien il restait à remplir. Les champs sont maintenant groupés
+ * par intention — ce que le produit est, ce qu'il coûte, où on le range — et
+ * les photos occupent la colonne de droite, visibles dès l'arrivée.
+ *
+ * LES PHOTOS SE CHOISISSENT ICI, à la création. Auparavant il fallait créer le
+ * produit, atterrir sur sa fiche, trouver la section « Photos » et recommencer.
+ * Un produit sans photo ne se vend pas ; l'étape la plus importante ne doit pas
+ * être celle qu'on découvre après coup. Elles partent dans le même envoi que le
+ * reste : rien n'est déposé sur le stockage si la création échoue.
+ *
+ * Le formulaire reste COURT. Description longue, variantes, seuils et
+ * publication se règlent ensuite sur la fiche : un formulaire de création qui
+ * demande tout d'un coup décourage, et pousse à remplir n'importe quoi pour en
+ * finir.
  */
 
 const INITIAL: EtatCreationProduit = {};
@@ -23,7 +37,7 @@ function Bouton() {
     <button
       type="submit"
       disabled={pending}
-      className="beral-btn-gold rounded-control inline-flex items-center gap-2 px-5 py-2.5 font-semibold disabled:cursor-not-allowed disabled:opacity-60"
+      className="beral-btn-gold rounded-control inline-flex w-full items-center justify-center gap-2 px-5 py-3 font-semibold disabled:cursor-not-allowed disabled:opacity-60"
     >
       <PackagePlus className="h-4 w-4" aria-hidden />
       {pending ? 'Création…' : 'Créer le produit'}
@@ -31,40 +45,69 @@ function Bouton() {
   );
 }
 
+function Section({
+  titre,
+  aide,
+  children,
+}: {
+  readonly titre: string;
+  readonly aide?: string;
+  readonly children: React.ReactNode;
+}) {
+  return (
+    <section className="border-border bg-surface rounded-card shadow-card border p-5">
+      <h2 className="border-gold-400 text-content-muted border-s-2 ps-2 text-[0.65rem] font-semibold tracking-wider uppercase">
+        {titre}
+      </h2>
+      {aide ? <p className="text-content-muted mt-2 text-xs">{aide}</p> : null}
+      <div className="mt-4 space-y-4">{children}</div>
+    </section>
+  );
+}
+
 function Champ({
   id,
   label,
-  type = 'text',
   aide,
   erreur,
   required,
   inputMode,
   defaultValue,
+  suffixe,
 }: {
   readonly id: string;
   readonly label: string;
-  readonly type?: string;
   readonly aide?: string;
   readonly erreur?: string | undefined;
   readonly required?: boolean;
   readonly inputMode?: 'numeric';
   readonly defaultValue?: string;
+  readonly suffixe?: string;
 }) {
   return (
     <div>
       <label htmlFor={id} className="text-content block text-sm font-medium">
         {label}
       </label>
-      <input
-        id={id}
-        name={id}
-        type={type}
-        defaultValue={defaultValue}
-        required={required ?? false}
-        {...(inputMode ? { inputMode } : {})}
-        aria-invalid={erreur ? true : undefined}
-        className="border-border bg-surface text-content rounded-control mt-1 w-full max-w-md border px-3 py-2.5 text-sm"
-      />
+      <div className="relative mt-1">
+        <input
+          id={id}
+          name={id}
+          type="text"
+          defaultValue={defaultValue}
+          required={required ?? false}
+          {...(inputMode ? { inputMode } : {})}
+          aria-invalid={erreur ? true : undefined}
+          className={`border-border bg-surface text-content rounded-control focus:border-gold-400 w-full border px-3 py-2.5 text-sm transition-colors outline-none ${
+            erreur ? 'border-danger-500' : ''
+          } ${suffixe ? 'pe-14' : ''}`}
+        />
+        {suffixe ? (
+          <span className="text-content-muted pointer-events-none absolute inset-y-0 end-3 flex items-center text-xs">
+            {suffixe}
+          </span>
+        ) : null}
+      </div>
       {aide ? <p className="text-content-muted mt-1 text-xs">{aide}</p> : null}
       {erreur ? (
         <p role="alert" className="text-danger-500 mt-1 text-sm">
@@ -77,102 +120,149 @@ function Champ({
 
 export function NewProductForm({
   categories,
+  stockageActif,
 }: {
   readonly categories: readonly { readonly id: string; readonly name: string }[];
+  readonly stockageActif: boolean;
 }) {
   const [etat, action] = useActionState(creerProduitAction, INITIAL);
 
   return (
-    <form action={action} className="space-y-4">
-      <Champ
-        id="sku"
-        label="Référence interne"
-        required
-        defaultValue={etat.valeurs?.['sku'] ?? ''}
-        aide="Votre code produit : lettres, chiffres et tirets. Exemple : ELEC-CAM-Q8"
-        erreur={etat.erreurs?.['sku']}
-      />
+    <form action={action} className="grid items-start gap-5 lg:grid-cols-3">
+      {/* ——— Colonne de gauche : ce qu'est le produit ——— */}
+      <div className="space-y-5 lg:col-span-2">
+        <Section titre="Identité">
+          <Champ
+            id="sku"
+            label="Référence interne"
+            required
+            defaultValue={etat.valeurs?.['sku'] ?? ''}
+            aide="Votre code produit : lettres, chiffres et tirets. Exemple : ELEC-CAM-Q8"
+            erreur={etat.erreurs?.['sku']}
+          />
 
-      <Champ
-        id="nom"
-        label="Nom du produit"
-        required
-        defaultValue={etat.valeurs?.['nom'] ?? ''}
-        aide="Tel qu’il apparaîtra dans la boutique et dans les résultats de recherche."
-        erreur={etat.erreurs?.['nom']}
-      />
+          <Champ
+            id="nom"
+            label="Nom du produit"
+            required
+            defaultValue={etat.valeurs?.['nom'] ?? ''}
+            aide="Tel qu’il apparaîtra dans la boutique et dans les résultats de recherche."
+            erreur={etat.erreurs?.['nom']}
+          />
 
-      <div>
-        <label htmlFor="description" className="text-content block text-sm font-medium">
-          Description
-        </label>
-        <textarea
-          id="description"
-          name="description"
-          rows={5}
-          defaultValue={etat.valeurs?.['description'] ?? ''}
-          className="border-border bg-surface text-content rounded-control mt-1 w-full max-w-md border px-3 py-2.5 text-sm"
-        />
-        <p className="text-content-muted mt-1 text-xs">
-          Facultative à la création — vous pourrez la compléter ensuite.
-        </p>
+          <div>
+            <label htmlFor="description" className="text-content block text-sm font-medium">
+              Description
+            </label>
+            <textarea
+              id="description"
+              name="description"
+              rows={4}
+              defaultValue={etat.valeurs?.['description'] ?? ''}
+              className="border-border bg-surface text-content rounded-control focus:border-gold-400 mt-1 w-full border px-3 py-2.5 text-sm transition-colors outline-none"
+            />
+            <p className="text-content-muted mt-1 text-xs">
+              Facultative à la création — vous pourrez la compléter ensuite.
+            </p>
+          </div>
+        </Section>
+
+        <Section titre="Prix et stock">
+          <div className="grid gap-4 sm:grid-cols-2">
+            <Champ
+              id="prix"
+              label="Prix de vente"
+              inputMode="numeric"
+              required
+              suffixe="Frw"
+              defaultValue={etat.valeurs?.['prix'] ?? ''}
+              aide="En francs rwandais, sans décimale."
+              erreur={etat.erreurs?.['prix']}
+            />
+            <Champ
+              id="stock"
+              label="Stock initial"
+              inputMode="numeric"
+              required
+              defaultValue={etat.valeurs?.['stock'] ?? ''}
+              aide="Quantité réellement disponible."
+              erreur={etat.erreurs?.['stock']}
+            />
+          </div>
+        </Section>
+
+        <Section titre="Classement">
+          <div>
+            <label htmlFor="categoryId" className="text-content block text-sm font-medium">
+              Catégorie
+            </label>
+            <select
+              id="categoryId"
+              name="categoryId"
+              defaultValue={etat.valeurs?.['categoryId'] ?? ''}
+              className="border-border bg-surface text-content rounded-control focus:border-gold-400 mt-1 w-full border px-3 py-2.5 text-sm transition-colors outline-none"
+            >
+              <option value="">— Sans catégorie —</option>
+              {categories.map((c) => (
+                <option key={c.id} value={c.id}>
+                  {c.name}
+                </option>
+              ))}
+            </select>
+            <p className="text-content-muted mt-1 text-xs">
+              Un produit sans catégorie reste introuvable en navigation : il n’apparaît que par la
+              recherche.
+            </p>
+          </div>
+        </Section>
       </div>
 
-      <Champ
-        id="prix"
-        label="Prix de vente (Frw)"
-        inputMode="numeric"
-        required
-        defaultValue={etat.valeurs?.['prix'] ?? '0'}
-        aide="En francs rwandais, sans décimale."
-        erreur={etat.erreurs?.['prix']}
-      />
-
-      <Champ
-        id="stock"
-        label="Stock initial"
-        inputMode="numeric"
-        required
-        defaultValue={etat.valeurs?.['stock'] ?? '0'}
-        aide="Quantité réellement disponible. Modifiable à tout moment."
-        erreur={etat.erreurs?.['stock']}
-      />
-
-      <div>
-        <label htmlFor="categoryId" className="text-content block text-sm font-medium">
-          Catégorie
-        </label>
-        <select
-          id="categoryId"
-          name="categoryId"
-          defaultValue={etat.valeurs?.['categoryId'] ?? ''}
-          className="border-border bg-surface text-content rounded-control mt-1 w-full max-w-md border px-3 py-2.5 text-sm"
+      {/* ——— Colonne de droite : les photos, puis l'envoi ——— */}
+      <div className="space-y-5">
+        <Section
+          titre="Photos"
+          aide={
+            stockageActif
+              ? 'La première photo devient la vignette de la boutique. Vous pourrez en ajouter, en retirer et changer la principale depuis la fiche.'
+              : undefined
+          }
         >
-          <option value="">— Sans catégorie —</option>
-          {categories.map((c) => (
-            <option key={c.id} value={c.id}>
-              {c.name}
-            </option>
-          ))}
-        </select>
-        <p className="text-content-muted mt-1 text-xs">
-          Un produit sans catégorie reste introuvable en navigation : il n’apparaît que par la
-          recherche.
-        </p>
+          {stockageActif ? (
+            <SelecteurPhotos name="photos" label="Choisir les photos" />
+          ) : (
+            <p className="border-warning-500/40 bg-warning-500/5 text-warning-500 rounded-control border px-3 py-2 text-xs">
+              Le stockage des images n’est pas configuré : créez un magasin Blob sur Vercel et
+              renseignez <span className="font-mono">BLOB_READ_WRITE_TOKEN</span>. Le produit peut
+              être créé sans photo, et complété ensuite.
+            </p>
+          )}
+        </Section>
+
+        <div className="space-y-3">
+          <p className="border-border text-content-muted rounded-control border border-dashed px-4 py-3 text-xs">
+            Le produit sera créé <strong className="text-content">en brouillon</strong>, avec une
+            variante par défaut. Il n’apparaît dans la boutique qu’une fois passé « En vente »
+            depuis sa fiche.
+          </p>
+
+          {etat.erreurs?.['general'] ? (
+            <p role="alert" className="text-danger-500 text-sm font-medium">
+              {etat.erreurs['general']}
+            </p>
+          ) : null}
+
+          {etat.erreurs?.['photos'] ? (
+            <p
+              role="alert"
+              className="border-warning-500/40 bg-warning-500/5 text-warning-500 rounded-control border px-3 py-2 text-xs"
+            >
+              {etat.erreurs['photos']}
+            </p>
+          ) : null}
+
+          <Bouton />
+        </div>
       </div>
-
-      {etat.erreurs?.['general'] ? (
-        <p role="alert" className="text-danger-500 text-sm font-medium">
-          {etat.erreurs['general']}
-        </p>
-      ) : null}
-
-      <p className="border-border text-content-muted rounded-control border border-dashed px-4 py-3 text-sm">
-        Le produit sera créé <strong>en brouillon</strong>, avec une variante par défaut. Ajoutez
-        ses photos puis passez-le « En vente » depuis sa fiche.
-      </p>
-
-      <Bouton />
     </form>
   );
 }

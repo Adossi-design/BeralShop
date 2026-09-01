@@ -29,7 +29,7 @@ import {
 import type { OrderStatus } from '@beralshopp/db';
 
 import { getCurrentUser, getRequestContext } from './session';
-import { supprimerFichier, televerserImage } from './stockage';
+import { stockageConfigure, supprimerFichier, televerserImage } from './stockage';
 
 /**
  * Actions d'administration.
@@ -302,8 +302,39 @@ export async function creerProduitAction(
     };
   }
 
+  /**
+   * Les photos partent APRÈS la création, dans le même envoi.
+   *
+   * L'ordre compte : rien n'est déposé sur le stockage tant que le produit
+   * n'existe pas. Une création refusée pour une référence en double ne laisse
+   * donc aucun fichier orphelin, que personne ne viendrait jamais nettoyer.
+   */
+  const photos = formData
+    .getAll('photos')
+    .filter((f): f is File => f instanceof File && f.size > 0);
+
+  let echecs = 0;
+  if (photos.length > 0 && stockageConfigure()) {
+    for (const photo of photos) {
+      const depot = await televerserImage(photo, `produits/${resultat.productId}`);
+      if (!depot.ok) {
+        echecs += 1;
+        continue;
+      }
+      await ajouterImage(resultat.productId, depot.url, '');
+    }
+  }
+
   revalidatePath('/admin/produits');
-  redirect(`/admin/produits/${resultat.productId}?cree=1`);
+  // La boutique affiche ces images : sans cette invalidation, le propriétaire
+  // les verrait dans l'administration mais pas sur le site avant 5 minutes.
+  if (photos.length > echecs) revalidatePath('/', 'layout');
+
+  /* Le compte d'échecs voyage dans l'URL : la fiche du produit ouvre alors sur
+     un avertissement pointant la section « Photos », où l'envoi peut être
+     refait et où le message d'erreur exact s'affiche. */
+  const suffixe = echecs > 0 ? `&photosEchouees=${echecs}` : '';
+  redirect(`/admin/produits/${resultat.productId}?cree=1${suffixe}`);
 }
 
 /* ═══════════════════ Édition, retrait et variantes ═══════════════════ */
