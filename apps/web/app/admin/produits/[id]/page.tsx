@@ -3,11 +3,12 @@ import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import { ChevronLeft, ExternalLink } from 'lucide-react';
 
-import { listerImages } from '@beralshopp/core';
+import { etatRetrait, listerImages, listerVariantes } from '@beralshopp/core';
 import { prisma } from '@beralshopp/db';
 
 import { stockageConfigure } from '@/lib/stockage';
 
+import { ProductRemoval, ProductTextForm, VariantManager } from '@/components/admin/product-editor';
 import { ProductImages } from '@/components/admin/product-images';
 import { ProductPricingForm, StockForm } from '@/components/admin/product-forms';
 
@@ -41,6 +42,7 @@ export default async function AdminProductPage({ params }: PageProps) {
       slug: true,
       status: true,
       basePriceMinor: true,
+      currency: true,
       compareAtPriceMinor: true,
       salesCount: true,
       publishedAt: true,
@@ -65,7 +67,11 @@ export default async function AdminProductPage({ params }: PageProps) {
 
   if (!product) notFound();
 
-  const images = await listerImages(product.id);
+  const [images, variantesAdmin, retrait] = await Promise.all([
+    listerImages(product.id),
+    listerVariantes(product.id),
+    etatRetrait(product.id),
+  ]);
 
   const name = product.translations[0]?.name ?? product.sku;
 
@@ -141,14 +147,37 @@ export default async function AdminProductPage({ params }: PageProps) {
       </div>
 
       <section className="border-border bg-surface rounded-card mt-4 border p-5">
-        <h2 className="text-content mb-2 font-semibold">Description</h2>
-        <p className="text-content-muted text-sm whitespace-pre-line">
-          {product.translations[0]?.description ?? 'Aucune description.'}
+        <h2 className="text-content mb-4 font-semibold">Nom et description</h2>
+        <ProductTextForm
+          productId={product.id}
+          nom={product.translations[0]?.name ?? ''}
+          description={product.translations[0]?.description ?? ''}
+        />
+      </section>
+
+      <section className="border-border bg-surface rounded-card mt-4 border p-5">
+        <h2 className="text-content font-semibold">Variantes</h2>
+        <p className="text-content-muted mt-1 mb-4 text-sm">
+          Couleurs, tailles, capacités. Chaque variante a son propre stock et peut coûter plus ou
+          moins cher que le prix de base.
         </p>
-        <p className="text-content-muted mt-4 text-xs">
-          L&apos;édition du nom, de la description et des variantes arrive avec l&apos;éditeur
-          complet. Prix, stock, publication et photos sont modifiables dès maintenant.
-        </p>
+        <VariantManager
+          productId={product.id}
+          variantes={variantesAdmin}
+          devise={product.currency}
+        />
+      </section>
+
+      <section className="border-danger-500/40 bg-danger-500/5 rounded-card mt-4 border p-5">
+        <h2 className="text-content font-semibold">Retirer de la vente</h2>
+        <div className="mt-4">
+          <ProductRemoval
+            productId={product.id}
+            archive={product.status === 'ARCHIVED'}
+            commandes={retrait.commandes}
+            suppressionPossible={retrait.suppressionPossible}
+          />
+        </div>
       </section>
     </>
   );

@@ -12,7 +12,13 @@ import {
   adminUpdateProductPricing,
   adminUpdateStock,
   ajouterImage,
+  ajouterVariante,
+  archiverProduit,
+  basculerVariante,
   creerProduit,
+  modifierTextes,
+  supprimerProduit,
+  supprimerVariante,
   definirImagePrincipale,
   supprimerImage,
 } from '@beralshopp/core';
@@ -294,4 +300,112 @@ export async function creerProduitAction(
 
   revalidatePath('/admin/produits');
   redirect(`/admin/produits/${resultat.productId}?cree=1`);
+}
+
+/* ═══════════════════ Édition, retrait et variantes ═══════════════════ */
+
+export async function modifierTextesAction(
+  _precedent: AdminActionState,
+  formData: FormData,
+): Promise<AdminActionState> {
+  const actor = await requireActor();
+  if (!actor) return { error: 'Action réservée à l’administration.' };
+
+  const productId = String(formData.get('productId') ?? '');
+  const resultat = await modifierTextes(
+    productId,
+    String(formData.get('nom') ?? ''),
+    String(formData.get('description') ?? ''),
+  );
+
+  if (!resultat.ok) return { error: resultat.message };
+
+  revalidatePath(`/admin/produits/${productId}`);
+  revalidatePath('/', 'layout');
+  return { success: 'Nom et description enregistrés.' };
+}
+
+export async function archiverProduitAction(
+  _precedent: AdminActionState,
+  formData: FormData,
+): Promise<AdminActionState> {
+  const actor = await requireActor();
+  if (!actor) return { error: 'Action réservée à l’administration.' };
+
+  const productId = String(formData.get('productId') ?? '');
+  const archiver = formData.get('archiver') === '1';
+
+  const resultat = await archiverProduit(productId, archiver);
+  if (!resultat.ok) return { error: resultat.message };
+
+  revalidatePath(`/admin/produits/${productId}`);
+  revalidatePath('/', 'layout');
+  return { success: archiver ? 'Produit archivé.' : 'Produit remis en brouillon.' };
+}
+
+/**
+ * Supprime définitivement, puis renvoie vers la liste.
+ *
+ * La redirection n'a lieu QU'EN CAS DE SUCCÈS : après un refus, le propriétaire
+ * doit rester sur la fiche pour lire pourquoi et choisir l'archivage.
+ */
+export async function supprimerProduitAction(
+  _precedent: AdminActionState,
+  formData: FormData,
+): Promise<AdminActionState> {
+  const actor = await requireActor();
+  if (!actor) return { error: 'Action réservée à l’administration.' };
+
+  const resultat = await supprimerProduit(String(formData.get('productId') ?? ''));
+  if (!resultat.ok) return { error: resultat.message };
+
+  revalidatePath('/admin/produits');
+  revalidatePath('/', 'layout');
+  redirect('/admin/produits?supprime=1');
+}
+
+export async function ajouterVarianteAction(
+  _precedent: AdminActionState,
+  formData: FormData,
+): Promise<AdminActionState> {
+  const actor = await requireActor();
+  if (!actor) return { error: 'Action réservée à l’administration.' };
+
+  const productId = String(formData.get('productId') ?? '');
+  const delta = Number(String(formData.get('delta') ?? '0').replace(/\s/g, ''));
+  const stock = Number(String(formData.get('stock') ?? '0').replace(/\s/g, ''));
+
+  const resultat = await ajouterVariante(
+    productId,
+    String(formData.get('attribut') ?? ''),
+    String(formData.get('valeur') ?? ''),
+    Number.isFinite(delta) ? Math.round(delta) : Number.NaN,
+    Number.isFinite(stock) ? Math.round(stock) : -1,
+  );
+
+  if (!resultat.ok) return { error: resultat.message };
+
+  revalidatePath(`/admin/produits/${productId}`);
+  revalidatePath('/', 'layout');
+  return { success: 'Variante ajoutée.' };
+}
+
+export async function basculerVarianteAction(formData: FormData): Promise<void> {
+  const actor = await requireActor();
+  if (!actor) return;
+
+  await basculerVariante(String(formData.get('variantId') ?? ''), formData.get('actif') === '1');
+
+  revalidatePath(`/admin/produits/${String(formData.get('productId') ?? '')}`);
+  revalidatePath('/', 'layout');
+}
+
+export async function supprimerVarianteAction(formData: FormData): Promise<void> {
+  const actor = await requireActor();
+  if (!actor) return;
+
+  await supprimerVariante(String(formData.get('variantId') ?? ''));
+
+  revalidatePath(`/admin/produits/${String(formData.get('productId') ?? '')}`);
+  revalidatePath('/', 'layout');
 }
