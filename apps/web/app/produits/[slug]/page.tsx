@@ -126,8 +126,22 @@ export default async function ProductPage({ params }: PageProps) {
       />
 
       <div className="mt-6 grid gap-8 lg:grid-cols-2">
-        {/* ——— Galerie ——— */}
-        <div>
+        {/* ——— Galerie ———
+            `min-w-0` EST INDISPENSABLE. Une case de grille refuse par défaut de
+            devenir plus étroite que son contenu, et le contenu est ici une
+            rangée de onze photos : la colonne se calait sur 784 px quelle que
+            soit la taille de l'écran, et la page débordait de 480 px à
+            l'horizontale sur un téléphone de 320 px.
+
+            `max-w-[min(28rem,70svh)]` tient la deuxième moitié du problème. Une
+            image carrée occupant toute la largeur d'une tablette fait 720 px de
+            haut : le bouton « Ajouter au panier » tombait sous la ligne de
+            flottaison, et sur un téléphone tenu à l'horizontale la photo était
+            deux fois plus haute que l'écran. La borne prend la plus petite des
+            deux contraintes — largeur raisonnable, ou 70 % de la hauteur
+            visible — et ne s'applique jamais sur un téléphone tenu droit, où
+            la largeur de l'écran est déjà la plus petite des trois. */}
+        <div className="mx-auto w-full max-w-[min(28rem,70svh)] min-w-0 lg:mx-0 lg:max-w-none">
           <ProductGallery images={product.images} name={product.name} />
         </div>
 

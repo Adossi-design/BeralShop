@@ -77,8 +77,8 @@ export function ProductGallery({
   const unique = images.length === 1;
 
   return (
-    <div>
-      <div className="group relative">
+    <div className="w-full min-w-0">
+      <div className="group relative w-full">
         <ul
           ref={piste}
           /* `aria-roledescription` dit ce que c'est ; `tabIndex` rend la zone
@@ -87,10 +87,18 @@ export function ProductGallery({
           aria-roledescription="galerie"
           aria-label={`Photos de ${name}`}
           tabIndex={0}
-          className="rounded-card border-border bg-surface-muted flex snap-x snap-mandatory [scrollbar-width:none] overflow-x-auto border focus-visible:outline-2 focus-visible:outline-offset-2 [&::-webkit-scrollbar]:hidden"
+          className="rounded-card border-border bg-surface-muted flex w-full snap-x snap-mandatory [scrollbar-width:none] overflow-x-auto border focus-visible:outline-2 focus-visible:outline-offset-2 [&::-webkit-scrollbar]:hidden"
         >
+          {/* `basis-full` plutôt que `w-full` seul : dans une rangée flexible,
+              une largeur en pourcentage se résout contre une largeur de parent
+              qui dépend elle-même du contenu — un raisonnement circulaire dont
+              les navigateurs sortent en prenant beaucoup trop large. La base
+              flexible, elle, se résout contre la ligne. */}
           {images.map((image, index) => (
-            <li key={image.url} className="relative aspect-square w-full shrink-0 snap-center">
+            <li
+              key={image.url}
+              className="relative aspect-square w-full shrink-0 basis-full snap-center"
+            >
               <ProductImage
                 image={image}
                 name={index === 0 ? name : `${name} — vue ${index + 1}`}

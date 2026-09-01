@@ -454,3 +454,38 @@ body:has([data-espace='admin']) > nav[aria-label='Navigation principale'] {
 body:has([data-espace='admin']) {
   padding-bottom: 0;
 }
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   ÉCRANS TRÈS BAS — téléphone tenu à l'horizontale
+
+   Mesuré sur 844 × 390 : l'en-tête consommait 280 px des 390 disponibles —
+   logo en grand, recherche, barre des rayons, fil d'Ariane — et il ne restait
+   que soixante-dix pixels pour la marchandise. Le visiteur voyait un bandeau,
+   pas une boutique.
+
+   La hauteur est reprise sur le décor, jamais sur le contenu : le logo passe à
+   la taille qu'il a déjà sur ordinateur, et les bandes de l'en-tête se
+   resserrent. Aucun élément n'est masqué — sur un écran bas on cherche de la
+   place, pas moins de fonctions.
+
+   Deux conditions : peu de hauteur ET moins de 1024 px de large. Un ordinateur
+   portable de 1366 × 768 n'est pas concerné, et le rendu de la boutique
+   au-dessus de 1024 px reste intact.
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+@media (max-height: 500px) and (max-width: 1023.98px) {
+  a[aria-label='Beralshopp, accueil'] img {
+    height: 2.25rem;
+    width: auto;
+  }
+
+  header nav[aria-label='Catégories'] ul {
+    padding-top: 0.25rem;
+    padding-bottom: 0.25rem;
+  }
+
+  nav[aria-label='Accès rapide aux rubriques'] {
+    padding-top: 0.25rem;
+    padding-bottom: 0.25rem;
+  }
+}
