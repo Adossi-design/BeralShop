@@ -55,6 +55,12 @@ export interface DashboardStats {
   /** Variantes sous leur seuil d'alerte. */
   readonly lowStockVariants: number;
 
+  /**
+   * Meilleures ventes DEPUIS L'OUVERTURE, et non sur une fenêtre glissante :
+   * la requête ne filtre aucune date. Le libellé de l'écran doit le refléter —
+   * un intitulé « 30 jours » posé sur des chiffres cumulés donnerait une lecture
+   * fausse de ce qui se vend en ce moment.
+   */
   readonly topProducts: readonly TopProduct[];
 }
 
@@ -125,17 +131,34 @@ export async function getDashboardStats(): Promise<DashboardStats> {
     }),
   ]);
 
-  // Le stock vendable compare deux colonnes : Prisma ne sait pas l'exprimer dans un
-  // `count`, d'où ces deux requêtes brutes.
+  /**
+   * Le stock vendable compare deux colonnes : Prisma ne sait pas l'exprimer dans
+   * un `count`, d'où ces deux requêtes brutes.
+   *
+   * ⚠️ LA JOINTURE SUR products N'EST PAS DÉCORATIVE. Sans elle, on comptait les
+   * variantes de produits en brouillon ou archivés — invendables par définition.
+   * Le tableau de bord annonçait « 2 variantes en rupture » pour des articles que
+   * personne ne pouvait acheter. Un indicateur qui compte du bruit finit ignoré,
+   * et le jour où une VRAIE rupture survient, plus personne ne le regarde.
+   */
   const [outOfStock] = await prisma.$queryRaw<{ n: bigint }[]>`
-    SELECT count(*) AS n FROM product_variants
-    WHERE "isActive" AND "stockQuantity" - "reservedQuantity" <= 0
+    SELECT count(*) AS n
+    FROM product_variants v
+    JOIN products p ON p.id = v."productId"
+    WHERE v."isActive"
+      AND p.status = 'ACTIVE'
+      AND p."publishedAt" IS NOT NULL
+      AND v."stockQuantity" - v."reservedQuantity" <= 0
   `;
   const [lowStock] = await prisma.$queryRaw<{ n: bigint }[]>`
-    SELECT count(*) AS n FROM product_variants
-    WHERE "isActive"
-      AND "stockQuantity" - "reservedQuantity" > 0
-      AND "stockQuantity" - "reservedQuantity" <= "lowStockThreshold"
+    SELECT count(*) AS n
+    FROM product_variants v
+    JOIN products p ON p.id = v."productId"
+    WHERE v."isActive"
+      AND p.status = 'ACTIVE'
+      AND p."publishedAt" IS NOT NULL
+      AND v."stockQuantity" - v."reservedQuantity" > 0
+      AND v."stockQuantity" - v."reservedQuantity" <= v."lowStockThreshold"
   `;
 
   return {

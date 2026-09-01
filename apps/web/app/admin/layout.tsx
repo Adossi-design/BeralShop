@@ -41,7 +41,14 @@ export default async function AdminLayout({ children }: { children: React.ReactN
   const user = await requireStaff('/admin');
 
   return (
-    <div className="flex min-h-screen flex-col lg:flex-row">
+    /* L'attribut data-espace="admin" est lu par globals.css pour masquer la
+       chrome de la boutique — barre de recherche, menu des rayons, pied de page,
+       bouton WhatsApp, navigation basse. Elle vient du layout RACINE, qui
+       s'applique à toutes les pages. Sans ce marqueur, l'administration
+       ressemble à la boutique avec un menu greffé : on ne sait plus si l'on
+       agit sur le site ou si on le consulte, et une erreur de contexte ici
+       coûte cher. */
+    <div data-espace="admin" className="bg-surface-muted flex min-h-screen flex-col lg:flex-row">
       {/* ——— Barre latérale ——— */}
       <aside className="beral-surface-brand lg:min-h-screen lg:w-60 lg:shrink-0">
         <div className="flex items-center gap-2 px-4 py-4">

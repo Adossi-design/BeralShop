@@ -408,3 +408,33 @@
     width: 38%;
   }
 }
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   ESPACE D'ADMINISTRATION
+
+   L'administration n'est pas une page de la boutique : c'est un poste de
+   pilotage. Elle ne doit donc porter aucun élément destiné aux clients —
+   ni barre de recherche produits, ni menu des rayons, ni pied de page
+   commercial, ni bouton WhatsApp, ni navigation basse.
+
+   Ces éléments viennent du layout RACINE, qui s'applique à toutes les pages.
+   Les retirer proprement demanderait de scinder l'application en deux groupes
+   de routes, soit le déplacement de vingt et un dossiers — un chantier lourd
+   pour un problème d'affichage. On les masque donc depuis ici, à partir du
+   marqueur `data-espace="admin"` posé par le layout d'administration.
+
+   `body:has(...)` remonte du contenu vers ses frères : c'est ce qui permet à
+   une page de masquer une chrome déclarée AU-DESSUS d'elle.
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+body:has([data-espace='admin']) > header,
+body:has([data-espace='admin']) > footer,
+body:has([data-espace='admin']) > a[aria-label='Nous contacter sur WhatsApp'],
+body:has([data-espace='admin']) > nav[aria-label='Navigation principale'] {
+  display: none;
+}
+
+/* La réserve de hauteur prévue pour la barre basse n'a plus lieu d'être. */
+body:has([data-espace='admin']) {
+  padding-bottom: 0;
+}
