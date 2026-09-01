@@ -1,7 +1,7 @@
-import Link from 'next/link';
 import { DatabaseZap, LogOut, MapPin, Package, ShieldCheck, User } from 'lucide-react';
 
 import { LegalLinks } from '@/components/legal-links';
+import { LienActif } from '@/components/lien-actif';
 import { logoutAction } from '@/lib/auth-actions';
 import { requireUser } from '@/lib/session';
 
@@ -42,13 +42,15 @@ export default async function AccountLayout({ children }: { children: React.Reac
             <ul className="space-y-1">
               {NAV.map((item) => (
                 <li key={item.href}>
-                  <Link
+                  <LienActif
                     href={item.href}
-                    className="text-content hover:bg-surface-muted hover:text-gold-700 rounded-control flex items-center gap-2.5 px-3 py-2.5 text-sm transition-colors"
+                    exact={item.href === '/compte'}
+                    variante="clair"
+                    base="rounded-control flex items-center gap-2.5 px-3 py-2.5 text-sm transition-colors"
                   >
                     <item.icon className="h-4 w-4 shrink-0" aria-hidden />
                     {item.label}
-                  </Link>
+                  </LienActif>
                 </li>
               ))}
             </ul>

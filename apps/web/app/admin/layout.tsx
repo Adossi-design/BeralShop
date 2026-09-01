@@ -11,6 +11,7 @@ import {
 } from 'lucide-react';
 
 import { BeralshoppMark } from '@/components/beralshopp-logo';
+import { LienActif } from '@/components/lien-actif';
 import { logoutAction } from '@/lib/auth-actions';
 import { requireStaff } from '@/lib/session';
 
@@ -74,13 +75,18 @@ export default async function AdminLayout({ children }: { children: React.ReactN
           <ul className="flex gap-1 overflow-x-auto lg:flex-col lg:overflow-visible">
             {NAV.map((item) => (
               <li key={item.href}>
-                <Link
+                {/* `exact` sur /admin seulement : c'est le prefixe de tous les
+                    autres ecrans, et sans lui « Tableau de bord » resterait
+                    allume en permanence. */}
+                <LienActif
                   href={item.href}
-                  className="text-ink-200 hover:bg-ink-800 hover:text-gold-300 rounded-control flex items-center gap-2.5 px-3 py-2.5 text-sm whitespace-nowrap transition-colors"
+                  exact={item.href === '/admin'}
+                  variante="sombre"
+                  base="rounded-control flex items-center gap-2.5 px-3 py-2.5 text-sm whitespace-nowrap transition-colors"
                 >
                   <item.icon className="h-4 w-4 shrink-0" aria-hidden />
                   {item.label}
-                </Link>
+                </LienActif>
               </li>
             ))}
           </ul>

@@ -5,6 +5,8 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { Home, LayoutGrid, Search, ShoppingCart, User } from 'lucide-react';
 
+import { FOND_ACTIF } from '@/components/lien-actif';
+
 /**
  * Barre de navigation basse — TÉLÉPHONE ET TABLETTE UNIQUEMENT.
  *
@@ -79,15 +81,22 @@ export function MobileTabBar() {
               <Link
                 href={onglet.href}
                 aria-current={actif ? 'page' : undefined}
-                className={`flex flex-col items-center gap-0.5 py-2 text-[0.65rem] transition-colors ${
-                  actif ? 'text-gold-300' : 'text-ink-300'
+                /* Pastille doree plutot qu'un simple texte colore : sur un
+                   telephone tenu a bout de bras, une nuance de teinte entre cinq
+                   libelles de 10 px ne se voit pas. */
+                className={`rounded-control mx-1 my-1 flex flex-col items-center gap-0.5 py-2 text-[0.65rem] transition-colors ${
+                  actif ? FOND_ACTIF : 'text-ink-300'
                 }`}
               >
                 <span className="relative">
                   <onglet.icon className="h-5 w-5" aria-hidden />
                   {onglet.href === '/panier' && cartCount > 0 ? (
                     <span
-                      className="bg-gold-400 text-ink-950 absolute -end-2 -top-2 flex h-4 min-w-4 items-center justify-center rounded-full px-1 text-[0.65rem] font-bold"
+                      /* Sur l'onglet actif, la pastille du panier serait doree
+                         sur fond dore : invisible. On inverse. */
+                      className={`absolute -end-2 -top-2 flex h-4 min-w-4 items-center justify-center rounded-full px-1 text-[0.65rem] font-bold ${
+                        actif ? 'bg-ink-950 text-gold-300' : 'bg-gold-400 text-ink-950'
+                      }`}
                       aria-hidden
                     >
                       {cartCount > 99 ? '99+' : cartCount}
@@ -106,9 +115,9 @@ export function MobileTabBar() {
         <li className="flex-1">
           <Link
             href={hrefCompte}
-            aria-current={estActif('/compte') ? 'page' : undefined}
-            className={`flex flex-col items-center gap-0.5 py-2 text-[0.65rem] transition-colors ${
-              estActif('/compte') ? 'text-gold-300' : 'text-ink-300'
+            aria-current={estActif(hrefCompte) ? 'page' : undefined}
+            className={`rounded-control mx-1 my-1 flex flex-col items-center gap-0.5 py-2 text-[0.65rem] transition-colors ${
+              estActif(hrefCompte) ? FOND_ACTIF : 'text-ink-300'
             }`}
           >
             <User className="h-5 w-5" aria-hidden />

@@ -4,6 +4,7 @@ import { listCategoryTree } from '@beralshopp/core';
 
 import { HeaderAccount } from './header-account';
 import { SearchBox } from './search-box';
+import { LienActif } from '@/components/lien-actif';
 
 /**
  * En-tête du site.
@@ -91,21 +92,24 @@ export async function SiteHeader() {
         <div className="beral-container">
           <ul className="flex [scrollbar-width:none] gap-1 overflow-x-auto py-2 text-sm [&::-webkit-scrollbar]:hidden">
             <li>
-              <Link
+              <LienActif
                 href="/categories"
-                className="text-gold-300 hover:bg-ink-800 block rounded-full px-3 py-1.5 font-medium whitespace-nowrap transition-colors"
+                exact
+                variante="sombre"
+                base="block rounded-full px-3 py-1.5 font-medium whitespace-nowrap transition-colors"
               >
                 Tout
-              </Link>
+              </LienActif>
             </li>
             {categories.map((category) => (
               <li key={category.slug}>
-                <Link
+                <LienActif
                   href={`/categories/${category.slug}`}
-                  className="text-ink-300 hover:bg-ink-800 hover:text-gold-200 block rounded-full px-3 py-1.5 whitespace-nowrap transition-colors"
+                  variante="sombre"
+                  base="block rounded-full px-3 py-1.5 whitespace-nowrap transition-colors"
                 >
                   {category.name}
-                </Link>
+                </LienActif>
               </li>
             ))}
           </ul>
