@@ -7,7 +7,7 @@ import { formatMoney, toMajor } from '@beralshopp/shared';
 
 import { getProduct } from '@/lib/request-cache';
 import { Breadcrumb } from '@/components/catalog/breadcrumb';
-import { ProductImage } from '@/components/catalog/product-image';
+import { ProductGallery } from '@/components/catalog/product-gallery';
 import { ProductRail } from '@/components/catalog/product-grid';
 import { StarRating } from '@/components/catalog/star-rating';
 import { VariantPicker } from '@/components/catalog/variant-picker';
@@ -128,31 +128,7 @@ export default async function ProductPage({ params }: PageProps) {
       <div className="mt-6 grid gap-8 lg:grid-cols-2">
         {/* ——— Galerie ——— */}
         <div>
-          <div className="bg-surface-muted border-border rounded-card relative aspect-square overflow-hidden border">
-            <ProductImage
-              image={product.images[0] ?? null}
-              name={product.name}
-              sizes="(max-width: 1024px) 100vw, 45vw"
-              priority
-            />
-          </div>
-
-          {product.images.length > 1 ? (
-            <ul className="mt-3 grid grid-cols-5 gap-2">
-              {product.images.slice(0, 5).map((image, index) => (
-                <li
-                  key={image.url}
-                  className="bg-surface-muted border-border relative aspect-square overflow-hidden rounded-lg border"
-                >
-                  <ProductImage
-                    image={image}
-                    name={`${product.name} — vue ${index + 1}`}
-                    sizes="80px"
-                  />
-                </li>
-              ))}
-            </ul>
-          ) : null}
+          <ProductGallery images={product.images} name={product.name} />
         </div>
 
         {/* ——— Informations et achat ——— */}
