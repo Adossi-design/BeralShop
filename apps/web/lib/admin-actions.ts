@@ -13,6 +13,10 @@ import {
   adminUpdateStock,
   ajouterImage,
   ajouterVariante,
+  basculerCategorie,
+  creerCategorie,
+  renommerCategorie,
+  supprimerCategorie,
   archiverProduit,
   basculerVariante,
   creerProduit,
@@ -408,4 +412,68 @@ export async function supprimerVarianteAction(formData: FormData): Promise<void>
 
   revalidatePath(`/admin/produits/${String(formData.get('productId') ?? '')}`);
   revalidatePath('/', 'layout');
+}
+
+/* ═══════════════════════════ Catégories ═══════════════════════════ */
+
+export async function creerCategorieAction(
+  _precedent: AdminActionState,
+  formData: FormData,
+): Promise<AdminActionState> {
+  const actor = await requireActor();
+  if (!actor) return { error: 'Action réservée à l’administration.' };
+
+  const resultat = await creerCategorie(
+    String(formData.get('nom') ?? ''),
+    String(formData.get('parentId') ?? '') || null,
+    String(formData.get('iconName') ?? '') || null,
+  );
+  if (!resultat.ok) return { error: resultat.message };
+
+  revalidatePath('/admin/categories');
+  revalidatePath('/', 'layout');
+  return { success: 'Catégorie créée.' };
+}
+
+export async function renommerCategorieAction(
+  _precedent: AdminActionState,
+  formData: FormData,
+): Promise<AdminActionState> {
+  const actor = await requireActor();
+  if (!actor) return { error: 'Action réservée à l’administration.' };
+
+  const resultat = await renommerCategorie(
+    String(formData.get('categoryId') ?? ''),
+    String(formData.get('nom') ?? ''),
+  );
+  if (!resultat.ok) return { error: resultat.message };
+
+  revalidatePath('/admin/categories');
+  revalidatePath('/', 'layout');
+  return { success: 'Nom enregistré.' };
+}
+
+export async function basculerCategorieAction(formData: FormData): Promise<void> {
+  const actor = await requireActor();
+  if (!actor) return;
+
+  await basculerCategorie(String(formData.get('categoryId') ?? ''), formData.get('actif') === '1');
+
+  revalidatePath('/admin/categories');
+  revalidatePath('/', 'layout');
+}
+
+export async function supprimerCategorieAction(
+  _precedent: AdminActionState,
+  formData: FormData,
+): Promise<AdminActionState> {
+  const actor = await requireActor();
+  if (!actor) return { error: 'Action réservée à l’administration.' };
+
+  const resultat = await supprimerCategorie(String(formData.get('categoryId') ?? ''));
+  if (!resultat.ok) return { error: resultat.message };
+
+  revalidatePath('/admin/categories');
+  revalidatePath('/', 'layout');
+  return { success: 'Catégorie supprimée.' };
 }

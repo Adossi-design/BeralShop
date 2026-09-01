@@ -41,6 +41,30 @@ function env(name: string): string {
   return (process.env[name] ?? '').trim();
 }
 
+/**
+ * Lit une valeur dans `.env.production.local` sans la charger dans le processus.
+ * Ce fichier contient les secrets de PRODUCTION : les injecter dans
+ * l'environnement d'un script de développement serait le meilleur moyen de les
+ * voir servir par erreur.
+ */
+function lireSecretProduction(nom: string): string {
+  const chemin = resolve(dirname(fileURLToPath(import.meta.url)), '../../../.env.production.local');
+  try {
+    for (const ligne of readFileSync(chemin, 'utf8').split(/\r?\n/)) {
+      const separateur = ligne.indexOf('=');
+      if (separateur > 0 && ligne.slice(0, separateur).trim() === nom) {
+        return ligne
+          .slice(separateur + 1)
+          .trim()
+          .replace(/^["']|["']$/g, '');
+      }
+    }
+  } catch {
+    // Fichier absent : le contrôle le signalera proprement.
+  }
+  return '';
+}
+
 /** Cadence attendue en production : toutes les 10 minutes. */
 const CADENCE_ATTENDUE = '*/10 * * * *';
 
@@ -159,10 +183,19 @@ async function checkEnvironment(): Promise<void> {
     ok(`Coordonnées — ${BOUTIQUE.whatsapp} · ${BOUTIQUE.email}`);
   }
 
-  if (!env('NEXT_PUBLIC_IMAGE_HOST')) {
-    warn('NEXT_PUBLIC_IMAGE_HOST', 'absent — aucune image distante ne pourra être affichée');
+  /**
+   * Stockage des photos. Remplace l'ancien contrôle de NEXT_PUBLIC_IMAGE_HOST,
+   * devenu sans objet : les photos ne viennent plus d'un hôte distant réglé par
+   * variable, mais du magasin Blob, dont le domaine est autorisé en dur dans
+   * next.config.
+   */
+  if (!env('BLOB_READ_WRITE_TOKEN')) {
+    warn(
+      'BLOB_READ_WRITE_TOKEN',
+      'absent — l’administration ne pourra pas téléverser de photo de produit',
+    );
   } else {
-    ok('Hôte des images', env('NEXT_PUBLIC_IMAGE_HOST'));
+    ok('Stockage des photos configuré');
   }
 
   if (!env('RESEND_API_KEY')) {
@@ -277,12 +310,90 @@ async function checkDatabase(): Promise<void> {
   }
 }
 
+/**
+ * Contrôle de la PRODUCTION, via /api/v1/diagnostic.
+ *
+ * ⚠️ POURQUOI CE MODE EXISTE.
+ * Sans lui, ce script lit l'environnement de la machine qui l'exécute — celle du
+ * développeur. Il annonçait donc « NEXT_PUBLIC_SITE_URL vaut localhost » et
+ * « CRON_SECRET absent » alors que ces valeurs sont parfaitement réglées sur
+ * Vercel. Trois faux bloquants sur quatre : un outil qui crie au loup finit par
+ * être ignoré le jour où il a raison.
+ *
+ *     pnpm preflight -- --production
+ */
+async function checkProduction(url: string): Promise<void> {
+  console.log('\nProduction — ' + url);
+
+  /**
+   * Le secret de production vit dans `.env.production.local`, que `load-env`
+   * ne charge pas — et c'est voulu : ce fichier ne doit jamais s'appliquer par
+   * accident à un environnement de développement. On le lit donc explicitement,
+   * uniquement pour ce contrôle.
+   */
+  const secret = env('CRON_SECRET') || lireSecretProduction('CRON_SECRET');
+  if (!secret) {
+    block(
+      'CRON_SECRET',
+      'introuvable dans .env.local ni .env.production.local — impossible d’interroger le diagnostic en ligne',
+    );
+    return;
+  }
+
+  let donnees: {
+    pret?: boolean;
+    problemes?: string[];
+    site?: { url?: string | null; region?: string | null };
+    base?: { joignable?: boolean; produitsPublies?: number | null };
+  };
+
+  try {
+    const reponse = await fetch(url.replace(/\/+$/, '') + '/api/v1/diagnostic', {
+      headers: { authorization: 'Bearer ' + secret },
+      signal: AbortSignal.timeout(20000),
+    });
+    if (reponse.status === 401) {
+      block('Diagnostic en ligne', 'refusé — le CRON_SECRET local diffère de celui de Vercel');
+      return;
+    }
+    if (!reponse.ok) {
+      block('Diagnostic en ligne', 'HTTP ' + reponse.status);
+      return;
+    }
+    donnees = await reponse.json();
+  } catch {
+    block('Diagnostic en ligne', 'site injoignable');
+    return;
+  }
+
+  for (const probleme of donnees.problemes ?? []) block('Production', probleme);
+
+  if ((donnees.problemes ?? []).length === 0) {
+    ok('Configuration en ligne complète');
+  }
+  if (donnees.site?.region) ok('Région des fonctions', donnees.site.region);
+  if (donnees.base?.joignable) {
+    ok(
+      'Base joignable depuis la production',
+      String(donnees.base.produitsPublies ?? '?') + ' produit(s) publié(s)',
+    );
+  }
+}
 async function main(): Promise<void> {
   console.log('\n▶ Contrôle avant mise en ligne — Beralshopp');
 
-  await checkEnvironment();
-  await checkPesapal();
-  await checkDatabase();
+  const enProduction = process.argv.includes('--production');
+
+  if (enProduction) {
+    const url = env('NEXT_PUBLIC_SITE_URL_PRODUCTION') || 'https://beralshopp.vercel.app';
+    await checkProduction(url);
+    // La cadence des tâches se lit dans le dépôt, pas en ligne : elle reste vérifiée.
+    verifierCadenceDesTaches();
+  } else {
+    await checkEnvironment();
+    await checkPesapal();
+    await checkDatabase();
+  }
 
   console.log('');
   if (blockers > 0) {

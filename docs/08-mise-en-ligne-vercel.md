@@ -182,6 +182,24 @@ Toujours appliquer la migration **avant** de déployer le code qui en dépend.
 
 ---
 
+## 7 bis. Vérifier la configuration EN LIGNE
+
+```bash
+pnpm preflight -- --production
+```
+
+Interroge `/api/v1/diagnostic` sur le site déployé et rapporte ce qui est
+**réellement** configuré : mode Pesapal, présence de l'IPN, secrets, région,
+nombre de produits publiés.
+
+> **Pourquoi ce mode existe.** Sans lui, `pnpm preflight` lit l'environnement de
+> la machine qui l'exécute — celle du développeur. Il annonçait « URL vaut
+> localhost » et « CRON_SECRET absent » alors que ces valeurs sont parfaitement
+> réglées sur Vercel : trois faux bloquants sur quatre. Un outil qui crie au loup
+> finit par être ignoré le jour où il a raison.
+
+---
+
 ## 8. Ce qui reste bloquant avant d'ouvrir au public
 
 Mettre le site en ligne et **ouvrir la boutique** sont deux choses différentes. Le site

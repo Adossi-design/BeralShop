@@ -2,6 +2,7 @@ import Link from 'next/link';
 import {
   ClipboardList,
   CreditCard,
+  FolderTree,
   LayoutDashboard,
   LogOut,
   Package,
@@ -31,6 +32,7 @@ const NAV = [
   { href: '/admin', label: 'Tableau de bord', icon: LayoutDashboard },
   { href: '/admin/commandes', label: 'Commandes', icon: ClipboardList },
   { href: '/admin/produits', label: 'Produits', icon: Package },
+  { href: '/admin/categories', label: 'Catégories', icon: FolderTree },
   { href: '/admin/clients', label: 'Clients', icon: Users },
   { href: '/admin/paiements', label: 'Paiements', icon: CreditCard },
 ];
