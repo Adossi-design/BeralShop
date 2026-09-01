@@ -56,6 +56,23 @@ export const TERMS_VERSION = '2026-08-28';
 /** Ce qu'affiche le pied de page sous l'icône de localisation. */
 export const BOUTIQUE_LOCALISATION = `${BOUTIQUE.ville}, ${BOUTIQUE.pays}`;
 
+/**
+ * Fuseau horaire de la boutique.
+ *
+ * INDISPENSABLE, et invisible en développement. Le serveur de production tourne
+ * en UTC ; sans cette valeur, `Intl.DateTimeFormat` s'aligne sur l'horloge de la
+ * machine et affiche des heures en retard de deux heures sur Kigali. Une
+ * commande passée à 8 h du matin s'afficherait « 6 h 00 » — au client comme au
+ * gérant. Sur un poste de supervision, une horloge qui ment est pire que pas
+ * d'horloge du tout.
+ *
+ * Sur le poste de développement, situé au Rwanda, le défaut donnait la bonne
+ * heure : le défaut ne se serait donc vu qu'une fois en ligne.
+ *
+ * TOUT formateur de date destiné à l'écran doit passer cette valeur.
+ */
+export const FUSEAU_BOUTIQUE = 'Africa/Kigali';
+
 /** Format international : un « + », puis 7 à 15 chiffres, sans espaces. */
 const TELEPHONE_VALIDE = /^\+[1-9]\d{6,14}$/;
 const EMAIL_VALIDE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;

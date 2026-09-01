@@ -3,7 +3,7 @@ import { CreditCard, ScrollText } from 'lucide-react';
 
 import { listAuditLog } from '@beralshopp/core';
 import { prisma } from '@beralshopp/db';
-import { formatMoney, money } from '@beralshopp/shared';
+import { FUSEAU_BOUTIQUE, formatMoney, money } from '@beralshopp/shared';
 import { ConsoleCorps, ConsoleEnTete } from '@/components/admin/console';
 
 export const metadata: Metadata = {
@@ -25,6 +25,7 @@ const STATUS_META: Record<string, { label: string; className: string }> = {
 const dateFormat = new Intl.DateTimeFormat('fr-FR', {
   dateStyle: 'short',
   timeStyle: 'short',
+  timeZone: FUSEAU_BOUTIQUE,
 });
 
 /**

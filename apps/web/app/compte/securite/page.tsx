@@ -2,6 +2,7 @@ import type { Metadata } from 'next';
 import { Monitor } from 'lucide-react';
 
 import { listActiveSessions } from '@beralshopp/core';
+import { FUSEAU_BOUTIQUE } from '@beralshopp/shared';
 
 import { ChangePasswordForm } from '@/components/auth/change-password-form';
 import { revokeOtherSessionsAction } from '@/lib/auth-actions';
@@ -31,6 +32,7 @@ function describeDevice(userAgent: string | null): string {
 const dateFormat = new Intl.DateTimeFormat('fr-FR', {
   dateStyle: 'medium',
   timeStyle: 'short',
+  timeZone: FUSEAU_BOUTIQUE,
 });
 
 export default async function SecurityPage() {

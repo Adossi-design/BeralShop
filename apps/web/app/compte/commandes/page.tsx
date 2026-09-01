@@ -3,7 +3,7 @@ import Link from 'next/link';
 import { ChevronRight, PackageOpen } from 'lucide-react';
 
 import { listUserOrders } from '@beralshopp/core';
-import { formatMoney } from '@beralshopp/shared';
+import { FUSEAU_BOUTIQUE, formatMoney } from '@beralshopp/shared';
 
 import { ProductImage } from '@/components/catalog/product-image';
 import { getCurrentUser } from '@/lib/session';
@@ -28,7 +28,10 @@ const STATUS_LABELS: Record<string, { label: string; className: string }> = {
   REFUNDED: { label: 'Remboursée', className: 'bg-ink-100 text-ink-600' },
 };
 
-const dateFormat = new Intl.DateTimeFormat('fr-FR', { dateStyle: 'medium' });
+const dateFormat = new Intl.DateTimeFormat('fr-FR', {
+  dateStyle: 'medium',
+  timeZone: FUSEAU_BOUTIQUE,
+});
 
 export default async function OrdersPage() {
   const user = await getCurrentUser();

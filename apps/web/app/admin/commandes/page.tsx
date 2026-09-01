@@ -4,7 +4,7 @@ import { ChevronRight, Search } from 'lucide-react';
 
 import { listAdminOrders } from '@beralshopp/core';
 import type { OrderStatus } from '@beralshopp/db';
-import { formatMoney } from '@beralshopp/shared';
+import { FUSEAU_BOUTIQUE, formatMoney } from '@beralshopp/shared';
 
 import { ORDER_STATUS_META, OrderStatusBadge } from '@/components/admin/order-status-badge';
 import { ConsoleEnTete, ConsoleTableau } from '@/components/admin/console';
@@ -30,6 +30,7 @@ const FILTERS: readonly { value: string; label: string }[] = [
 const dateFormat = new Intl.DateTimeFormat('fr-FR', {
   dateStyle: 'short',
   timeStyle: 'short',
+  timeZone: FUSEAU_BOUTIQUE,
 });
 
 interface PageProps {

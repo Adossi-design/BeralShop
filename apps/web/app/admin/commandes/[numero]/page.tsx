@@ -5,7 +5,7 @@ import { ChevronLeft } from 'lucide-react';
 
 import { getOrderByNumber, nextStatusesFor } from '@beralshopp/core';
 import { prisma } from '@beralshopp/db';
-import { formatMoney } from '@beralshopp/shared';
+import { FUSEAU_BOUTIQUE, formatMoney } from '@beralshopp/shared';
 
 import { ChangeStatusForm, TrackingForm } from '@/components/admin/order-actions';
 import { OrderStatusBadge } from '@/components/admin/order-status-badge';
@@ -23,6 +23,7 @@ export const dynamic = 'force-dynamic';
 const dateFormat = new Intl.DateTimeFormat('fr-FR', {
   dateStyle: 'medium',
   timeStyle: 'short',
+  timeZone: FUSEAU_BOUTIQUE,
 });
 
 interface PageProps {

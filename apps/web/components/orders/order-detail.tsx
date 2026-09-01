@@ -2,7 +2,7 @@ import Link from 'next/link';
 import { MapPin, Package, Truck } from 'lucide-react';
 
 import type { OrderView } from '@beralshopp/core';
-import { formatMoney } from '@beralshopp/shared';
+import { FUSEAU_BOUTIQUE, formatMoney } from '@beralshopp/shared';
 
 import { ProductImage } from '@/components/catalog/product-image';
 
@@ -19,6 +19,7 @@ import { OrderTimeline } from './order-timeline';
 const dateFormat = new Intl.DateTimeFormat('fr-FR', {
   dateStyle: 'long',
   timeStyle: 'short',
+  timeZone: FUSEAU_BOUTIQUE,
 });
 
 function formatAddress(order: OrderView): string {

@@ -2,7 +2,7 @@ import type { Metadata } from 'next';
 import { Search } from 'lucide-react';
 
 import { listAdminCustomers } from '@beralshopp/core';
-import { formatMoney } from '@beralshopp/shared';
+import { FUSEAU_BOUTIQUE, formatMoney } from '@beralshopp/shared';
 
 import { toggleCustomerAction } from '@/lib/admin-actions';
 import { ConsoleEnTete, ConsoleTableau } from '@/components/admin/console';
@@ -14,7 +14,10 @@ export const metadata: Metadata = {
 
 export const dynamic = 'force-dynamic';
 
-const dateFormat = new Intl.DateTimeFormat('fr-FR', { dateStyle: 'medium' });
+const dateFormat = new Intl.DateTimeFormat('fr-FR', {
+  dateStyle: 'medium',
+  timeZone: FUSEAU_BOUTIQUE,
+});
 
 interface PageProps {
   searchParams: Promise<Record<string, string | string[] | undefined>>;
