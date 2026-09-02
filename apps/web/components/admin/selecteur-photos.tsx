@@ -1,7 +1,7 @@
 'use client';
 
 import { useRef, useState } from 'react';
-import { AlertTriangle, ImagePlus, X } from 'lucide-react';
+import { AlertTriangle, ImagePlus, Plus, X } from 'lucide-react';
 
 import {
   ACCEPT_PHOTO,
@@ -60,18 +60,66 @@ export function SelecteurPhotos({
   const champ = useRef<HTMLInputElement>(null);
   const [choisies, setChoisies] = useState<readonly Choisie[]>([]);
 
+  /**
+   * Recopie la liste dans le champ, pour que le formulaire l'envoie.
+   *
+   * `input.files` n'est pas une liste ordinaire et ne s'écrit pas directement :
+   * il faut passer par un `DataTransfer`. Sans cette recopie, l'écran
+   * afficherait dix photos et le serveur n'en recevrait qu'une — le pire des
+   * cas, puisque rien ne signalerait la perte.
+   */
+  function recopier(liste: readonly Choisie[]): void {
+    if (!champ.current) return;
+    try {
+      const transfert = new DataTransfer();
+      for (const c of liste) transfert.items.add(c.fichier);
+      champ.current.files = transfert.files;
+    } catch {
+      /* Navigateur sans DataTransfer : le champ garde la dernière sélection.
+         L'écran reste donc fidèle à ce qui partira réellement. */
+    }
+  }
+
+  /** Deux fichiers sont le même s'ils ont même nom, même taille, même date. */
+  const empreinte = (fichier: File): string =>
+    `${fichier.name}|${fichier.size}|${fichier.lastModified}`;
+
+  /**
+   * LA SÉLECTION S'AJOUTE, ELLE NE REMPLACE PAS.
+   *
+   * Un champ de fichier remplace sa liste à chaque ouverture : on choisit une
+   * photo, on rouvre pour en ajouter une seconde, et la première disparaît sans
+   * un mot. C'est le comportement du navigateur, pas un réglage — il faut donc
+   * tenir la liste soi-même et la recopier dans le champ.
+   *
+   * Sur un téléphone, cela change tout : la pellicule ne permet pas toujours de
+   * cocher plusieurs photos d'un coup, et l'on ajoute forcément une par une.
+   */
   function relire(): void {
-    const fichiers = Array.from(champ.current?.files ?? []);
-    /* Les URL d'aperçu précédentes sont révoquées : sans cela, chaque
-       changement de sélection laisse une image entière en mémoire. */
-    for (const c of choisies) URL.revokeObjectURL(c.apercu);
-    setChoisies(
-      fichiers.map((fichier) => ({
+    const nouveaux = Array.from(champ.current?.files ?? []);
+    const connus = new Set(choisies.map((c) => empreinte(c.fichier)));
+
+    const ajouts = nouveaux
+      .filter((fichier) => !connus.has(empreinte(fichier)))
+      .map((fichier) => ({
         fichier,
         apercu: URL.createObjectURL(fichier),
         probleme: examiner(fichier),
-      })),
-    );
+      }));
+
+    const fusion = [...choisies, ...ajouts];
+    recopier(fusion);
+    setChoisies(fusion);
+  }
+
+  function retirer(index: number): void {
+    const partante = choisies[index];
+    /* L'URL d'aperçu de la SEULE photo retirée est révoquée : les autres
+       restent affichées et en ont encore besoin. */
+    if (partante) URL.revokeObjectURL(partante.apercu);
+    const reste = choisies.filter((_, i) => i !== index);
+    recopier(reste);
+    setChoisies(reste);
   }
 
   function vider(): void {
@@ -107,18 +155,30 @@ export function SelecteurPhotos({
 
       <p className="text-content-muted mt-1 text-xs">
         {aide ?? 'JPEG, PNG, WebP ou AVIF.'} {formaterTaille(TAILLE_MAX_PHOTO)} maximum par photo.
+        Vous pouvez en ajouter plusieurs d’un coup, ou revenir en ajouter d’autres : elles
+        s’accumulent.
       </p>
 
       {choisies.length > 0 ? (
         <>
           <ul className="mt-3 grid grid-cols-3 gap-2 sm:grid-cols-4">
-            {choisies.map((c) => (
+            {choisies.map((c, index) => (
               <li
-                key={c.fichier.name + c.fichier.size}
-                className={`rounded-control overflow-hidden border ${
+                key={empreinte(c.fichier)}
+                className={`rounded-control group relative overflow-hidden border ${
                   c.probleme ? 'border-danger-500' : 'border-border'
                 }`}
               >
+                {/* Retrait unitaire : sans lui, une photo choisie par erreur
+                    obligerait à tout vider et à tout reprendre. */}
+                <button
+                  type="button"
+                  onClick={() => retirer(index)}
+                  aria-label={`Retirer ${c.fichier.name}`}
+                  className="bg-ink-900/80 hover:bg-ink-900 absolute end-1 top-1 z-10 rounded-full p-1 text-white transition-opacity focus-visible:opacity-100 lg:opacity-0 lg:group-hover:opacity-100"
+                >
+                  <X className="h-3 w-3" aria-hidden />
+                </button>
                 <div className="bg-surface-muted relative aspect-square">
                   {/* Aperçu local : `next/image` ne sait pas traiter une URL
                       blob:, et il n'y a rien à optimiser sur un fichier qui ne
@@ -145,6 +205,14 @@ export function SelecteurPhotos({
             <p className="text-content-muted text-xs">
               {choisies.length} photo{choisies.length > 1 ? 's' : ''} · {formaterTaille(total)}
             </p>
+            <button
+              type="button"
+              onClick={() => champ.current?.click()}
+              className="text-gold-700 hover:text-gold-800 inline-flex items-center gap-1 text-xs font-medium transition-colors"
+            >
+              <Plus className="h-3.5 w-3.5" aria-hidden />
+              Ajouter d’autres photos
+            </button>
             <button
               type="button"
               onClick={vider}
