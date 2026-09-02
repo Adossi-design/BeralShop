@@ -74,6 +74,7 @@ function Champ({
   inputMode,
   defaultValue,
   suffixe,
+  exemple,
 }: {
   readonly id: string;
   readonly label: string;
@@ -83,6 +84,7 @@ function Champ({
   readonly inputMode?: 'numeric';
   readonly defaultValue?: string;
   readonly suffixe?: string;
+  readonly exemple?: string;
 }) {
   return (
     <div>
@@ -95,6 +97,7 @@ function Champ({
           name={id}
           type="text"
           defaultValue={defaultValue}
+          placeholder={exemple ?? ''}
           required={required ?? false}
           {...(inputMode ? { inputMode } : {})}
           aria-invalid={erreur ? true : undefined}
@@ -132,20 +135,18 @@ export function NewProductForm({
       {/* ——— Colonne de gauche : ce qu'est le produit ——— */}
       <div className="space-y-5 lg:col-span-2">
         <Section titre="Identité">
-          <Champ
-            id="sku"
-            label="Référence interne"
-            required
-            defaultValue={etat.valeurs?.['sku'] ?? ''}
-            aide="Votre code produit : lettres, chiffres et tirets. Exemple : ELEC-CAM-Q8"
-            erreur={etat.erreurs?.['sku']}
-          />
-
+          {/* LE NOM PASSE EN PREMIER. La référence occupait cette place et
+              était le seul champ qui demandait d'INVENTER quelque chose : on y
+              tapait « 1 » ou « AAA » pour en finir, et six mois plus tard plus
+              personne ne savait ce que désignait quoi. Elle est désormais
+              engendrée à partir du nom, et repliée plus bas pour qui tient à la
+              sienne. */}
           <Champ
             id="nom"
             label="Nom du produit"
             required
             defaultValue={etat.valeurs?.['nom'] ?? ''}
+            exemple="Écouteurs sans fil Zentro X300"
             aide="Tel qu’il apparaîtra dans la boutique et dans les résultats de recherche."
             erreur={etat.erreurs?.['nom']}
           />
@@ -165,6 +166,28 @@ export function NewProductForm({
               Facultative à la création — vous pourrez la compléter ensuite.
             </p>
           </div>
+
+          {/* Repliée par défaut : neuf créations sur dix n'ont aucune raison de
+              l'ouvrir. `open` quand une erreur la concerne, sinon le message
+              s'afficherait dans un tiroir fermé et resterait invisible. */}
+          <details
+            className="border-border rounded-control border px-3 py-2"
+            open={Boolean(etat.erreurs?.['sku'])}
+          >
+            <summary className="text-content-muted cursor-pointer text-xs">
+              Référence interne — engendrée automatiquement
+            </summary>
+            <div className="mt-3">
+              <Champ
+                id="sku"
+                label="Imposer une référence"
+                defaultValue={etat.valeurs?.['sku'] ?? ''}
+                exemple="Laissez vide pour l’engendrer"
+                aide="Lettres, chiffres et tirets. À remplir seulement si votre boutique possède déjà son propre système de références."
+                erreur={etat.erreurs?.['sku']}
+              />
+            </div>
+          </details>
         </Section>
 
         <Section titre="Prix et stock">

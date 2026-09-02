@@ -62,23 +62,86 @@ async function slugDisponible(base: string): Promise<string> {
   return `${racine}-${Date.now()}`;
 }
 
+/**
+ * Transforme un nom de produit en base de référence.
+ *
+ * Accents retirés, tout en capitales, un tiret pour chaque suite de caractères
+ * qui n'est ni lettre ni chiffre. « Écouteurs sans fil Zentro » devient
+ * « ECOUTEURS-SANS-FIL ».
+ */
+function baseDepuisNom(nom: string): string {
+  const base = nom
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .toUpperCase()
+    .replace(/[^A-Z0-9]+/g, '-')
+    .replace(/^-+|-+$/g, '')
+    .slice(0, 16)
+    .replace(/-+$/g, '');
+
+  return base.length >= 3 ? base : 'PRODUIT';
+}
+
+/**
+ * Référence unique, dérivée du nom.
+ *
+ * POURQUOI L'ENGENDRER PLUTÔT QUE LA DEMANDER
+ * C'était le premier champ du formulaire de création, et le seul qui exigeait
+ * d'inventer quelque chose. Un propriétaire pressé y met « 1 », « AAA » ou le
+ * nom du produit en entier ; six mois plus tard, plus personne ne sait quoi
+ * cherche quoi. Une référence n'a d'utilité que si elle est unique, stable et
+ * lisible — trois propriétés qu'une machine tient mieux qu'une main.
+ *
+ * Le suffixe aléatoire ne sert pas à cacher quoi que ce soit : il évite la
+ * collision entre deux produits au nom voisin. La boucle rejoue jusqu'à trouver
+ * un libre, et retombe sur l'horodatage dans le cas — invraisemblable — où douze
+ * tirages consécutifs seraient déjà pris.
+ *
+ * La saisie manuelle reste possible : une boutique qui possède déjà un système
+ * de références ne doit pas être forcée d'en adopter un second.
+ */
+async function genererSku(nom: string): Promise<string> {
+  const base = baseDepuisNom(nom);
+
+  for (let essai = 0; essai < 12; essai += 1) {
+    const suffixe = Math.random().toString(36).slice(2, 6).toUpperCase();
+    const candidat = `${base}-${suffixe}`;
+    const pris = await prisma.product.findUnique({
+      where: { sku: candidat },
+      select: { id: true },
+    });
+    if (!pris) return candidat;
+  }
+
+  return `${base}-${Date.now().toString(36).toUpperCase()}`;
+}
+
 export async function creerProduit(input: CreationProduitInput): Promise<ResultatCreation> {
-  const sku = input.sku.trim().toUpperCase();
   const nom = input.nom.trim();
 
-  if (sku.length < 3) {
-    return { ok: false, champ: 'sku', message: 'La référence doit faire au moins 3 caractères.' };
-  }
-  if (!/^[A-Z0-9-]+$/.test(sku)) {
-    return {
-      ok: false,
-      champ: 'sku',
-      message: 'La référence n’accepte que des lettres, des chiffres et des tirets.',
-    };
-  }
+  /* Le nom est validé AVANT la référence : celle-ci en dérive désormais, et
+     valider ce qui dépend d'une valeur avant la valeur elle-même donnerait des
+     messages d'erreur dans le mauvais ordre. */
   if (nom.length < 3) {
     return { ok: false, champ: 'nom', message: 'Le nom doit faire au moins 3 caractères.' };
   }
+
+  const saisie = input.sku.trim().toUpperCase();
+
+  if (saisie.length > 0) {
+    if (saisie.length < 3) {
+      return { ok: false, champ: 'sku', message: 'La référence doit faire au moins 3 caractères.' };
+    }
+    if (!/^[A-Z0-9-]+$/.test(saisie)) {
+      return {
+        ok: false,
+        champ: 'sku',
+        message: 'La référence n’accepte que des lettres, des chiffres et des tirets.',
+      };
+    }
+  }
+
+  const sku = saisie.length > 0 ? saisie : await genererSku(nom);
   if (!Number.isInteger(input.prixMinor) || input.prixMinor < 0) {
     return { ok: false, champ: 'prix', message: 'Prix invalide.' };
   }

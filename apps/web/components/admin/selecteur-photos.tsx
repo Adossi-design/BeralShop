@@ -1,8 +1,10 @@
 'use client';
 
 import { useRef, useState } from 'react';
-import { AlertTriangle, ImagePlus, Plus, X } from 'lucide-react';
+import Image from 'next/image';
+import { AlertTriangle, ImagePlus, Plus, Star, Trash2, X } from 'lucide-react';
 
+import type { ImageProduit } from '@beralshopp/core';
 import {
   ACCEPT_PHOTO,
   TAILLE_MAX_ENVOI,
@@ -10,6 +12,8 @@ import {
   TYPES_PHOTO_AUTORISES,
   formaterTaille,
 } from '@beralshopp/shared';
+
+import { imagePrincipaleAction, supprimerImageAction } from '@/lib/admin-actions';
 
 /**
  * Choix des photos d'un produit, avec aperçu et refus expliqué.
@@ -51,11 +55,17 @@ export function SelecteurPhotos({
   name,
   label = 'Photos du produit',
   aide,
+  existantes = [],
+  productId,
 }: {
   /** Nom du champ envoyé au serveur. */
   readonly name: string;
   readonly label?: string;
   readonly aide?: string;
+  /** Photos déjà en ligne. Vides à la création d'un produit. */
+  readonly existantes?: readonly ImageProduit[];
+  /** Nécessaire pour agir sur les photos déjà en ligne. */
+  readonly productId?: string;
 }) {
   const champ = useRef<HTMLInputElement>(null);
   const [choisies, setChoisies] = useState<readonly Choisie[]>([]);
@@ -159,9 +169,72 @@ export function SelecteurPhotos({
         s’accumulent.
       </p>
 
+      {/* ——— Photos déjà en ligne ———
+          ELLES VIVENT DANS LE MÊME BLOC QUE LES NOUVELLES, et c'est tout
+          l'objet de ce composant. Il y avait auparavant deux interfaces de
+          photos : une à la création, une autre sur la fiche, avec des cadres
+          différents, des libellés différents et des boutons placés ailleurs. Le
+          propriétaire croyait devoir recommencer. Il n'y en a plus qu'une —
+          elle montre simplement ce qui existe déjà, quand il existe quelque
+          chose. */}
+      {existantes.length > 0 && productId ? (
+        <ul className="mt-3 grid grid-cols-3 gap-2 sm:grid-cols-4 lg:grid-cols-6">
+          {existantes.map((image) => (
+            <li
+              key={image.id}
+              className={`rounded-control group relative overflow-hidden border-2 ${
+                image.isPrimary ? 'border-gold-400' : 'border-border'
+              }`}
+            >
+              <div className="bg-surface-muted relative aspect-square">
+                <Image
+                  src={image.url}
+                  alt={image.altText ?? ''}
+                  fill
+                  sizes="(max-width: 640px) 30vw, 200px"
+                  className="object-contain"
+                />
+              </div>
+
+              {/* Suppression en POST, jamais en lien : un lien serait déclenché
+                  par un préchargement du navigateur, sans clic de personne. */}
+              <form action={supprimerImageAction}>
+                <input type="hidden" name="imageId" value={image.id} />
+                <input type="hidden" name="productId" value={productId} />
+                <button
+                  type="submit"
+                  aria-label="Supprimer cette photo"
+                  className="bg-ink-900/80 hover:bg-ink-900 absolute end-1 top-1 z-10 rounded-full p-1 text-white transition-opacity focus-visible:opacity-100 lg:opacity-0 lg:group-hover:opacity-100"
+                >
+                  <Trash2 className="h-3 w-3" aria-hidden />
+                </button>
+              </form>
+
+              {image.isPrimary ? (
+                <span className="bg-gold-400 text-ink-950 absolute start-1 top-1 flex items-center gap-1 rounded px-1.5 py-0.5 text-[0.6rem] font-bold">
+                  <Star className="h-2.5 w-2.5 fill-current" aria-hidden />
+                  Vitrine
+                </span>
+              ) : (
+                <form action={imagePrincipaleAction}>
+                  <input type="hidden" name="imageId" value={image.id} />
+                  <input type="hidden" name="productId" value={productId} />
+                  <button
+                    type="submit"
+                    className="text-content-muted hover:text-gold-700 w-full px-1 py-1 text-[0.6rem] transition-colors"
+                  >
+                    Mettre en vitrine
+                  </button>
+                </form>
+              )}
+            </li>
+          ))}
+        </ul>
+      ) : null}
+
       {choisies.length > 0 ? (
         <>
-          <ul className="mt-3 grid grid-cols-3 gap-2 sm:grid-cols-4">
+          <ul className="mt-3 grid grid-cols-3 gap-2 sm:grid-cols-4 lg:grid-cols-6">
             {choisies.map((c, index) => (
               <li
                 key={empreinte(c.fichier)}

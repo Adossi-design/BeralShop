@@ -1,28 +1,28 @@
 'use client';
 
 import { useActionState } from 'react';
-import Image from 'next/image';
-import { AlertTriangle, ImagePlus, Star, Trash2 } from 'lucide-react';
+import { AlertTriangle, ImagePlus } from 'lucide-react';
 import { useFormStatus } from 'react-dom';
 
 import type { ImageProduit } from '@beralshopp/core';
 
-import {
-  type AdminActionState,
-  imagePrincipaleAction,
-  supprimerImageAction,
-  televerserImagesAction,
-} from '@/lib/admin-actions';
+import { type AdminActionState, televerserImagesAction } from '@/lib/admin-actions';
 
 import { SelecteurPhotos } from './selecteur-photos';
 
 /**
- * Gestion des photos d'un produit.
+ * Photos d'un produit déjà créé.
  *
- * Téléversement multiple, suppression, choix de la vignette. L'image principale
- * est signalée par une étoile pleine : c'est elle qui apparaît partout dans la
- * boutique, et le propriétaire doit pouvoir la reconnaître d'un coup d'œil sans
- * ouvrir la fiche publique pour vérifier.
+ * UNE SEULE INTERFACE DE PHOTOS DANS TOUT L'ESPACE D'ADMINISTRATION. Ce fichier
+ * n'a plus de mise en forme propre : il pose le cadre, le formulaire et le
+ * bouton d'envoi, et délègue TOUT le reste à `SelecteurPhotos` — le même
+ * composant, exactement, que celui du formulaire de création.
+ *
+ * Auparavant il existait deux écrans de photos qui ne se ressemblaient pas :
+ * cadres différents, libellés différents, boutons ailleurs. On croyait devoir
+ * recommencer le travail déjà fait à la création. La seule différence légitime
+ * est qu'ici des photos existent déjà — le composant les montre, dans le même
+ * bloc que celles qu'on ajoute.
  */
 
 const INITIAL: AdminActionState = {};
@@ -36,7 +36,7 @@ function BoutonEnvoyer({ actif }: { readonly actif: boolean }) {
       className="beral-btn-gold rounded-control inline-flex items-center gap-2 px-5 py-2.5 font-semibold disabled:cursor-not-allowed disabled:opacity-60"
     >
       <ImagePlus className="h-4 w-4" aria-hidden />
-      {pending ? 'Envoi…' : 'Ajouter les photos'}
+      {pending ? 'Envoi…' : 'Enregistrer les photos'}
     </button>
   );
 }
@@ -53,10 +53,12 @@ export function ProductImages({
   const [etat, action] = useActionState(televerserImagesAction, INITIAL);
 
   return (
-    <section className="border-border bg-surface rounded-card border p-5">
-      <h2 className="text-content font-semibold">Photos du produit</h2>
-      <p className="text-content-muted mt-1 text-sm">
-        La photo marquée d’une étoile est celle qui s’affiche dans la boutique.
+    <section className="border-border bg-surface rounded-card shadow-card border p-5">
+      <h2 className="border-gold-400 text-content-muted border-s-2 ps-2 text-[0.65rem] font-semibold tracking-wider uppercase">
+        Photos
+      </h2>
+      <p className="text-content-muted mt-2 text-xs">
+        La photo marquée « Vitrine » est celle qui s’affiche dans la boutique.
       </p>
 
       {!stockageActif ? (
@@ -70,80 +72,15 @@ export function ProductImages({
         </p>
       ) : null}
 
-      {/* ——— Photos existantes ——— */}
-      {images.length > 0 ? (
-        <ul className="mt-4 grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4">
-          {images.map((image) => (
-            <li
-              key={image.id}
-              className="border-border rounded-card group relative overflow-hidden border"
-            >
-              <div className="bg-surface-muted relative aspect-square">
-                <Image
-                  src={image.url}
-                  alt={image.altText ?? ''}
-                  fill
-                  sizes="(max-width: 640px) 45vw, 200px"
-                  /* Entière, comme dans la boutique : le propriétaire doit voir
-                     exactement ce que verra son client. */
-                  className="object-contain"
-                />
-              </div>
-
-              {image.isPrimary ? (
-                <span className="beral-btn-gold absolute start-2 top-2 flex items-center gap-1 rounded px-2 py-0.5 text-[0.65rem] font-bold">
-                  <Star className="h-3 w-3 fill-current" aria-hidden />
-                  Principale
-                </span>
-              ) : null}
-
-              <div className="flex items-center justify-between gap-1 p-2">
-                {!image.isPrimary ? (
-                  <form action={imagePrincipaleAction}>
-                    <input type="hidden" name="imageId" value={image.id} />
-                    <input type="hidden" name="productId" value={productId} />
-                    <button
-                      type="submit"
-                      className="text-content-muted hover:text-gold-700 inline-flex items-center gap-1 text-xs transition-colors"
-                    >
-                      <Star className="h-3.5 w-3.5" aria-hidden />
-                      Définir
-                    </button>
-                  </form>
-                ) : (
-                  <span />
-                )}
-
-                {/* Suppression en POST : un lien serait déclenché par un
-                    préchargement du navigateur, sans clic de personne. */}
-                <form action={supprimerImageAction}>
-                  <input type="hidden" name="imageId" value={image.id} />
-                  <input type="hidden" name="productId" value={productId} />
-                  <button
-                    type="submit"
-                    aria-label="Supprimer cette photo"
-                    className="text-content-muted hover:text-danger-500 inline-flex items-center transition-colors"
-                  >
-                    <Trash2 className="h-4 w-4" aria-hidden />
-                  </button>
-                </form>
-              </div>
-            </li>
-          ))}
-        </ul>
-      ) : (
-        <p className="text-content-muted border-border rounded-card mt-4 border border-dashed px-4 py-6 text-center text-sm">
-          Aucune photo. Ce produit s’affiche avec une pastille de substitution.
-        </p>
-      )}
-
-      {/* ——— Ajout ——— */}
-      <form action={action} className="border-border mt-5 space-y-3 border-t pt-5">
+      <form action={action} className="mt-4 space-y-3">
         <input type="hidden" name="productId" value={productId} />
 
-        {/* Même sélecteur qu'à la création : aperçus, refus expliqué avant
-            l'envoi, et une seule limite de taille pour les deux écrans. */}
-        <SelecteurPhotos name="fichiers" label="Ajouter des photos" />
+        <SelecteurPhotos
+          name="fichiers"
+          label="Photos du produit"
+          existantes={images}
+          productId={productId}
+        />
 
         <div>
           <label htmlFor="altText" className="text-content block text-sm font-medium">
@@ -154,7 +91,7 @@ export function ProductImages({
             name="altText"
             type="text"
             maxLength={160}
-            className="border-border bg-surface text-content rounded-control mt-1 w-full max-w-md border px-3 py-2 text-sm"
+            className="border-border bg-surface text-content rounded-control focus:border-gold-400 mt-1 w-full max-w-md border px-3 py-2 text-sm transition-colors outline-none"
           />
           <p className="text-content-muted mt-1 text-xs">
             Lue à voix haute aux personnes malvoyantes, et utilisée par Google.
