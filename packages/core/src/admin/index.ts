@@ -5,3 +5,4 @@ export * from './product-creation.ts';
 export * from './product-edition.ts';
 export * from './variant-service.ts';
 export * from './category-service.ts';
+export * from './price-tier-service.ts';

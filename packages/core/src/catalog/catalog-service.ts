@@ -136,7 +136,14 @@ export async function getProductBySlug(
 ): Promise<ProductDetail | null> {
   const row = await prisma.product.findFirst({
     where: { slug, status: 'ACTIVE', publishedAt: { not: null } },
-    include: { ...PRODUCT_INCLUDE, category: { select: { slug: true, id: true } } },
+    include: {
+      ...PRODUCT_INCLUDE,
+      category: { select: { slug: true, id: true } },
+      /* Chargés pour la fiche seulement : une grille de prix n'a pas sa place
+         sur une vignette de catalogue, et la requête de liste sert des dizaines
+         de produits à la fois. */
+      priceTiers: { select: { minQuantity: true, unitPriceMinor: true } },
+    },
   });
 
   if (!row) return null;

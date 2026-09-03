@@ -8,6 +8,7 @@ import {
   type ProductSummary,
   type VariantView,
 } from './types.ts';
+import { grillePaliers } from '../pricing/price-tiers.ts';
 
 /**
  * Conversion des lignes de base en objets du domaine.
@@ -59,6 +60,7 @@ export interface ProductRow {
   translations: TranslationRow[];
   images: ImageRow[];
   variants: VariantRow[];
+  priceTiers?: { minQuantity: number; unitPriceMinor: number }[];
 }
 
 /**
@@ -185,5 +187,9 @@ export function toProductDetail(
     optionNames,
     categoryPath,
     totalAvailableQuantity: variants.reduce((total, v) => total + v.availableQuantity, 0),
+    /* La grille est calculée sur le prix de base, SANS écart de variante : la
+       fiche l'affiche avant tout choix de couleur. Le supplément apparaît sur le
+       prix principal, qui lui suit la variante sélectionnée. */
+    priceTiers: grillePaliers(row.basePriceMinor, 0, row.priceTiers ?? []),
   };
 }

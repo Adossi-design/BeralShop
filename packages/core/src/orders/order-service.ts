@@ -27,6 +27,7 @@ import type {
   OrderLineView,
   OrderView,
 } from './types.ts';
+import { prixUnitaireMinor } from '../pricing/price-tiers.ts';
 
 /**
  * Service de commandes.
@@ -142,6 +143,11 @@ export async function createOrderFromCart(
                 include: {
                   translations: { where: { locale: 'fr' } },
                   images: { orderBy: { position: 'asc' }, take: 1 },
+                  /* Chargés ici parce que le montant de la commande est
+                     RECALCULÉ depuis la base, jamais repris du panier : un
+                     panier vieux d'une heure peut porter un prix qui n'existe
+                     plus. */
+                  priceTiers: { select: { minQuantity: true, unitPriceMinor: true } },
                 },
               },
             },
@@ -243,7 +249,22 @@ export async function createOrderFromCart(
         const lineTotals: Money[] = [];
         const itemsData = cart.items.map((item) => {
           const { variant } = item;
-          const unitPriceMinor = variant.product.basePriceMinor + variant.priceDeltaMinor;
+          /**
+           * MÊME FONCTION QUE LE PANIER. C'est la garantie que le montant
+           * encaissé est celui qui a été affiché : une seconde implémentation
+           * de la règle des paliers finirait par diverger de la première, et la
+           * divergence ne se verrait qu'au relevé bancaire du client.
+           *
+           * Le prix ainsi obtenu est FIGÉ dans `unitPriceMinor` de la ligne de
+           * commande. Modifier un palier plus tard ne réécrit donc aucune
+           * commande déjà passée.
+           */
+          const unitPriceMinor = prixUnitaireMinor(
+            variant.product.basePriceMinor,
+            variant.priceDeltaMinor,
+            item.quantity,
+            variant.product.priceTiers,
+          );
           const lineTotal = multiply(money(unitPriceMinor, currency), item.quantity);
           lineTotals.push(lineTotal);
 

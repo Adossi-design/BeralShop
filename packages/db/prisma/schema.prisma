@@ -308,6 +308,7 @@ model Product {
   images       ProductImage[]
   variants     ProductVariant[]
   reviews      Review[]
+  priceTiers   ProductPriceTier[]
 
   @@index([categoryId, status, createdAt(sort: Desc)])
   @@index([status, salesCount(sort: Desc)])
@@ -357,6 +358,38 @@ model ProductImage {
 
 /// Déclinaison vendable. Un produit sans option possède quand même UNE variante par
 /// défaut : cela évite deux chemins de code distincts pour le stock et le panier.
+/// Prix dégressif selon la quantité commandée.
+///
+/// « 1 pièce : 5 234 Frw · 10 pièces et plus : 5 126 Frw · 50 et plus : 5 018 Frw. »
+/// Chaque ligne fixe le prix UNITAIRE à partir de `minQuantity` pièces.
+///
+/// LE PALIER PORTE UN PRIX, PAS UNE REMISE. Un pourcentage se recalcule à chaque
+/// changement du prix de base et dérive silencieusement ; un prix écrit reste ce
+/// que le vendeur a décidé. C'est aussi ce que le client lit sur la fiche.
+///
+/// L'écart de prix de la variante s'ajoute par-dessus : une couleur plus chère
+/// le reste à tous les paliers.
+model ProductPriceTier {
+  id        String @id @default(cuid())
+  productId String
+
+  /// Quantité à partir de laquelle ce prix s'applique. Toujours >= 1.
+  minQuantity Int
+
+  /// Prix unitaire à ce palier, en plus petite unité monétaire.
+  unitPriceMinor Int
+
+  createdAt DateTime @default(now())
+
+  product Product @relation(fields: [productId], references: [id], onDelete: Cascade)
+
+  /// Un seul prix par seuil : deux lignes « 10 pièces » rendraient le calcul
+  /// dépendant de l'ordre de lecture.
+  @@unique([productId, minQuantity])
+  @@index([productId])
+  @@map("product_price_tiers")
+}
+
 model ProductVariant {
   id        String @id @default(cuid())
   productId String

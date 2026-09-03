@@ -10,6 +10,7 @@ import { Breadcrumb } from '@/components/catalog/breadcrumb';
 import { ProductGallery } from '@/components/catalog/product-gallery';
 import { ProductRail } from '@/components/catalog/product-grid';
 import { StarRating } from '@/components/catalog/star-rating';
+import { PriceTiers } from '@/components/catalog/price-tiers';
 import { VariantPicker } from '@/components/catalog/variant-picker';
 
 /**
@@ -166,6 +167,10 @@ export default async function ProductPage({ params }: PageProps) {
               ) : null}
             </div>
           </div>
+
+          {/* La grille passe AVANT le choix de variante : elle repond a la
+              question du prix, que le client se pose avant celle de la couleur. */}
+          <PriceTiers tiers={product.priceTiers} />
 
           <VariantPicker variants={product.variants} optionNames={product.optionNames} />
 

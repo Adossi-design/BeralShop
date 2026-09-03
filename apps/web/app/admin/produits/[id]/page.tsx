@@ -3,12 +3,13 @@ import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import { AlertTriangle, ChevronLeft, ExternalLink } from 'lucide-react';
 
-import { etatRetrait, listerImages, listerVariantes } from '@beralshopp/core';
+import { etatRetrait, listerImages, listerPaliers, listerVariantes } from '@beralshopp/core';
 import { prisma } from '@beralshopp/db';
 
 import { stockageConfigure } from '@/lib/stockage';
 
 import { ProductRemoval, ProductTextForm, VariantManager } from '@/components/admin/product-editor';
+import { PriceTierManager } from '@/components/admin/price-tier-manager';
 import { ProductImages } from '@/components/admin/product-images';
 import { ProductPricingForm, StockForm } from '@/components/admin/product-forms';
 import { ConsoleCorps, ConsoleEnTete } from '@/components/admin/console';
@@ -77,10 +78,11 @@ export default async function AdminProductPage({ params, searchParams }: PagePro
 
   if (!product) notFound();
 
-  const [images, variantesAdmin, retrait] = await Promise.all([
+  const [images, variantesAdmin, retrait, paliers] = await Promise.all([
     listerImages(product.id),
     listerVariantes(product.id),
     etatRetrait(product.id),
+    listerPaliers(product.id),
   ]);
 
   const name = product.translations[0]?.name ?? product.sku;
@@ -170,6 +172,14 @@ export default async function AdminProductPage({ params, searchParams }: PagePro
                 ))}
             </div>
           </section>
+        </div>
+
+        <div className="mt-4">
+          <PriceTierManager
+            productId={product.id}
+            paliers={paliers}
+            basePriceMinor={product.basePriceMinor}
+          />
         </div>
 
         <div className="mt-4">

@@ -12,6 +12,7 @@ import {
   zero,
 } from '@beralshopp/shared';
 
+import { prixUnitaireMinor } from '../pricing/price-tiers.ts';
 import { buildPriceView } from '../pricing/product-price.ts';
 import {
   type CartLineIssue,
@@ -47,6 +48,10 @@ const CART_INCLUDE = {
             include: {
               translations: { where: { locale: 'fr' } },
               images: { orderBy: { position: 'asc' }, take: 1 },
+              /* Les paliers sont chargés AVEC le panier : le prix d'une ligne
+                 dépend de sa quantité, et une requête par ligne coûterait un
+                 aller-retour par article à chaque affichage du panier. */
+              priceTiers: { select: { minQuantity: true, unitPriceMinor: true } },
             },
           },
         },
@@ -171,6 +176,7 @@ interface CartRow {
         compareAtPriceMinor: number | null;
         translations: { name: string }[];
         images: { url: string }[];
+        priceTiers: { minQuantity: number; unitPriceMinor: number }[];
       };
     };
   }[];
@@ -184,8 +190,28 @@ function buildLine(item: CartRow['items'][number]): CartLineView {
   const isSellable =
     variant.isActive && product.status === 'ACTIVE' && product.publishedAt !== null;
 
+  /**
+   * PRIX DÉGRESSIF : le tarif dépend de la quantité de CETTE ligne.
+   *
+   * On ne remplace pas `buildPriceView` — il porte aussi le prix barré et le
+   * pourcentage de remise — on lui donne un prix de base déjà remisé par le
+   * palier atteint. Le calcul du palier vient de `prixUnitaireMinor`, la MÊME
+   * fonction qu'utilise la validation de commande : deux implémentations de la
+   * règle finiraient par diverger, et le total affiché ne serait plus le montant
+   * encaissé.
+   *
+   * L'écart de variante est retiré du résultat puis repassé à `buildPriceView`,
+   * qui l'applique lui-même — sinon il compterait deux fois.
+   */
+  const unitaireAvecPalier = prixUnitaireMinor(
+    product.basePriceMinor,
+    variant.priceDeltaMinor,
+    item.quantity,
+    product.priceTiers,
+  );
+
   const unitPrice = buildPriceView({
-    basePriceMinor: product.basePriceMinor,
+    basePriceMinor: unitaireAvecPalier - variant.priceDeltaMinor,
     compareAtPriceMinor: product.compareAtPriceMinor,
     variantDeltaMinor: variant.priceDeltaMinor,
   });

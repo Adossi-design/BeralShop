@@ -72,6 +72,12 @@ export interface ProductDetail extends ProductSummary {
   readonly optionNames: readonly string[];
   readonly categoryPath: readonly CategorySummary[];
   readonly totalAvailableQuantity: number;
+  /**
+   * Grille des prix par quantité, du plus petit seuil au plus grand.
+   * Une seule entrée signifie qu'aucun palier n'est défini : le produit se vend
+   * au même prix quelle que soit la quantité.
+   */
+  readonly priceTiers: readonly { readonly minQuantity: number; readonly unitPriceMinor: number }[];
 }
 
 export interface ProductListOptions {

@@ -24,6 +24,8 @@ import {
   supprimerProduit,
   supprimerVariante,
   definirImagePrincipale,
+  definirPalier,
+  supprimerPalier,
   supprimerImage,
 } from '@beralshopp/core';
 import type { OrderStatus } from '@beralshopp/db';
@@ -543,4 +545,54 @@ export async function supprimerCategorieAction(
   revalidatePath('/admin/categories');
   revalidatePath('/', 'layout');
   return { success: 'Catégorie supprimée.' };
+}
+
+/* ═══════════════════════════ Paliers de prix ═══════════════════════════ */
+
+/**
+ * Pose ou corrige un palier de prix.
+ *
+ * ⚠️ Le rôle est REVÉRIFIÉ ici, comme dans toute action d'administration : une
+ * action serveur est un point d'entrée à part entière, appelable sans jamais
+ * charger la page qui l'expose. Sans ce contrôle, n'importe qui pourrait fixer
+ * le prix des produits de la boutique.
+ */
+export async function definirPalierAction(
+  _precedent: AdminActionState,
+  formData: FormData,
+): Promise<AdminActionState> {
+  const actor = await requireActor();
+  if (!actor) return { error: 'Action réservée à l’administration.' };
+
+  const productId = String(formData.get('productId') ?? '');
+  const quantite = Number(String(formData.get('quantite') ?? '').replace(/\s/g, ''));
+  const prix = Number(String(formData.get('prix') ?? '').replace(/\s/g, ''));
+
+  const resultat = await definirPalier(
+    productId,
+    Number.isFinite(quantite) ? Math.round(quantite) : -1,
+    Number.isFinite(prix) ? Math.round(prix) : -1,
+  );
+
+  if (!resultat.ok) return { error: resultat.message };
+
+  revalidatePath(`/admin/produits/${productId}`);
+  // La grille est affichée sur la fiche publique : sans cette invalidation, le
+  // client verrait l'ancien tarif pendant cinq minutes.
+  revalidatePath('/', 'layout');
+  return { success: 'Palier enregistré.' };
+}
+
+export async function supprimerPalierAction(formData: FormData): Promise<void> {
+  const actor = await requireActor();
+  if (!actor) return;
+
+  const id = String(formData.get('palierId') ?? '');
+  const productId = String(formData.get('productId') ?? '');
+  if (!id) return;
+
+  await supprimerPalier(id);
+
+  revalidatePath(`/admin/produits/${productId}`);
+  revalidatePath('/', 'layout');
 }
