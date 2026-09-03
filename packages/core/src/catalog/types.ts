@@ -29,6 +29,11 @@ export interface ProductImageView {
   readonly altText: string;
   readonly width: number | null;
   readonly height: number | null;
+  /**
+   * Déclinaison à laquelle la photo appartient. Nulle = photo commune,
+   * montrée quelle que soit la couleur choisie.
+   */
+  readonly variantId: string | null;
 }
 
 export interface VariantView {

@@ -137,6 +137,7 @@ export default async function OrdersPage({ searchParams }: PageProps) {
                             altText: '',
                             width: null,
                             height: null,
+                            variantId: null,
                           }
                         : null
                     }

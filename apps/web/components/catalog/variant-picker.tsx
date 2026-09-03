@@ -6,6 +6,7 @@ import { Check, Minus, Plus } from 'lucide-react';
 import type { VariantView } from '@beralshopp/core';
 
 import { AddToCart } from './add-to-cart';
+import { useSelectionVariante } from './selection-variante';
 import { Price } from './price';
 
 /**
@@ -26,11 +27,20 @@ interface VariantPickerProps {
 }
 
 export function VariantPicker({ variants, optionNames }: VariantPickerProps) {
-  const [selectedId, setSelectedId] = useState<string>(
+  /**
+   * Le choix est publié dans un contexte quand il en existe un, afin que la
+   * GALERIE change de photos en même temps que la couleur. Sans fournisseur —
+   * sur un écran qui n'affiche pas de galerie — le composant retombe sur son
+   * état local et fonctionne à l'identique.
+   */
+  const partage = useSelectionVariante();
+  const [localId, setLocalId] = useState<string>(
     // On présélectionne la première variante DISPONIBLE : ouvrir une fiche sur une
     // couleur en rupture donne l'impression que le produit entier est indisponible.
     () => (variants.find((v) => v.isAvailable) ?? variants[0])?.id ?? '',
   );
+  const selectedId = partage?.variantId ?? localId;
+  const setSelectedId = partage?.choisir ?? setLocalId;
   const [quantity, setQuantity] = useState(1);
 
   const selected = useMemo(

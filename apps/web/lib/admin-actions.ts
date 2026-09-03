@@ -359,7 +359,8 @@ export async function creerProduitAction(
   let echecs = 0;
   let idVitrine: string | null = null;
 
-  if (photos.length > 0 && stockageConfigure()) {
+  if (stockageConfigure()) {
+    /* Photos communes : montrées quelle que soit la couleur. */
     for (const [rang, photo] of photos.entries()) {
       const depot = await televerserImage(photo, `produits/${resultat.productId}`);
       if (!depot.ok) {
@@ -368,6 +369,33 @@ export async function creerProduitAction(
       }
       const image = await ajouterImage(resultat.productId, depot.url, '');
       if (rang === rangVitrine) idVitrine = image.id;
+    }
+
+    /**
+     * PHOTOS PROPRES À CHAQUE COULEUR.
+     *
+     * Le formulaire nomme ces champs par le RANG de la couleur — `photos_0`,
+     * `photos_1` — et non par son libellé : une teinte peut s'appeler
+     * « Bleu / vert d'eau », et un nom de champ construit sur un libellé libre
+     * finirait par se casser sur un caractère inattendu. Le rang correspond à
+     * l'ordre de saisie, que `creerProduit` conserve dans les variantes
+     * qu'il rend.
+     */
+    for (const [rang, variante] of resultat.variants.entries()) {
+      if (!variante.id) continue;
+
+      const propres = formData
+        .getAll(`photos_${rang}`)
+        .filter((f): f is File => f instanceof File && f.size > 0);
+
+      for (const photo of propres) {
+        const depot = await televerserImage(photo, `produits/${resultat.productId}`);
+        if (!depot.ok) {
+          echecs += 1;
+          continue;
+        }
+        await ajouterImage(resultat.productId, depot.url, '', variante.id);
+      }
     }
   }
 

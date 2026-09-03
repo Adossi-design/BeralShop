@@ -35,6 +35,11 @@ export async function ajouterImage(
   productId: string,
   url: string,
   altText: string,
+  /**
+   * Déclinaison à laquelle la photo appartient. Omis, la photo est commune et
+   * s'affiche quelle que soit la couleur choisie.
+   */
+  variantId?: string | null,
 ): Promise<ImageProduit> {
   return prisma.$transaction(async (tx) => {
     const existantes = await tx.productImage.count({ where: { productId } });
@@ -51,6 +56,7 @@ export async function ajouterImage(
         altText: altText.trim() || null,
         position: (derniere?.position ?? -1) + 1,
         isPrimary: existantes === 0,
+        ...(variantId ? { variantId } : {}),
       },
       select: { id: true, url: true, altText: true, position: true, isPrimary: true },
     });

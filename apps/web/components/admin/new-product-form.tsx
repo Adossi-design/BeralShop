@@ -217,9 +217,9 @@ export function NewProductForm({
 
         <Section
           titre="Couleurs"
-          aide="Écrivez chaque couleur puis ajoutez-la. Vous pourrez en ajouter, en retirer et régler leur stock depuis la fiche du produit."
+          aide="Écrivez une couleur, ajoutez-la, puis déposez SES photos. Recommencez pour la suivante — tout part en une seule fois."
         >
-          <SaisieCouleurs defaut={etat.valeurs?.['couleurs'] ?? ''} />
+          <SaisieCouleurs defaut={etat.valeurs?.['couleurs'] ?? ''} stockageActif={stockageActif} />
         </Section>
 
         <Section titre="Classement">
@@ -251,10 +251,10 @@ export function NewProductForm({
       {/* ——— Colonne de droite : les photos, puis l'envoi ——— */}
       <div className="space-y-5">
         <Section
-          titre="Photos"
+          titre="Photos communes"
           aide={
             stockageActif
-              ? 'La première photo devient la vignette de la boutique. Vous pourrez en ajouter, en retirer et changer la principale depuis la fiche.'
+              ? 'Montrées quelle que soit la couleur choisie. Les photos propres à une couleur se déposent dans le cadre « Couleurs ».'
               : undefined
           }
         >

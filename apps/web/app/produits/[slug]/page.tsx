@@ -11,6 +11,7 @@ import { ProductGallery } from '@/components/catalog/product-gallery';
 import { ProductRail } from '@/components/catalog/product-grid';
 import { StarRating } from '@/components/catalog/star-rating';
 import { PriceTiers } from '@/components/catalog/price-tiers';
+import { SelectionVariante } from '@/components/catalog/selection-variante';
 import { VariantPicker } from '@/components/catalog/variant-picker';
 
 /**
@@ -126,8 +127,15 @@ export default async function ProductPage({ params }: PageProps) {
         ]}
       />
 
-      <div className="mt-6 grid gap-8 lg:grid-cols-2">
-        {/* ——— Galerie ———
+      {/* Le fournisseur enveloppe la galerie ET le sélecteur : ils sont frères
+          dans la mise en page, et seul un contexte posé au-dessus des deux peut
+          les accorder. La valeur initiale reprend la règle du sélecteur — la
+          première couleur DISPONIBLE — pour que la galerie parte sur la même. */}
+      <SelectionVariante
+        initial={(product.variants.find((v) => v.isAvailable) ?? product.variants[0])?.id ?? ''}
+      >
+        <div className="mt-6 grid gap-8 lg:grid-cols-2">
+          {/* ——— Galerie ———
             `min-w-0` EST INDISPENSABLE. Une case de grille refuse par défaut de
             devenir plus étroite que son contenu, et le contenu est ici une
             rangée de onze photos : la colonne se calait sur 784 px quelle que
@@ -146,63 +154,64 @@ export default async function ProductPage({ params }: PageProps) {
             en Safari, où `max-width` valait `none`. Le cas de l'écran bas est
             désormais traité par une requête média sur la hauteur, dans
             globals.css : une syntaxe qu'aucun navigateur ne peut mal lire. */}
-        <div className="mx-auto w-full max-w-[28rem] min-w-0 lg:mx-0 lg:max-w-none">
-          <ProductGallery images={product.images} name={product.name} />
-        </div>
-
-        {/* ——— Informations et achat ——— */}
-        <div className="flex flex-col gap-4">
-          <div>
-            {product.brandName ? (
-              <p className="text-content-muted text-xs tracking-wide uppercase">
-                {product.brandName}
-              </p>
-            ) : null}
-            <h1 className="text-content mt-1 text-xl font-bold sm:text-2xl">{product.name}</h1>
-
-            <div className="mt-2 flex flex-wrap items-center gap-3">
-              <StarRating value={product.ratingAvg} count={product.ratingCount} size="md" />
-              {product.salesCount > 0 ? (
-                <span className="text-content-muted text-xs">{product.salesCount} vendus</span>
-              ) : null}
-            </div>
+          <div className="mx-auto w-full max-w-[28rem] min-w-0 lg:mx-0 lg:max-w-none">
+            <ProductGallery images={product.images} name={product.name} />
           </div>
 
-          {/* La grille passe AVANT le choix de variante : elle repond a la
+          {/* ——— Informations et achat ——— */}
+          <div className="flex flex-col gap-4">
+            <div>
+              {product.brandName ? (
+                <p className="text-content-muted text-xs tracking-wide uppercase">
+                  {product.brandName}
+                </p>
+              ) : null}
+              <h1 className="text-content mt-1 text-xl font-bold sm:text-2xl">{product.name}</h1>
+
+              <div className="mt-2 flex flex-wrap items-center gap-3">
+                <StarRating value={product.ratingAvg} count={product.ratingCount} size="md" />
+                {product.salesCount > 0 ? (
+                  <span className="text-content-muted text-xs">{product.salesCount} vendus</span>
+                ) : null}
+              </div>
+            </div>
+
+            {/* La grille passe AVANT le choix de variante : elle repond a la
               question du prix, que le client se pose avant celle de la couleur. */}
-          <PriceTiers tiers={product.priceTiers} />
+            <PriceTiers tiers={product.priceTiers} />
 
-          <VariantPicker variants={product.variants} optionNames={product.optionNames} />
+            <VariantPicker variants={product.variants} optionNames={product.optionNames} />
 
-          {/* ——— Réassurance ——— */}
-          <ul className="border-border grid gap-3 border-t pt-4 text-sm sm:grid-cols-3">
-            <li className="flex items-start gap-2">
-              <ShieldCheck className="text-gold-600 mt-0.5 h-5 w-5 shrink-0" aria-hidden />
-              <span className="text-content-muted">
-                Paiement sécurisé
-                <br />
-                MoMo, Airtel, carte
-              </span>
-            </li>
-            <li className="flex items-start gap-2">
-              <Truck className="text-gold-600 mt-0.5 h-5 w-5 shrink-0" aria-hidden />
-              <span className="text-content-muted">
-                Livraison gratuite
-                <br />
-                partout en Afrique
-              </span>
-            </li>
-            <li className="flex items-start gap-2">
-              <RotateCcw className="text-gold-600 mt-0.5 h-5 w-5 shrink-0" aria-hidden />
-              <span className="text-content-muted">
-                Remboursement
-                <br />
-                si non conforme
-              </span>
-            </li>
-          </ul>
+            {/* ——— Réassurance ——— */}
+            <ul className="border-border grid gap-3 border-t pt-4 text-sm sm:grid-cols-3">
+              <li className="flex items-start gap-2">
+                <ShieldCheck className="text-gold-600 mt-0.5 h-5 w-5 shrink-0" aria-hidden />
+                <span className="text-content-muted">
+                  Paiement sécurisé
+                  <br />
+                  MoMo, Airtel, carte
+                </span>
+              </li>
+              <li className="flex items-start gap-2">
+                <Truck className="text-gold-600 mt-0.5 h-5 w-5 shrink-0" aria-hidden />
+                <span className="text-content-muted">
+                  Livraison gratuite
+                  <br />
+                  partout en Afrique
+                </span>
+              </li>
+              <li className="flex items-start gap-2">
+                <RotateCcw className="text-gold-600 mt-0.5 h-5 w-5 shrink-0" aria-hidden />
+                <span className="text-content-muted">
+                  Remboursement
+                  <br />
+                  si non conforme
+                </span>
+              </li>
+            </ul>
+          </div>
         </div>
-      </div>
+      </SelectionVariante>
 
       {/* ——— Description ——— */}
       {product.description ? (

@@ -1,11 +1,12 @@
 'use client';
 
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 
 import type { ProductImageView } from '@beralshopp/core';
 
 import { ProductImage } from './product-image';
+import { useSelectionVariante } from './selection-variante';
 
 /**
  * Galerie d'une fiche produit.
@@ -29,7 +30,7 @@ import { ProductImage } from './product-image';
  */
 
 export function ProductGallery({
-  images,
+  images: toutes,
   name,
 }: {
   readonly images: readonly ProductImageView[];
@@ -37,6 +38,25 @@ export function ProductGallery({
 }) {
   const piste = useRef<HTMLUListElement>(null);
   const [courante, setCourante] = useState(0);
+
+  /**
+   * PHOTOS DE LA COULEUR CHOISIE, puis photos communes.
+   *
+   * On photographie un article couleur par couleur : le modèle blanc et le
+   * modèle noir n'ont rien à voir à l'écran. Montrer les deux à la suite
+   * obligeait le client à faire défiler des photos qui ne correspondent pas à
+   * ce qu'il vient de choisir.
+   *
+   * Repli sur la totalité quand la couleur n'a pas ses propres photos : mieux
+   * vaut des images génériques qu'une galerie vide.
+   */
+  const selection = useSelectionVariante();
+  const images = useMemo(() => {
+    if (!selection) return toutes;
+    const propres = toutes.filter((i) => i.variantId === selection.variantId);
+    if (propres.length === 0) return toutes;
+    return [...propres, ...toutes.filter((i) => i.variantId === null)];
+  }, [toutes, selection]);
 
   /* La position vient du défilement lui-même, jamais d'un état qu'on
      maintiendrait en parallèle : le doigt peut s'arrêter entre deux photos, et
@@ -54,6 +74,17 @@ export function ProductGallery({
     el.addEventListener('scroll', relirePosition, { passive: true });
     return () => el.removeEventListener('scroll', relirePosition);
   }, [relirePosition]);
+
+  /* Changer de couleur remet la galerie à la première photo. Sans cela, on
+     restait sur la position précédente — la sixième photo d'une série qui n'en
+     compte que trois, donc un cadre vide. */
+  useEffect(() => {
+    const el = piste.current;
+    /* Aucun `setCourante` ici : remettre `scrollLeft` a zero declenche
+       l evenement de defilement, qui met deja le compteur a jour. Le poser aussi
+       dans l effet provoquerait un rendu en cascade pour rien. */
+    if (el) el.scrollLeft = 0;
+  }, [selection?.variantId]);
 
   const allerA = useCallback((index: number) => {
     const el = piste.current;

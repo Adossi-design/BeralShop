@@ -69,6 +69,7 @@ export function OrderDetail({ order }: { readonly order: OrderView }) {
                             altText: line.productName,
                             width: null,
                             height: null,
+                            variantId: null,
                           }
                         : null
                     }

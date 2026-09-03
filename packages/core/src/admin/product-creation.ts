@@ -33,7 +33,20 @@ export interface CreationProduitInput {
 }
 
 export type ResultatCreation =
-  | { readonly ok: true; readonly productId: string; readonly slug: string }
+  | {
+      readonly ok: true;
+      readonly productId: string;
+      readonly slug: string;
+      /**
+       * Déclinaisons créées, dans l'ordre des couleurs saisies.
+       *
+       * Rendues à l'appelant pour qu'il puisse rattacher à chacune SES photos.
+       * Les retrouver après coup par une requête obligerait à réassocier des
+       * variantes à des couleurs par leur nom — fragile dès qu'une teinte
+       * s'appelle « Bleu » et une autre « Bleu nuit ».
+       */
+      readonly variants: readonly { readonly id: string; readonly couleur: string | null }[];
+    }
   | { readonly ok: false; readonly champ?: string; readonly message: string };
 
 /**
@@ -219,8 +232,29 @@ export async function creerProduit(input: CreationProduitInput): Promise<Resulta
       },
       variants: { create: variantes },
     },
-    select: { id: true, slug: true },
+    select: {
+      id: true,
+      slug: true,
+      variants: { select: { id: true, options: true }, orderBy: { sku: 'asc' } },
+    },
   });
 
-  return { ok: true, productId: produit.id, slug: produit.slug };
+  /* L'ordre de création n'est pas celui de la requête : on réassocie par la
+     couleur, en conservant l'ordre de saisie du propriétaire. */
+  const parCouleur = new Map(
+    produit.variants.map((v) => [
+      String((v.options as Record<string, unknown>)['couleur'] ?? ''),
+      v.id,
+    ]),
+  );
+
+  return {
+    ok: true,
+    productId: produit.id,
+    slug: produit.slug,
+    variants:
+      couleurs.length > 0
+        ? couleurs.map((couleur) => ({ id: parCouleur.get(couleur) ?? '', couleur }))
+        : produit.variants.map((v) => ({ id: v.id, couleur: null })),
+  };
 }

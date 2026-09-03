@@ -75,7 +75,13 @@ function Line({ line }: { readonly line: CartLineView }) {
         <ProductImage
           image={
             line.imageUrl
-              ? { url: line.imageUrl, altText: line.productName, width: null, height: null }
+              ? {
+                  url: line.imageUrl,
+                  altText: line.productName,
+                  width: null,
+                  height: null,
+                  variantId: null,
+                }
               : null
           }
           name={line.productName}

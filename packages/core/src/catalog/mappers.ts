@@ -32,6 +32,7 @@ interface ImageRow {
   isPrimary: boolean;
   width: number | null;
   height: number | null;
+  variantId?: string | null;
 }
 
 interface VariantRow {
@@ -95,6 +96,7 @@ function mapImage(row: ImageRow, fallbackAlt: string): ProductImageView {
     altText: row.altText ?? fallbackAlt,
     width: row.width,
     height: row.height,
+    variantId: row.variantId ?? null,
   };
 }
 
