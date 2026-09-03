@@ -293,8 +293,20 @@ export async function creerProduitAction(
   /* « Noir, Blanc, Orange » → une variante par teinte. Le point-virgule est
      accepté autant que la virgule : c'est le séparateur que produisent les
      claviers de téléphone en français. */
-  const couleurs = String(formData.get('couleurs') ?? '')
-    .split(/[,;\n]/)
+  /**
+   * UNE ENTRÉE DE FORMULAIRE PAR COULEUR.
+   *
+   * Le formulaire pose un champ caché pour chacune : il n'y a plus rien à
+   * redécouper ici, et une couleur dont le nom contiendrait une virgule ne se
+   * casse plus en deux.
+   *
+   * Le découpage reste en second rideau, pour rattraper une saisie collée
+   * telle quelle — « Noir, Blanc, Orange » dans un seul champ — sans laquelle
+   * les trois teintes n'en formeraient qu'une, au nom absurde.
+   */
+  const couleurs = formData
+    .getAll('couleurs')
+    .flatMap((v) => String(v).split(/[,;\n]/))
     .map((c) => c.trim())
     .filter((c) => c.length > 0);
 
@@ -317,7 +329,7 @@ export async function creerProduitAction(
         description: String(formData.get('description') ?? ''),
         prix: String(formData.get('prix') ?? ''),
         stock: String(formData.get('stock') ?? ''),
-        couleurs: String(formData.get('couleurs') ?? ''),
+        couleurs: couleurs.join(', '),
         categoryId: categoryId ?? '',
       },
     };

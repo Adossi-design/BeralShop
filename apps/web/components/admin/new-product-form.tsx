@@ -6,6 +6,7 @@ import { useFormStatus } from 'react-dom';
 
 import { type EtatCreationProduit, creerProduitAction } from '@/lib/admin-actions';
 
+import { SaisieCouleurs } from './saisie-couleurs';
 import { SelecteurPhotos } from './selecteur-photos';
 
 /**
@@ -216,16 +217,9 @@ export function NewProductForm({
 
         <Section
           titre="Couleurs"
-          aide="Une variante sera créée pour chaque couleur, avec le stock indiqué ci-dessus. Laissez vide si le produit n’en a qu’une."
+          aide="Écrivez chaque couleur puis ajoutez-la. Vous pourrez en ajouter, en retirer et régler leur stock depuis la fiche du produit."
         >
-          <Champ
-            id="couleurs"
-            label="Couleurs proposées"
-            defaultValue={etat.valeurs?.['couleurs'] ?? ''}
-            exemple="Noir, Blanc, Orange"
-            aide="Séparez-les par une virgule. Vous pourrez en ajouter, en retirer et régler leur stock depuis la fiche."
-            erreur={etat.erreurs?.['couleurs']}
-          />
+          <SaisieCouleurs defaut={etat.valeurs?.['couleurs'] ?? ''} />
         </Section>
 
         <Section titre="Classement">
