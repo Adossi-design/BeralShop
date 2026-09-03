@@ -80,6 +80,7 @@ export function ProductImages({
           label="Photos du produit"
           existantes={images}
           productId={productId}
+          vitrineParDefaut={-1}
         />
 
         <div>

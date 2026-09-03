@@ -57,6 +57,7 @@ export function SelecteurPhotos({
   aide,
   existantes = [],
   productId,
+  vitrineParDefaut = 0,
 }: {
   /** Nom du champ envoyé au serveur. */
   readonly name: string;
@@ -66,9 +67,18 @@ export function SelecteurPhotos({
   readonly existantes?: readonly ImageProduit[];
   /** Nécessaire pour agir sur les photos déjà en ligne. */
   readonly productId?: string;
+  /**
+   * Rang de la photo mise en vitrine par défaut.
+   *
+   * 0 à la création — le produit n'a pas encore de devanture, il en faut bien
+   * une. −1 sur une fiche qui en possède déjà : ajouter une pièce jointe ne
+   * doit pas changer la vitrine sans qu'on l'ait demandé.
+   */
+  readonly vitrineParDefaut?: number;
 }) {
   const champ = useRef<HTMLInputElement>(null);
   const [choisies, setChoisies] = useState<readonly Choisie[]>([]);
+  const [vitrine, setVitrine] = useState(vitrineParDefaut);
 
   /**
    * Recopie la liste dans le champ, pour que le formulaire l'envoie.
@@ -128,6 +138,11 @@ export function SelecteurPhotos({
        restent affichées et en ont encore besoin. */
     if (partante) URL.revokeObjectURL(partante.apercu);
     const reste = choisies.filter((_, i) => i !== index);
+    /* Le rang de la vitrine désigne une POSITION : retirer une photo avant elle
+       décale tout ce qui suit. Sans ce recalcul, on mettrait en devanture une
+       autre photo que celle qui porte l'étoile à l'écran. */
+    if (vitrine === index) setVitrine(reste.length > 0 ? 0 : vitrineParDefaut);
+    else if (vitrine > index) setVitrine(vitrine - 1);
     recopier(reste);
     setChoisies(reste);
   }
@@ -135,6 +150,7 @@ export function SelecteurPhotos({
   function vider(): void {
     for (const c of choisies) URL.revokeObjectURL(c.apercu);
     if (champ.current) champ.current.value = '';
+    setVitrine(vitrineParDefaut);
     setChoisies([]);
   }
 
@@ -263,6 +279,28 @@ export function SelecteurPhotos({
                     className={`h-full w-full object-contain ${c.probleme ? 'opacity-40' : ''}`}
                   />
                 </div>
+                {/* CHOIX DE LA VITRINE. Elle était imposée : toujours la
+                    première photo envoyée. Or on téléverse dans l'ordre où les
+                    fichiers tombent, pas dans l'ordre où l'on veut être vu. */}
+                {c.probleme ? null : (
+                  <button
+                    type="button"
+                    onClick={() => setVitrine(index)}
+                    aria-pressed={vitrine === index}
+                    className={`flex w-full items-center justify-center gap-1 px-1 py-1 text-[0.6rem] font-semibold transition-colors ${
+                      vitrine === index
+                        ? 'bg-gold-400 text-ink-950'
+                        : 'text-content-muted hover:text-gold-700'
+                    }`}
+                  >
+                    <Star
+                      className={`h-2.5 w-2.5 ${vitrine === index ? 'fill-current' : ''}`}
+                      aria-hidden
+                    />
+                    {vitrine === index ? 'Vitrine' : 'Mettre en vitrine'}
+                  </button>
+                )}
+
                 <p className="text-content-muted truncate px-1.5 py-1 text-[0.65rem]">
                   {c.probleme ? (
                     <span className="text-danger-500">{c.probleme}</span>
@@ -273,6 +311,10 @@ export function SelecteurPhotos({
               </li>
             ))}
           </ul>
+
+          {/* Le rang voyage avec le formulaire : le serveur ne peut pas
+              deviner laquelle des photos porte l'étoile à l'écran. */}
+          <input type="hidden" name={`${name}Vitrine`} value={vitrine} />
 
           <div className="mt-2 flex flex-wrap items-center justify-between gap-2">
             <p className="text-content-muted text-xs">

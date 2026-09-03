@@ -184,18 +184,27 @@ export async function televerserImagesAction(
 
   const altText = String(formData.get('altText') ?? '');
 
+  const rangVitrine = Number(formData.get('fichiersVitrine') ?? -1);
+
   let ajoutees = 0;
+  let idVitrine: string | null = null;
   const echecs: string[] = [];
 
-  for (const fichier of reels) {
+  for (const [rang, fichier] of reels.entries()) {
     const depot = await televerserImage(fichier, `produits/${productId}`);
     if (!depot.ok) {
       echecs.push(`${fichier.name} — ${depot.message}`);
       continue;
     }
-    await ajouterImage(productId, depot.url, altText);
+    const image = await ajouterImage(productId, depot.url, altText);
+    if (rang === rangVitrine) idVitrine = image.id;
     ajoutees += 1;
   }
+
+  /* Ici le rang par défaut est -1, et non 0 : sur une fiche qui possède déjà
+     des photos, envoyer une pièce jointe supplémentaire ne doit PAS changer la
+     devanture sans qu'on l'ait demandé. */
+  if (idVitrine) await definirImagePrincipale(productId, idVitrine);
 
   revalidatePath(`/admin/produits/${productId}`);
   // La boutique affiche ces images : sans cette invalidation, le propriétaire
@@ -279,6 +288,14 @@ export async function creerProduitAction(
   const stockSaisi = Number(String(formData.get('stock') ?? '0').replace(/\s/g, ''));
   const categoryId = String(formData.get('categoryId') ?? '') || null;
 
+  /* « Noir, Blanc, Orange » → une variante par teinte. Le point-virgule est
+     accepté autant que la virgule : c'est le séparateur que produisent les
+     claviers de téléphone en français. */
+  const couleurs = String(formData.get('couleurs') ?? '')
+    .split(/[,;\n]/)
+    .map((c) => c.trim())
+    .filter((c) => c.length > 0);
+
   const resultat = await creerProduit({
     sku: String(formData.get('sku') ?? ''),
     nom: String(formData.get('nom') ?? ''),
@@ -286,6 +303,7 @@ export async function creerProduitAction(
     prixMinor: Number.isFinite(prixSaisi) ? Math.round(prixSaisi) : -1,
     stockInitial: Number.isFinite(stockSaisi) ? Math.round(stockSaisi) : -1,
     categoryId,
+    couleurs,
   });
 
   if (!resultat.ok) {
@@ -297,6 +315,7 @@ export async function creerProduitAction(
         description: String(formData.get('description') ?? ''),
         prix: String(formData.get('prix') ?? ''),
         stock: String(formData.get('stock') ?? ''),
+        couleurs: String(formData.get('couleurs') ?? ''),
         categoryId: categoryId ?? '',
       },
     };
@@ -313,17 +332,34 @@ export async function creerProduitAction(
     .getAll('photos')
     .filter((f): f is File => f instanceof File && f.size > 0);
 
+  /**
+   * Rang de la photo choisie pour la vitrine.
+   *
+   * Sans ce choix, la vitrine était TOUJOURS la première photo envoyée. Or on
+   * téléverse dans l'ordre où les fichiers tombent, pas dans l'ordre où l'on
+   * veut être vu : la photo d'emballage se retrouvait en devanture pendant que
+   * la belle photo du produit dormait en troisième position.
+   */
+  const rangVitrine = Number(formData.get('photosVitrine') ?? 0);
+
   let echecs = 0;
+  let idVitrine: string | null = null;
+
   if (photos.length > 0 && stockageConfigure()) {
-    for (const photo of photos) {
+    for (const [rang, photo] of photos.entries()) {
       const depot = await televerserImage(photo, `produits/${resultat.productId}`);
       if (!depot.ok) {
         echecs += 1;
         continue;
       }
-      await ajouterImage(resultat.productId, depot.url, '');
+      const image = await ajouterImage(resultat.productId, depot.url, '');
+      if (rang === rangVitrine) idVitrine = image.id;
     }
   }
+
+  /* Posé APRÈS le dépôt de toutes les photos : la première déposée est
+     marquée d'office, et il faut donc corriger une fois l'ensemble en place. */
+  if (idVitrine) await definirImagePrincipale(resultat.productId, idVitrine);
 
   revalidatePath('/admin/produits');
   // La boutique affiche ces images : sans cette invalidation, le propriétaire

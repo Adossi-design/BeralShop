@@ -214,6 +214,20 @@ export function NewProductForm({
           </div>
         </Section>
 
+        <Section
+          titre="Couleurs"
+          aide="Une variante sera créée pour chaque couleur, avec le stock indiqué ci-dessus. Laissez vide si le produit n’en a qu’une."
+        >
+          <Champ
+            id="couleurs"
+            label="Couleurs proposées"
+            defaultValue={etat.valeurs?.['couleurs'] ?? ''}
+            exemple="Noir, Blanc, Orange"
+            aide="Séparez-les par une virgule. Vous pourrez en ajouter, en retirer et régler leur stock depuis la fiche."
+            erreur={etat.erreurs?.['couleurs']}
+          />
+        </Section>
+
         <Section titre="Classement">
           <div>
             <label htmlFor="categoryId" className="text-content block text-sm font-medium">

@@ -25,6 +25,11 @@ export interface CreationProduitInput {
   readonly prixMinor: number;
   readonly categoryId: string | null;
   readonly stockInitial: number;
+  /**
+   * Couleurs proposées. Une variante par couleur ; vide, le produit n'en a
+   * qu'une, sans option.
+   */
+  readonly couleurs?: readonly string[];
 }
 
 export type ResultatCreation =
@@ -164,6 +169,42 @@ export async function creerProduit(input: CreationProduitInput): Promise<Resulta
 
   const slug = await slugDisponible(versSlug(nom));
 
+  /**
+   * UNE VARIANTE PAR COULEUR, ou une seule variante sans option.
+   *
+   * Les couleurs se déclarent à la création parce que c'est là qu'on les
+   * connaît : on saisit un produit en le tenant en main. Les ajouter ensuite
+   * obligeait à créer le produit, ouvrir sa fiche, descendre jusqu'aux
+   * variantes, et répéter le formulaire autant de fois qu'il y a de teintes.
+   *
+   * Le stock initial vaut POUR CHAQUE couleur, et non partagé entre elles :
+   * on achète rarement dix pièces à répartir, on achète dix noires et dix
+   * blanches. Chaque variante reste modifiable ensuite.
+   */
+  const couleurs = [
+    ...new Set((input.couleurs ?? []).map((c) => c.trim()).filter((c) => c.length > 0)),
+  ].slice(0, 12);
+
+  const variantes =
+    couleurs.length > 0
+      ? couleurs.map((couleur) => ({
+          sku: `${sku}-${baseDepuisNom(couleur).slice(0, 8)}`,
+          options: { couleur },
+          stockQuantity: input.stockInitial,
+          reservedQuantity: 0,
+          isActive: true,
+        }))
+      : [
+          {
+            // Suffixe « -STD » : la variante par défaut d'un produit sans option.
+            sku: `${sku}-STD`,
+            options: {},
+            stockQuantity: input.stockInitial,
+            reservedQuantity: 0,
+            isActive: true,
+          },
+        ];
+
   const produit = await prisma.product.create({
     data: {
       sku,
@@ -176,18 +217,7 @@ export async function creerProduit(input: CreationProduitInput): Promise<Resulta
       translations: {
         create: [{ locale: 'fr', name: nom, description: input.description.trim() || null }],
       },
-      variants: {
-        create: [
-          {
-            // Suffixe « -STD » : la variante par défaut d'un produit sans option.
-            sku: `${sku}-STD`,
-            options: {},
-            stockQuantity: input.stockInitial,
-            reservedQuantity: 0,
-            isActive: true,
-          },
-        ],
-      },
+      variants: { create: variantes },
     },
     select: { id: true, slug: true },
   });
