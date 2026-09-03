@@ -3,6 +3,8 @@
 import { useState } from 'react';
 import { Plus, X } from 'lucide-react';
 
+import { teinteDe, teinteTresClaire } from '@beralshopp/shared';
+
 import { SelecteurPhotos } from './selecteur-photos';
 
 /**
@@ -31,6 +33,29 @@ import { SelecteurPhotos } from './selecteur-photos';
  * interception, taper « Noir » puis Entrée créait le produit — sans la couleur,
  * puisqu'elle n'avait pas encore été ajoutée.
  */
+
+/**
+ * Aperçu de la teinte, telle que la boutique l'affichera.
+ *
+ * Le propriétaire voit immédiatement si le nom qu'il a écrit est reconnu. Rien
+ * ne s'affiche quand il ne l'est pas — c'est le signal qu'il peut préciser le
+ * code lui-même, « Sable #d8c9a3 », plutôt que de découvrir un mot sans
+ * pastille une fois la fiche en ligne.
+ */
+function Pastille({ valeur }: { readonly valeur: string }) {
+  const teinte = teinteDe(valeur);
+  if (!teinte) return null;
+
+  return (
+    <span
+      aria-hidden
+      style={{ backgroundColor: teinte }}
+      className={`inline-block h-3.5 w-3.5 shrink-0 rounded-full ${
+        teinteTresClaire(teinte) ? 'border-border border' : ''
+      }`}
+    />
+  );
+}
 
 export function SaisieCouleurs({
   name = 'couleurs',
@@ -105,10 +130,11 @@ export function SaisieCouleurs({
           {couleurs.map((couleur, index) => (
             <li key={couleur} className="border-border rounded-card border p-3">
               <div className="flex items-center justify-between gap-3">
-                <span className="border-gold-300 bg-gold-50 text-content rounded-control inline-flex items-center border px-2.5 py-1 text-sm font-medium">
+                <span className="border-gold-300 bg-gold-50 text-content rounded-control inline-flex items-center gap-1.5 border px-2.5 py-1 text-sm font-medium">
                   {/* Un champ caché par couleur : le serveur lit la liste avec
                       `getAll`, sans avoir à redécouper quoi que ce soit. */}
                   <input type="hidden" name={name} value={couleur} />
+                  <Pastille valeur={couleur} />
                   {couleur}
                 </span>
                 <button
@@ -140,7 +166,8 @@ export function SaisieCouleurs({
       {couleurs.length > 0 ? (
         <p className="text-content-muted mt-2 text-xs">
           {couleurs.length} couleur{couleurs.length > 1 ? 's' : ''} — une déclinaison sera créée
-          pour chacune, avec le stock indiqué plus haut.
+          pour chacune, avec le stock indiqué plus haut. Une couleur sans pastille n’est pas
+          reconnue : ajoutez son code, par exemple « Sable #d8c9a3 ».
         </p>
       ) : null}
     </div>

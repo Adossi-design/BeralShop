@@ -4,6 +4,7 @@ import { useMemo, useState } from 'react';
 import { Check, Minus, Plus } from 'lucide-react';
 
 import type { VariantView } from '@beralshopp/core';
+import { teinteDe, teinteTresClaire } from '@beralshopp/shared';
 
 import { AddToCart } from './add-to-cart';
 import { useSelectionVariante } from './selection-variante';
@@ -94,6 +95,7 @@ export function VariantPicker({ variants, optionNames }: VariantPickerProps) {
               const candidate = variantFor(name, value);
               const isSelected = selected.options[name] === value;
               const isUnavailable = !candidate || !candidate.isAvailable;
+              const teinte = teinteDe(value);
 
               return (
                 <button
@@ -114,6 +116,25 @@ export function VariantPicker({ variants, optionNames }: VariantPickerProps) {
                   } ${isUnavailable ? 'opacity-45' : ''} disabled:cursor-not-allowed`}
                 >
                   {isSelected ? <Check className="me-1 inline h-3.5 w-3.5" aria-hidden /> : null}
+                  {/* PASTILLE DE COULEUR, déduite du nom.
+
+                      Photographier un article dans chacune de ses teintes prend
+                      un temps que personne n'a. Sans photo, le client lisait
+                      « Bordeaux » et devait l'imaginer. La pastille annonce la
+                      couleur sans prétendre montrer la marchandise — elle ne
+                      recolore rien, elle nomme.
+
+                      Absente si la teinte est inconnue : mieux vaut le mot seul
+                      qu'une couleur inventée. */}
+                  {teinte ? (
+                    <span
+                      aria-hidden
+                      style={{ backgroundColor: teinte }}
+                      className={`me-1.5 inline-block h-3.5 w-3.5 rounded-full align-[-2px] ${
+                        teinteTresClaire(teinte) ? 'border-border border' : ''
+                      }`}
+                    />
+                  ) : null}
                   {value}
                   {isUnavailable ? (
                     <span className="text-content-muted ms-1 text-xs">(épuisé)</span>

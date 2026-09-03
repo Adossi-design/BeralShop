@@ -1,4 +1,5 @@
 export * from './config/boutique.ts';
+export * from './config/couleurs.ts';
 export * from './config/medias.ts';
 export * from './money/index.ts';
 export * from './orders/index.ts';
